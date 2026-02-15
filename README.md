@@ -72,6 +72,14 @@ cd /path/to/your/project
 run install          # 交互式选择 IDE，一键配置
 ```
 
+> **macOS 用户注意**：
+> - 遇到 `externally-managed-environment` 错误，加 `--break-system-packages`
+> - 遇到 `enable_load_extension` 错误，说明当前 Python 不支持 SQLite 扩展加载（macOS 自带 Python 和 python.org 官方安装包均不支持），请改用 Homebrew Python：
+>   ```bash
+>   brew install python
+>   /opt/homebrew/bin/python3 -m pip install aivectormemory
+>   ```
+
 ### 方式二：uvx 运行（零安装）
 
 ```bash

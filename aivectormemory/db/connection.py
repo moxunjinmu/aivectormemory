@@ -18,9 +18,20 @@ class ConnectionManager:
         conn = sqlite3.connect(str(self._db_path))
         conn.row_factory = sqlite3.Row
         conn.execute("PRAGMA journal_mode=WAL")
-        conn.enable_load_extension(True)
-        sqlite_vec.load(conn)
-        conn.enable_load_extension(False)
+        try:
+            conn.enable_load_extension(True)
+            sqlite_vec.load(conn)
+            conn.enable_load_extension(False)
+        except AttributeError:
+            conn.close()
+            raise RuntimeError(
+                "SQLite 扩展加载不可用。\n"
+                "macOS 自带的 Python 和 python.org 官方安装包不支持 SQLite 扩展加载。\n"
+                "请使用 Homebrew Python：\n"
+                "  brew install python\n"
+                "  /opt/homebrew/bin/python3 -m pip install aivectormemory\n"
+                "详见：https://alexgarcia.xyz/sqlite-vec/python.html"
+            )
         return conn
 
     @property
