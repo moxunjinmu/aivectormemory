@@ -73,6 +73,7 @@
 
 ```bash
 pip install aivectormemory
+pip install --upgrade aivectormemory  # 升级到最新版
 cd /path/to/your/project
 run install          # 交互式选择 IDE，一键配置
 ```

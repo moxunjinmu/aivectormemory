@@ -72,6 +72,7 @@
 
 ```bash
 pip install aivectormemory
+pip install --upgrade aivectormemory  # 最新版にアップグレード
 cd /path/to/your/project
 run install          # 対話式IDE選択、ワンクリック設定
 ```
