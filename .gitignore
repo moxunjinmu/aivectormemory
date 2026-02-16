@@ -21,6 +21,8 @@ build/
 .mcp.json
 CLAUDE.md
 CLAUDE.md.bak
+AGENTS.md
+opencode.json
 
 # OS
 .DS_Store

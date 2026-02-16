@@ -350,6 +350,15 @@ body {
 .project-card__icon svg { width: 20px; height: 20px; color: #60A5FA; }
 .project-card__name { font-family: 'JetBrains Mono', monospace; font-size: 15px; font-weight: 600; color: #F1F5F9; margin-bottom: 6px; }
 .project-card__path { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #475569; margin-bottom: 22px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.project-card__delete {
+  position: absolute; top: 28px; right: 24px; z-index: 2;
+  width: 28px; height: 28px; border: none; border-radius: 6px;
+  background: transparent; color: #64748B; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; transition: all 0.15s ease;
+}
+.project-card:hover .project-card__delete { opacity: 1; }
+.project-card__delete:hover { background: rgba(239,68,68,0.15); color: #F87171; }
 .project-card__stats { display: flex; border-top: 1px solid rgba(51,65,85,0.5); padding-top: 18px; }
 .project-card__stat { flex: 1; text-align: center; position: relative; }
 .project-card__stat + .project-card__stat::before { content: ''; position: absolute; left: 0; top: 2px; bottom: 2px; width: 1px; background: rgba(51,65,85,0.5); }

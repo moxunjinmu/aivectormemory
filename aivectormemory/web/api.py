@@ -53,6 +53,12 @@ def handle_api_request(handler, cm):
         elif method == "DELETE":
             return _json_response(handler, delete_memory(cm, mid, pdir))
 
+    if path.startswith("/api/projects/") and method == "DELETE":
+        proj_dir = "/".join(path.split("/")[3:])
+        from urllib.parse import unquote
+        proj_dir = unquote(proj_dir)
+        return _json_response(handler, delete_project(cm, proj_dir))
+
     if path.startswith("/api/issues/") and len(path.split("/")) == 4:
         iid = int(path.split("/")[3])
         if method == "PUT":
@@ -322,6 +328,22 @@ def get_projects(cm):
             "tags": len(info["tags"]),
         })
     return {"projects": result}
+
+def delete_project(cm, project_dir):
+    if not project_dir or project_dir == USER_SCOPE_DIR:
+        return {"success": False, "error": "Cannot delete global scope"}
+    conn = cm.conn
+    mem_ids = [r["id"] for r in conn.execute("SELECT id FROM memories WHERE project_dir = ?", (project_dir,)).fetchall()]
+    if mem_ids:
+        placeholders = ",".join("?" * len(mem_ids))
+        conn.execute(f"DELETE FROM vec_memories WHERE id IN ({placeholders})", mem_ids)
+        conn.execute(f"DELETE FROM memories WHERE id IN ({placeholders})", mem_ids)
+    conn.execute("DELETE FROM issues WHERE project_dir = ?", (project_dir,))
+    conn.execute("DELETE FROM issues_archive WHERE project_dir = ?", (project_dir,))
+    conn.execute("DELETE FROM session_state WHERE project_dir = ?", (project_dir,))
+    conn.commit()
+    return {"success": True, "deleted_memories": len(mem_ids)}
+
 
 
 def export_memories(cm, params, pdir):

@@ -626,6 +626,9 @@ function loadProjects() {
     const grid = $('#project-grid');
     grid.innerHTML = data.projects.map((p, i) => `
       <div class="project-card" data-project="${escHtml(p.project_dir)}" style="animation-delay:${i * 0.05}s">
+        <button class="project-card__delete" onclick="event.stopPropagation();deleteProject('${escHtml(p.project_dir)}','${escHtml(p.name)}')" title="${t('deleteProjectBtn')}">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+        </button>
         <div class="project-card__icon">${folderIcon}</div>
         <div class="project-card__name">${escHtml(p.name)}</div>
         <div class="project-card__path">${escHtml(p.project_dir)}</div>
@@ -666,6 +669,14 @@ function exitProject() {
   $('#sidebar-project-info').style.display = 'none';
   loadProjects();
 }
+
+window.deleteProject = function(projectDir, name) {
+  if (!confirm(t('confirmDeleteProject').replace('{name}', name))) return;
+  fetch('/api/projects/' + encodeURIComponent(projectDir), { method: 'DELETE' })
+    .then(r => r.json())
+    .then(d => { if (d.success) loadProjects(); else alert(d.error || 'Failed'); });
+};
+
 
 $('#sidebar-project-info')?.addEventListener('click', exitProject);
 

@@ -78,6 +78,8 @@ const messages = {
     issueList: '问题列表',
     projects: '个项目',
     footer: '~/.aivectormemory/memory.db · {n} 个项目',
+    confirmDeleteProject: '确认删除项目 "{name}" 的所有数据？\n（全局记忆不会被删除）',
+    deleteProjectBtn: '删除项目',
   },
   'zh-TW': {
     selectProject: '選擇專案',
@@ -148,6 +150,8 @@ const messages = {
     issueList: '問題列表',
     projects: '個專案',
     footer: '~/.aivectormemory/memory.db · {n} 個專案',
+    confirmDeleteProject: '確認刪除專案 "{name}" 的所有資料？\n（全域記憶不會被刪除）',
+    deleteProjectBtn: '刪除專案',
   },
   'en': {
     selectProject: 'Select Project',
@@ -218,6 +222,8 @@ const messages = {
     issueList: 'Issue List',
     projects: 'projects',
     footer: '~/.aivectormemory/memory.db · {n} projects',
+    confirmDeleteProject: 'Delete all data for project "{name}"?\n(Global memories will not be deleted)',
+    deleteProjectBtn: 'Delete Project',
   },
   'es': {
     selectProject: 'Seleccionar Proyecto',
@@ -288,6 +294,8 @@ const messages = {
     issueList: 'Lista de Problemas',
     projects: 'proyectos',
     footer: '~/.aivectormemory/memory.db · {n} proyectos',
+    confirmDeleteProject: '¿Eliminar todos los datos del proyecto "{name}"?\n(Las memorias globales no se eliminarán)',
+    deleteProjectBtn: 'Eliminar Proyecto',
   },
   'de': {
     selectProject: 'Projekt Auswählen',
@@ -358,6 +366,8 @@ const messages = {
     issueList: 'Problemliste',
     projects: 'Projekte',
     footer: '~/.aivectormemory/memory.db · {n} Projekte',
+    confirmDeleteProject: 'Alle Daten des Projekts "{name}" löschen?\n(Globale Erinnerungen werden nicht gelöscht)',
+    deleteProjectBtn: 'Projekt Löschen',
   },
   'fr': {
     selectProject: 'Sélectionner un Projet',
@@ -428,6 +438,8 @@ const messages = {
     issueList: 'Liste des Problèmes',
     projects: 'projets',
     footer: '~/.aivectormemory/memory.db · {n} projets',
+    confirmDeleteProject: 'Supprimer toutes les données du projet "{name}" ?\n(Les mémoires globales ne seront pas supprimées)',
+    deleteProjectBtn: 'Supprimer le Projet',
   },
   'ja': {
     selectProject: 'プロジェクト選択',
@@ -498,6 +510,8 @@ const messages = {
     issueList: '問題一覧',
     projects: 'プロジェクト',
     footer: '~/.aivectormemory/memory.db · {n} プロジェクト',
+    confirmDeleteProject: 'プロジェクト "{name}" のすべてのデータを削除しますか？\n（グローバル記憶は削除されません）',
+    deleteProjectBtn: 'プロジェクト削除',
   },
 };
 
