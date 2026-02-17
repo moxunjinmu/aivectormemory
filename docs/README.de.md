@@ -255,6 +255,8 @@ Zu Beginn jeder neuen Sitzung in dieser Reihenfolge ausführen:
 status-Felder: is_blocked, block_reason, current_task, next_step,
 progress[], recent_changes[], pending[]
 
+⚠️ **Blockierungsschutz**: Wenn Sie einen Plan zur Bestätigung vorschlagen oder eine Korrektur zur Überprüfung abschließen, rufen Sie immer gleichzeitig `status` auf, um `is_blocked: true` zu setzen. Dies verhindert, dass eine neue Sitzung nach dem Kontexttransfer fälschlicherweise „bestätigt" annimmt und eigenständig ausführt.
+
 ## Problemverfolgung
 
 1. `track create` → Problem erfassen

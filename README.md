@@ -264,6 +264,8 @@ AIVectorMemory 是存储层，通过 Steering 规则告诉 AI **何时、如何*
 status 字段：is_blocked, block_reason, current_task, next_step,
 progress[], recent_changes[], pending[]
 
+⚠️ **阻塞防护**：提出方案等待确认、修复完成等待验证时，必须同步调用 `status` 设置 `is_blocked: true`。这可以防止会话转移时新会话误判为"已确认"而擅自执行。
+
 ## 问题追踪
 
 1. `track create` → 记录问题

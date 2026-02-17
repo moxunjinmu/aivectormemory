@@ -1,6 +1,7 @@
 """aivectormemory install - 交互式为当前项目配置 MCP + Steering 规则"""
 import json
 import platform
+import sys
 from pathlib import Path
 
 # (IDE名, MCP配置路径, MCP格式, 是否全局, Steering路径, Steering写入方式, Hooks目录)
@@ -31,7 +32,7 @@ IDES = [
 ]
 
 RUNNERS = [
-    ("run（pip/pipx 安装）", lambda pdir: ("run", ["--project-dir", pdir])),
+    ("python -m aivectormemory（pip/pipx 安装）", lambda pdir: (sys.executable, ["-m", "aivectormemory", "--project-dir", pdir])),
     ("uvx aivectormemory（无需安装）", lambda pdir: ("uvx", ["aivectormemory@latest", "--project-dir", pdir])),
 ]
 
@@ -183,10 +184,11 @@ STEERING_CONTENT = """# AIVectorMemory - 跨会话持久记忆
 **⚠️ 禁止猜测用户意图**：
 - "用户倾向"、"用户选择"、"用户确认" → 必须有用户明确表态才能记录
 
-**何时设置阻塞**（`is_blocked: true`）：
-- 修复完成等用户验证时
-- 方案待用户确认时
-- 需要用户决策时
+**⚠️ 提出方案/修复完成时，必须同步设置阻塞**：
+- 向用户提出方案并等待确认 → 必须立即 `status({ is_blocked: true, block_reason: "方案待用户确认" })`
+- 修复完成等用户验证 → 必须立即 `status({ is_blocked: true, block_reason: "修复完成等待验证" })`
+- 需要用户决策 → 必须立即 `status({ is_blocked: true, block_reason: "需要用户决策" })`
+- **禁止只口头说"等待确认"而不设阻塞，否则会话转移后新会话会误判为已确认**
 
 **何时清除阻塞**（`is_blocked: false`）：
 - 用户确认验证通过
@@ -621,7 +623,13 @@ def _claude_desktop_path() -> Path | None:
 def _build_config(cmd: str, args: list[str], fmt: str) -> dict:
     if fmt == "opencode":
         return {"type": "local", "command": [cmd] + args, "enabled": True}
-    return {"command": cmd, "args": args}
+    return {
+        "command": cmd,
+        "args": args,
+        "env": {"HF_ENDPOINT": "https://hf-mirror.com"},
+        "disabled": False,
+        "autoApprove": ["remember", "recall", "forget", "status", "track", "digest", "auto_save"],
+    }
 
 
 def _merge_config(filepath: Path, key: str, server_name: str, server_config: dict) -> bool:

@@ -255,6 +255,8 @@ AIVectorMemoryはストレージ層です。Steeringルールを使ってAIに**
 statusフィールド：is_blocked, block_reason, current_task, next_step,
 progress[], recent_changes[], pending[]
 
+⚠️ **ブロッキング保護**：プラン提案で確認待ち、または修正完了で検証待ちの場合、必ず同時に `status` を呼び出して `is_blocked: true` を設定してください。これにより、コンテキスト転送後に新しいセッションが誤って「確認済み」と判断して自律的に実行することを防ぎます。
+
 ## 問題追跡
 
 1. `track create` → 問題を記録

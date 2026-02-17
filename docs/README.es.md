@@ -255,6 +255,8 @@ Al inicio de cada nueva sesión, ejecutar en orden:
 Campos de status: is_blocked, block_reason, current_task, next_step,
 progress[], recent_changes[], pending[]
 
+⚠️ **Protección de bloqueo**: Al proponer un plan en espera de confirmación o completar una corrección en espera de verificación, siempre llame a `status` para establecer `is_blocked: true` simultáneamente. Esto evita que una nueva sesión asuma erróneamente "confirmado" y ejecute de forma autónoma después de la transferencia de contexto.
+
 ## Seguimiento de Problemas
 
 1. `track create` → Registrar problema

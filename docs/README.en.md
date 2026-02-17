@@ -255,6 +255,8 @@ At the start of each new session, execute in order:
 status fields: is_blocked, block_reason, current_task, next_step,
 progress[], recent_changes[], pending[]
 
+⚠️ **Blocking safeguard**: When proposing a plan awaiting confirmation or completing a fix awaiting verification, always call `status` to set `is_blocked: true` simultaneously. This prevents a new session from mistakenly assuming "confirmed" and executing autonomously after context transfer.
+
 ## Issue Tracking
 
 1. `track create` → Record issue
