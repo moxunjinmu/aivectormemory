@@ -33,6 +33,7 @@ def handle_api_request(handler, cm):
             "/api/import": lambda: import_memories(handler, cm, pdir),
             "/api/search": lambda: search_memories(handler, cm, pdir),
             "/api/projects": lambda: add_project(handler, cm),
+            "/api/issues": lambda: post_issue(handler, cm, pdir),
         },
         "PUT": {
             "/api/status": lambda: put_status(handler, cm, pdir),
@@ -65,6 +66,8 @@ def handle_api_request(handler, cm):
         iid = int(path.split("/")[3])
         if method == "PUT":
             return _json_response(handler, put_issue(handler, cm, iid, pdir))
+        elif method == "DELETE":
+            return _json_response(handler, delete_issue(handler, cm, iid, pdir, params))
 
     route_fn = routes.get(method, {}).get(path)
     if route_fn:
@@ -179,8 +182,78 @@ def get_issues(cm, params, pdir):
 def put_issue(handler, cm, iid, pdir):
     body = _read_body(handler)
     repo = IssueRepo(cm.conn, pdir)
-    result = repo.update(iid, **body)
-    return result or {"error": "not found"}
+    old = repo.get_by_id(iid)
+    if not old:
+        return {"error": "not found"}
+    fields = {k: body[k] for k in ("title", "status", "content") if k in body}
+    result = repo.update(iid, **fields)
+    if not result:
+        return {"error": "not found"}
+    memory_id = result.get("memory_id", "")
+    if memory_id:
+        mem_repo = MemoryRepo(cm.conn, pdir)
+        mem = mem_repo.get_by_id(memory_id)
+        if mem:
+            tags = body.get("tags", [])
+            content = f"[问题追踪] #{result['issue_number']} {result['title']}\n{result.get('content', '')}"
+            now = mem_repo._now()
+            import json as _json
+            cm.conn.execute("UPDATE memories SET content=?, tags=?, updated_at=? WHERE id=?",
+                            (content, _json.dumps(tags, ensure_ascii=False), now, memory_id))
+            cm.conn.commit()
+    return result
+
+def post_issue(handler, cm, pdir):
+    body = _read_body(handler)
+    title = body.get("title", "").strip()
+    if not title:
+        return {"error": "title required"}
+    content = body.get("content", "")
+    tags = body.get("tags", [])
+    from datetime import date
+    d = body.get("date", date.today().isoformat())
+
+    repo = IssueRepo(cm.conn, pdir)
+    result = repo.create(d, title, content)
+    if result.get("deduplicated"):
+        return result
+
+    mem_repo = MemoryRepo(cm.conn, pdir)
+    engine = getattr(cm, "_embedding_engine", None)
+    memory_id = ""
+    if engine:
+        mem_content = f"[问题追踪] #{result['issue_number']} {title}\n{content}"
+        embedding = engine.encode(mem_content)
+        session_id = getattr(cm, "session_id", 0)
+        mem_result = mem_repo.insert(mem_content, tags, "project", session_id, embedding, dedup_threshold=0.99)
+        memory_id = mem_result.get("id", "")
+    repo.update(result["id"], memory_id=memory_id)
+    result["memory_id"] = memory_id
+    return result
+
+
+def delete_issue(handler, cm, iid, pdir, params):
+    action = params.get("action", ["delete"])[0]
+    repo = IssueRepo(cm.conn, pdir)
+    mem_repo = MemoryRepo(cm.conn, pdir)
+
+    if action == "archive":
+        result = repo.archive(iid)
+        if not result:
+            return {"error": "not found"}
+        return result
+
+    is_archived = params.get("archived", ["false"])[0] == "true"
+    if is_archived:
+        result = repo.delete_archived(iid)
+    else:
+        result = repo.delete(iid)
+    if not result:
+        return {"error": "not found"}
+    memory_id = result.get("memory_id", "")
+    if memory_id:
+        mem_repo.delete(memory_id)
+    return result
 
 
 def _merged_tag_counts(repo, pdir):

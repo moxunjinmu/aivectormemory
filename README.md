@@ -195,6 +195,8 @@ todos[]          待办事项
 
 ```bash
 run web --port 9080
+run web --port 9080 --quiet          # 屏蔽请求日志
+run web --port 9080 --quiet --daemon  # 后台运行（macOS/Linux）
 ```
 
 浏览器访问 `http://localhost:9080`
@@ -350,6 +352,8 @@ export HF_ENDPOINT=https://hf-mirror.com
 - 🔧 统计概览卡片点击跳转（点击记忆数/问题数直接弹窗查看）
 - 🏷️ 标签管理页区分项目/全局标签来源（📁/🌐 标记）
 - 🏷️ 项目卡片标签数合并全局记忆标签
+- 🔇 Web 看板 `--quiet` 参数屏蔽请求日志
+- 🔄 Web 看板 `--daemon` 参数后台运行（macOS/Linux）
 
 ### v0.2.0
 

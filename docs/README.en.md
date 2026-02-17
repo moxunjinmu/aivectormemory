@@ -186,6 +186,8 @@ Auto-categorizes, tags, and deduplicates at the end of each conversation.
 
 ```bash
 run web --port 9080
+run web --port 9080 --quiet          # Suppress request logs
+run web --port 9080 --quiet --daemon  # Run in background (macOS/Linux)
 ```
 
 Visit `http://localhost:9080` in your browser.
@@ -341,6 +343,8 @@ Or add env to MCP config:
 - 🔧 Stats card click-through (click memory/issue counts to view details)
 - 🏷️ Tag management page distinguishes project/global tag sources (📁/🌐 markers)
 - 🏷️ Project card tag counts now include global memory tags
+- 🔇 Web dashboard `--quiet` flag to suppress request logs
+- 🔄 Web dashboard `--daemon` flag for background execution (macOS/Linux)
 
 ### v0.2.0
 

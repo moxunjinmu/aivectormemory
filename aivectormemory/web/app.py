@@ -1,3 +1,4 @@
+import os
 import sys
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 from pathlib import Path
@@ -16,6 +17,7 @@ class NoFQDNHTTPServer(HTTPServer):
 class WebHandler(SimpleHTTPRequestHandler):
     cm = None
     auth_token = None
+    quiet = False
 
     def address_string(self):
         return self.client_address[0]
@@ -86,10 +88,12 @@ class WebHandler(SimpleHTTPRequestHandler):
         self.wfile.write(content)
 
     def log_message(self, format, *args):
+        if self.quiet:
+            return
         print(f"[aivectormemory-web] {args[0]}", file=sys.stderr)
 
 
-def run_web(project_dir: str | None = None, port: int = 9080, bind: str = "127.0.0.1", token: str | None = None):
+def run_web(project_dir: str | None = None, port: int = 9080, bind: str = "127.0.0.1", token: str | None = None, quiet: bool = False, daemon: bool = False):
     cm = ConnectionManager(project_dir=project_dir)
     init_db(cm.conn)
 
@@ -105,11 +109,27 @@ def run_web(project_dir: str | None = None, port: int = 9080, bind: str = "127.0
 
     WebHandler.cm = cm
     WebHandler.auth_token = token
+    WebHandler.quiet = quiet
 
     server = NoFQDNHTTPServer((bind, port), WebHandler)
     print(f"[aivectormemory] Web dashboard: http://{bind}:{port}", file=sys.stderr)
     if token:
         print(f"[aivectormemory] Token auth enabled", file=sys.stderr)
+
+    if daemon:
+        if not hasattr(os, "fork"):
+            print("[aivectormemory] --daemon not supported on Windows", file=sys.stderr)
+            sys.exit(1)
+        pid = os.fork()
+        if pid > 0:
+            print(f"[aivectormemory] Running in background (PID {pid})", file=sys.stderr)
+            sys.exit(0)
+        os.setsid()
+        sys.stdin.close()
+        devnull = open(os.devnull, "w")
+        sys.stdout = devnull
+        sys.stderr = devnull
+
     try:
         server.serve_forever()
     except KeyboardInterrupt:

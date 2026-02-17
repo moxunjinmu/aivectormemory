@@ -186,6 +186,8 @@ Catégorise, étiquette et déduplique automatiquement à la fin de chaque conve
 
 ```bash
 run web --port 9080
+run web --port 9080 --quiet          # Supprimer les logs de requêtes
+run web --port 9080 --quiet --daemon  # Exécuter en arrière-plan (macOS/Linux)
 ```
 
 Visitez `http://localhost:9080` dans votre navigateur.
@@ -341,6 +343,8 @@ Ou ajouter env dans la configuration MCP :
 - 🔧 Clic sur les cartes de statistiques (clic sur les compteurs mémoire/problèmes pour voir les détails)
 - 🏷️ Page de gestion des tags distingue les sources projet/global (marqueurs 📁/🌐)
 - 🏷️ Le nombre de tags des cartes projet inclut désormais les tags des mémoires globales
+- 🔇 Tableau de bord Web : paramètre `--quiet` pour supprimer les logs de requêtes
+- 🔄 Tableau de bord Web : paramètre `--daemon` pour exécution en arrière-plan (macOS/Linux)
 
 ### v0.2.0
 

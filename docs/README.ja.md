@@ -186,6 +186,8 @@ todos[]          未処理項目
 
 ```bash
 run web --port 9080
+run web --port 9080 --quiet          # リクエストログを非表示
+run web --port 9080 --quiet --daemon  # バックグラウンド実行（macOS/Linux）
 ```
 
 ブラウザで `http://localhost:9080` にアクセス。
@@ -341,6 +343,8 @@ export HF_ENDPOINT=https://hf-mirror.com
 - 🔧 統計カードクリックジャンプ（記憶数/問題数クリックで詳細表示）
 - 🏷️ タグ管理ページでプロジェクト/グローバルタグの出所を区別（📁/🌐 マーカー）
 - 🏷️ プロジェクトカードのタグ数にグローバル記憶のタグを統合
+- 🔇 Web ダッシュボード `--quiet` パラメータでリクエストログを非表示
+- 🔄 Web ダッシュボード `--daemon` パラメータでバックグラウンド実行（macOS/Linux）
 
 ### v0.2.0
 

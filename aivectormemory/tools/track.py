@@ -17,14 +17,14 @@ def handle_track(args, *, cm, **_):
         if not title:
             raise ValueError("title is required for create")
         d = args.get("date", today)
-        result = repo.create(d, title, args.get("content", ""))
+        result = repo.create(d, title, args.get("content", ""), args.get("memory_id", ""))
         return json.dumps(success_response(**result))
 
     elif action == "update":
         issue_id = args.get("issue_id")
         if not issue_id:
             raise ValueError("issue_id is required for update")
-        fields = {k: args[k] for k in ("title", "status", "content") if k in args}
+        fields = {k: args[k] for k in ("title", "status", "content", "memory_id") if k in args}
         result = repo.update(issue_id, **fields)
         if not result:
             raise ValueError(f"Issue {issue_id} not found")

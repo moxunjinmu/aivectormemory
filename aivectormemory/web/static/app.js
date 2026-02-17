@@ -63,11 +63,23 @@ function renderIssueCard(i) {
   const badge = isArchived ? 'muted' : (badgeMap[i.status] || 'muted');
   const label = i18n.status[isArchived ? 'archived' : i.status] || i.status;
   const meta = isArchived ? `${i.date} · ${t('archivedAt')} ${i.archived_at}` : `${i.date} · ${t('createdAt')} ${i.created_at}`;
+  const actions = isArchived
+    ? `<div class="issue-card__actions">
+        <button class="btn btn--ghost-danger btn--sm" onclick="event.stopPropagation();deleteIssueAction(${i.id}, true)">${t('delete')}</button>
+      </div>`
+    : `<div class="issue-card__actions">
+        <button class="btn btn--ghost btn--sm" onclick="event.stopPropagation();editIssueAction(${i.id})">${t('edit')}</button>
+        <button class="btn btn--ghost btn--sm" onclick="event.stopPropagation();archiveIssueAction(${i.id})" style="color:#FBBF24">${t('archiveIssue')}</button>
+        <button class="btn btn--ghost-danger btn--sm" onclick="event.stopPropagation();deleteIssueAction(${i.id}, false)">${t('delete')}</button>
+      </div>`;
   return `
-  <div class="issue-card" onclick="this.classList.toggle('expanded')">
+  <div class="issue-card" style="cursor:pointer" onclick="${isArchived ? `this.classList.toggle('expanded')` : `if(!event.target.closest('.issue-card__actions')){editIssueAction(${i.id})}else{this.classList.toggle('expanded')}`}">
     <div class="issue-card__header">
       <div class="issue-card__title"><span class="issue-card__number">#${i.issue_number}</span>${escHtml(i.title)}</div>
-      <span class="badge badge--${badge}">${escHtml(label)}</span>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span class="badge badge--${badge}">${escHtml(label)}</span>
+        ${actions}
+      </div>
     </div>
     ${i.content ? `<div class="issue-card__content">${escHtml(i.content)}</div>` : ''}
     <div class="issue-card__meta">${meta}</div>
@@ -77,7 +89,7 @@ function renderIssueCard(i) {
 
 function renderMemoryCard(m) {
   const tags = parseTags(m.tags);
-  return `<div class="memory-card">
+  return `<div class="memory-card" style="cursor:pointer" onclick="if(!event.target.closest('.memory-card__actions')){editMemory('${m.id}')}">
     <div class="memory-card__header">
       <div class="memory-card__id">${m.id}</div>
       <div class="memory-card__actions">
@@ -85,7 +97,7 @@ function renderMemoryCard(m) {
         <button class="btn btn--ghost-danger btn--sm" onclick="event.stopPropagation();deleteMemory('${m.id}')">${t('delete')}</button>
       </div>
     </div>
-    <div class="memory-card__content" onclick="this.classList.toggle('expanded')">${escHtml(m.content)}</div>
+    <div class="memory-card__content">${escHtml(m.content)}</div>
     <div class="memory-card__footer">
       <div class="memory-card__tags">${tags.map(tg => `<span class="tag">${escHtml(tg)}</span>`).join('')}</div>
       <div class="memory-card__time">${m.created_at || ''}</div>
@@ -493,6 +505,81 @@ $('#issue-date').value = new Date().toISOString().slice(0, 10);
 $('#issue-date').addEventListener('change', loadIssues);
 $('#issue-status-filter').addEventListener('change', loadIssues);
 
+$('#btn-add-issue')?.addEventListener('click', () => {
+  showModal(t('addIssue'), `
+    <div class="form-field"><label class="form-label">${t('issueTitle')}</label>
+      <input class="form-input" id="issue-title-input"></div>
+    <div class="form-field"><label class="form-label">${t('issueContent')}</label>
+      <textarea class="form-textarea" id="issue-content-input" style="min-height:120px"></textarea></div>
+    <div class="form-field"><label class="form-label">${t('issueTags')}</label>
+      <input class="form-input" id="issue-tags-input"></div>
+  `, async () => {
+    const title = $('#issue-title-input').value.trim();
+    if (!title) return;
+    const content = $('#issue-content-input').value;
+    const tags = $('#issue-tags-input').value.split(',').map(s => s.trim()).filter(Boolean);
+    const res = await api('issues', { method: 'POST', body: { title, content, tags } });
+    hideModal();
+    if (res.deduplicated) toast(t('issueDuplicated'), 'warning');
+    else toast(t('issueCreated'));
+    loadIssues();
+  });
+  setTimeout(() => { const inp = $('#issue-title-input'); inp && inp.focus(); }, 100);
+});
+
+window.editIssueAction = async (id) => {
+  const data = await api(`issues?status=pending`);
+  const all = [...(data.issues || [])];
+  const data2 = await api(`issues?status=in_progress`);
+  all.push(...(data2.issues || []));
+  const data3 = await api(`issues?status=completed`);
+  all.push(...(data3.issues || []));
+  const issue = all.find(i => i.id === id);
+  if (!issue) return;
+  showModal(t('editIssue'), `
+    <div class="form-field"><label class="form-label">${t('issueTitle')}</label>
+      <input class="form-input" id="edit-issue-title" value="${escHtml(issue.title)}"></div>
+    <div class="form-field"><label class="form-label">${t('allStatus')}</label>
+      <select class="filter-select" id="edit-issue-status" style="width:100%">
+        <option value="pending"${issue.status === 'pending' ? ' selected' : ''}>${t('status.pending')}</option>
+        <option value="in_progress"${issue.status === 'in_progress' ? ' selected' : ''}>${t('status.in_progress')}</option>
+        <option value="completed"${issue.status === 'completed' ? ' selected' : ''}>${t('status.completed')}</option>
+      </select></div>
+    <div class="form-field"><label class="form-label">${t('issueContent')}</label>
+      <textarea class="form-textarea" id="edit-issue-content" style="min-height:120px">${escHtml(issue.content || '')}</textarea></div>
+    <div class="form-field"><label class="form-label">${t('issueTags')}</label>
+      <input class="form-input" id="edit-issue-tags" value=""></div>
+  `, async () => {
+    const title = $('#edit-issue-title').value.trim();
+    if (!title) return;
+    const body = {
+      title,
+      status: $('#edit-issue-status').value,
+      content: $('#edit-issue-content').value,
+      tags: $('#edit-issue-tags').value.split(',').map(s => s.trim()).filter(Boolean),
+    };
+    await api(`issues/${id}`, { method: 'PUT', body });
+    hideModal();
+    toast(t('issueUpdated'));
+    loadIssues();
+  });
+};
+
+window.archiveIssueAction = async (id) => {
+  if (!confirm(t('confirmArchiveIssue'))) return;
+  await api(`issues/${id}?action=archive`, { method: 'DELETE' });
+  toast(t('issueArchived'));
+  loadIssues();
+};
+
+window.deleteIssueAction = async (id, isArchived) => {
+  if (!confirm(t('confirmDeleteIssue'))) return;
+  const url = isArchived ? `issues/${id}?action=delete&archived=true` : `issues/${id}?action=delete`;
+  await api(url, { method: 'DELETE' });
+  toast(t('issueDeleted'));
+  loadIssues();
+};
+
 let tagData = [], tagSelected = new Set();
 
 async function loadTags() {
@@ -537,6 +624,13 @@ function renderTagTable() {
   });
   tbody.querySelectorAll('.tag-delete').forEach(btn => {
     btn.addEventListener('click', () => deleteTagAction([btn.closest('tr').dataset.tag]));
+  });
+  tbody.querySelectorAll('tr[data-tag]').forEach(tr => {
+    tr.style.cursor = 'pointer';
+    tr.addEventListener('click', (e) => {
+      if (e.target.closest('.tag-cell__check, .tag-actions')) return;
+      renameTagAction(tr.dataset.tag);
+    });
   });
 }
 

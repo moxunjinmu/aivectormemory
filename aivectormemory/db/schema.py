@@ -98,6 +98,12 @@ def init_db(conn):
     state_cols = {row[1] for row in conn.execute("PRAGMA table_info(session_state)").fetchall()}
     if "last_session_id" not in state_cols:
         conn.execute("ALTER TABLE session_state ADD COLUMN last_session_id INTEGER NOT NULL DEFAULT 0")
+    # 迁移：issues 表加 memory_id 字段
+    if "memory_id" not in issue_cols:
+        conn.execute("ALTER TABLE issues ADD COLUMN memory_id TEXT NOT NULL DEFAULT ''")
+    archive_cols = {row[1] for row in conn.execute("PRAGMA table_info(issues_archive)").fetchall()}
+    if "memory_id" not in archive_cols:
+        conn.execute("ALTER TABLE issues_archive ADD COLUMN memory_id TEXT NOT NULL DEFAULT ''")
     # 迁移：user scope 记忆的 project_dir 从空字符串改为 @user@
     conn.execute(
         "UPDATE memories SET project_dir=? WHERE project_dir='' AND scope='user'",

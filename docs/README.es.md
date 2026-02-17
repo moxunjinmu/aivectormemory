@@ -186,6 +186,8 @@ Categoriza, etiqueta y deduplica automáticamente al final de cada conversación
 
 ```bash
 run web --port 9080
+run web --port 9080 --quiet          # Suprimir logs de solicitudes
+run web --port 9080 --quiet --daemon  # Ejecutar en segundo plano (macOS/Linux)
 ```
 
 Visita `http://localhost:9080` en tu navegador.
@@ -341,6 +343,8 @@ O agregar env en la configuración MCP:
 - 🔧 Clic en tarjetas de estadísticas (clic en conteos de memoria/problemas para ver detalles)
 - 🏷️ Página de gestión de etiquetas distingue origen proyecto/global (marcadores 📁/🌐)
 - 🏷️ Conteo de etiquetas en tarjetas de proyecto incluye etiquetas de memorias globales
+- 🔇 Panel Web: parámetro `--quiet` para suprimir logs de solicitudes
+- 🔄 Panel Web: parámetro `--daemon` para ejecución en segundo plano (macOS/Linux)
 
 ### v0.2.0
 

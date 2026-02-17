@@ -186,6 +186,8 @@ Kategorisiert, taggt und dedupliziert automatisch am Ende jeder Konversation.
 
 ```bash
 run web --port 9080
+run web --port 9080 --quiet          # Anfrage-Logs unterdrücken
+run web --port 9080 --quiet --daemon  # Im Hintergrund ausführen (macOS/Linux)
 ```
 
 Besuche `http://localhost:9080` im Browser.
@@ -341,6 +343,8 @@ Oder env in der MCP-Konfiguration hinzufügen:
 - 🔧 Statistik-Karten Klick-Navigation (Klick auf Erinnerungs-/Problemzähler für Details)
 - 🏷️ Tag-Verwaltungsseite unterscheidet Projekt-/Globale Tag-Quellen (📁/🌐 Markierungen)
 - 🏷️ Projekt-Karten Tag-Anzahl enthält jetzt globale Erinnerungs-Tags
+- 🔇 Web-Dashboard `--quiet` Parameter zum Unterdrücken von Anfrage-Logs
+- 🔄 Web-Dashboard `--daemon` Parameter für Hintergrundausführung (macOS/Linux)
 
 ### v0.2.0
 
