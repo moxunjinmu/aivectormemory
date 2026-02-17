@@ -332,6 +332,16 @@ export HF_ENDPOINT=https://hf-mirror.com
 
 ## 📋 更新日誌
 
+### v0.2.2
+
+- 🔇 Web 看板 `--quiet` 參數屏蔽請求日誌
+- 🔄 Web 看板 `--daemon` 參數背景執行（macOS/Linux）
+- 🔧 `run install` MCP 配置生成修復（sys.executable + 完整欄位）
+- 📋 問題追蹤增刪改歸檔（Web 看板新增/編輯/歸檔/刪除 + 記憶關聯）
+- 👆 所有列表頁點擊行任意位置彈出編輯彈窗（記憶/問題/標籤）
+- 🛡️ Hook 鏈式觸發防護（agentStop + promptSubmit 組合不再重複注入規則）
+- 🔒 會話延續/上下文轉移時阻塞規則強制生效（跨會話必須重新確認）
+
 ### v0.2.1
 
 - ➕ 看板前端新增專案（目錄瀏覽器 + 手動輸入）
@@ -343,8 +353,6 @@ export HF_ENDPOINT=https://hf-mirror.com
 - 🔧 統計概覽卡片點擊跳轉（點擊記憶數/問題數直接彈窗查看）
 - 🏷️ 標籤管理頁區分專案/全域標籤來源（📁/🌐 標記）
 - 🏷️ 專案卡片標籤數合併全域記憶標籤
-- 🔇 Web 看板 `--quiet` 參數屏蔽請求日誌
-- 🔄 Web 看板 `--daemon` 參數背景執行（macOS/Linux）
 
 ### v0.2.0
 

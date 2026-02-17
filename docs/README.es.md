@@ -332,6 +332,16 @@ O agregar env en la configuración MCP:
 
 ## 📋 Registro de Cambios
 
+### v0.2.2
+
+- 🔇 Panel Web: parámetro `--quiet` para suprimir logs de solicitudes
+- 🔄 Panel Web: parámetro `--daemon` para ejecución en segundo plano (macOS/Linux)
+- 🔧 Corrección de generación de configuración MCP en `run install` (sys.executable + campos completos)
+- 📋 Seguimiento de problemas CRUD y archivo (Panel Web agregar/editar/archivar/eliminar + asociación de memorias)
+- 👆 Clic en cualquier parte de la fila para abrir modal de edición (memorias/problemas/etiquetas)
+- 🛡️ Protección contra activación en cadena de Hooks (combinación agentStop + promptSubmit ya no duplica inyección de reglas)
+- 🔒 Reglas de bloqueo aplicadas en continuaciones de sesión/transferencias de contexto (requiere reconfirmación)
+
 ### v0.2.1
 
 - ➕ Agregar proyectos desde el panel Web (explorador de directorios + entrada manual)
@@ -343,8 +353,6 @@ O agregar env en la configuración MCP:
 - 🔧 Clic en tarjetas de estadísticas (clic en conteos de memoria/problemas para ver detalles)
 - 🏷️ Página de gestión de etiquetas distingue origen proyecto/global (marcadores 📁/🌐)
 - 🏷️ Conteo de etiquetas en tarjetas de proyecto incluye etiquetas de memorias globales
-- 🔇 Panel Web: parámetro `--quiet` para suprimir logs de solicitudes
-- 🔄 Panel Web: parámetro `--daemon` para ejecución en segundo plano (macOS/Linux)
 
 ### v0.2.0
 

@@ -332,6 +332,16 @@ Or add env to MCP config:
 
 ## 📋 Changelog
 
+### v0.2.2
+
+- 🔇 Web dashboard `--quiet` flag to suppress request logs
+- 🔄 Web dashboard `--daemon` flag for background execution (macOS/Linux)
+- 🔧 `run install` MCP config generation fix (sys.executable + complete fields)
+- 📋 Issue tracking CRUD & archive (Web dashboard add/edit/archive/delete + memory association)
+- 👆 Click anywhere on list row to open edit modal (memories/issues/tags)
+- 🛡️ Hook chain-trigger protection (agentStop + promptSubmit combo no longer duplicates rule injection)
+- 🔒 Blocking rules enforced across session continuations/context transfers (re-confirmation required)
+
 ### v0.2.1
 
 - ➕ Add projects from Web dashboard (directory browser + manual input)
@@ -343,8 +353,6 @@ Or add env to MCP config:
 - 🔧 Stats card click-through (click memory/issue counts to view details)
 - 🏷️ Tag management page distinguishes project/global tag sources (📁/🌐 markers)
 - 🏷️ Project card tag counts now include global memory tags
-- 🔇 Web dashboard `--quiet` flag to suppress request logs
-- 🔄 Web dashboard `--daemon` flag for background execution (macOS/Linux)
 
 ### v0.2.0
 

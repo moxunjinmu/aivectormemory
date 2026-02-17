@@ -332,6 +332,16 @@ Ou ajouter env dans la configuration MCP :
 
 ## 📋 Journal des Modifications
 
+### v0.2.2
+
+- 🔇 Tableau de bord Web : paramètre `--quiet` pour supprimer les logs de requêtes
+- 🔄 Tableau de bord Web : paramètre `--daemon` pour exécution en arrière-plan (macOS/Linux)
+- 🔧 Correction de la génération de configuration MCP dans `run install` (sys.executable + champs complets)
+- 📋 Suivi des problèmes CRUD et archivage (Tableau de bord Web ajout/édition/archivage/suppression + association mémoires)
+- 👆 Clic n'importe où sur la ligne pour ouvrir le modal d'édition (mémoires/problèmes/tags)
+- 🛡️ Protection contre le déclenchement en chaîne des Hooks (combinaison agentStop + promptSubmit ne duplique plus l'injection de règles)
+- 🔒 Règles de blocage appliquées lors des continuations de session/transferts de contexte (reconfirmation requise)
+
 ### v0.2.1
 
 - ➕ Ajouter des projets depuis le tableau de bord Web (navigateur de répertoires + saisie manuelle)
@@ -343,8 +353,6 @@ Ou ajouter env dans la configuration MCP :
 - 🔧 Clic sur les cartes de statistiques (clic sur les compteurs mémoire/problèmes pour voir les détails)
 - 🏷️ Page de gestion des tags distingue les sources projet/global (marqueurs 📁/🌐)
 - 🏷️ Le nombre de tags des cartes projet inclut désormais les tags des mémoires globales
-- 🔇 Tableau de bord Web : paramètre `--quiet` pour supprimer les logs de requêtes
-- 🔄 Tableau de bord Web : paramètre `--daemon` pour exécution en arrière-plan (macOS/Linux)
 
 ### v0.2.0
 

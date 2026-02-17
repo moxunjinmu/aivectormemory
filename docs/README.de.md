@@ -332,6 +332,16 @@ Oder env in der MCP-Konfiguration hinzufügen:
 
 ## 📋 Änderungsprotokoll
 
+### v0.2.2
+
+- 🔇 Web-Dashboard `--quiet` Parameter zum Unterdrücken von Anfrage-Logs
+- 🔄 Web-Dashboard `--daemon` Parameter für Hintergrundausführung (macOS/Linux)
+- 🔧 `run install` MCP-Konfigurationsgenerierung behoben (sys.executable + vollständige Felder)
+- 📋 Issue-Tracking CRUD & Archivierung (Web-Dashboard Hinzufügen/Bearbeiten/Archivieren/Löschen + Erinnerungsverknüpfung)
+- 👆 Klick auf beliebige Stelle in Listenzeile öffnet Bearbeitungs-Modal (Erinnerungen/Issues/Tags)
+- 🛡️ Hook-Kettenauslöser-Schutz (agentStop + promptSubmit Kombination dupliziert keine Regelinjektion mehr)
+- 🔒 Blockierungsregeln bei Sitzungsfortsetzungen/Kontexttransfers erzwungen (erneute Bestätigung erforderlich)
+
 ### v0.2.1
 
 - ➕ Projekte vom Web-Dashboard hinzufügen (Verzeichnis-Browser + manuelle Eingabe)
@@ -343,8 +353,6 @@ Oder env in der MCP-Konfiguration hinzufügen:
 - 🔧 Statistik-Karten Klick-Navigation (Klick auf Erinnerungs-/Problemzähler für Details)
 - 🏷️ Tag-Verwaltungsseite unterscheidet Projekt-/Globale Tag-Quellen (📁/🌐 Markierungen)
 - 🏷️ Projekt-Karten Tag-Anzahl enthält jetzt globale Erinnerungs-Tags
-- 🔇 Web-Dashboard `--quiet` Parameter zum Unterdrücken von Anfrage-Logs
-- 🔄 Web-Dashboard `--daemon` Parameter für Hintergrundausführung (macOS/Linux)
 
 ### v0.2.0
 

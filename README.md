@@ -341,6 +341,16 @@ export HF_ENDPOINT=https://hf-mirror.com
 
 ## 📋 更新日志
 
+### v0.2.2
+
+- 🔇 Web 看板 `--quiet` 参数屏蔽请求日志
+- 🔄 Web 看板 `--daemon` 参数后台运行（macOS/Linux）
+- 🔧 `run install` MCP 配置生成修复（sys.executable + 完整字段）
+- 📋 问题跟踪增删改归档（Web 看板添加/编辑/归档/删除 + 记忆关联）
+- 👆 全部列表页点击行任意位置弹出编辑弹窗（记忆/问题/标签）
+- 🛡️ Hook 链式触发防护（agentStop + promptSubmit 组合不再重复注入规则）
+- 🔒 会话延续/上下文转移时阻塞规则强制生效（跨会话必须重新确认）
+
 ### v0.2.1
 
 - ➕ Web 看板前端添加项目（目录浏览器 + 手动输入）
@@ -352,8 +362,6 @@ export HF_ENDPOINT=https://hf-mirror.com
 - 🔧 统计概览卡片点击跳转（点击记忆数/问题数直接弹窗查看）
 - 🏷️ 标签管理页区分项目/全局标签来源（📁/🌐 标记）
 - 🏷️ 项目卡片标签数合并全局记忆标签
-- 🔇 Web 看板 `--quiet` 参数屏蔽请求日志
-- 🔄 Web 看板 `--daemon` 参数后台运行（macOS/Linux）
 
 ### v0.2.0
 
