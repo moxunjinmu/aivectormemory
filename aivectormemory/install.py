@@ -1,5 +1,6 @@
 """aivectormemory install - 交互式为当前项目配置 MCP + Steering 规则"""
 import json
+import os
 import platform
 import sys
 from pathlib import Path
@@ -439,6 +440,21 @@ HOOKS_CONFIGS = [
             "shortName": "dev-workflow-check",
         },
     },
+    {
+        "filename": "pre-tool-use-check.kiro.hook",
+        "content": {
+            "enabled": True,
+            "name": "代码修改前检查 track issue",
+            "description": "Edit/Write 工具执行前，检查当前项目是否有活跃的 track issue，没有则拒绝执行",
+            "version": "1",
+            "when": {"type": "preToolUse", "matcher": "Edit|Write"},
+            "then": {
+                "type": "command",
+                "command": "",  # 占位，install 时动态填充
+            },
+            "shortName": "pre-tool-use-check",
+        },
+    },
 ]
 
 
@@ -450,8 +466,25 @@ AUTO_SAVE_PROMPT = (
     "scope defaults to project (preferences fixed to user).\"}"
 )
 
+def _check_track_script_path() -> Path:
+    """返回包内 check_track.sh 的路径"""
+    return Path(__file__).parent / "hooks" / "check_track.sh"
+
+
 CLAUDE_CODE_HOOKS_CONFIG = {
     "hooks": {
+        "PreToolUse": [
+            {
+                "matcher": "Edit|Write",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "",  # 占位，install 时动态填充实际路径
+                        "timeout": 10,
+                    }
+                ]
+            }
+        ],
         "Stop": [
             {
                 "hooks": [
@@ -490,29 +523,81 @@ WINDSURF_HOOKS_CONFIG = {
 
 
 OPENCODE_PLUGIN_CONTENT = """\
-// AIVectorMemory auto-save plugin for OpenCode
-// Listens to session.idle event and triggers auto_save via MCP
-export default {
-  name: "aivectormemory-auto-save",
-  version: "1.0.0",
-  subscribe: ["session.idle"],
-  async onEvent(event, { client }) {
-    if (event.type !== "session.idle") return;
-    await client.send(
-      "Please call mcp_aivectormemory_auto_save to save this session's key information: " +
-      "decisions, modifications, pitfalls, todos, preferences. " +
-      "Each item must be specific and traceable. Empty categories use empty arrays. " +
-      "scope defaults to project (preferences fixed to user)."
-    );
+// AIVectorMemory plugin for OpenCode (@opencode-ai/plugin)
+// - tool.execute.before: 检查 Edit/Write 前是否有活跃 track issue
+// - event: stop 时提醒调用 auto_save
+import { execSync } from "child_process";
+import { homedir } from "os";
+import { existsSync } from "fs";
+import { join } from "path";
+
+const DB_PATH = join(homedir(), ".aivectormemory", "memory.db");
+
+function hasActiveIssues(projectDir) {
+  if (!existsSync(DB_PATH)) return true; // 首次使用放行
+  try {
+    const result = execSync(
+      `sqlite3 "${DB_PATH}" "SELECT COUNT(*) FROM issues WHERE project_dir='${projectDir}' AND status IN ('pending','in_progress');"`,
+      { encoding: "utf-8", timeout: 5000 }
+    ).trim();
+    return parseInt(result, 10) > 0;
+  } catch {
+    return true; // 查询失败放行
+  }
+}
+
+export default async ({ project }) => ({
+  "tool.execute.before": async ({ tool, sessionID }, output) => {
+    if (tool !== "Edit" && tool !== "Write" && tool !== "edit" && tool !== "write") return;
+    const projectDir = project?.path || process.cwd();
+    if (!hasActiveIssues(projectDir)) {
+      output.args = {
+        ...output.args,
+        __blocked: "⚠️ 当前项目没有活跃的 track issue。请先调用 track(action: create) 记录问题后再修改代码。",
+      };
+    }
   },
-};
+  event: async ({ event }) => {
+    if (event.type === "session.stop" || event.type === "stop") {
+      console.error(
+        "Reminder: call auto_save (mcp_aivectormemory_auto_save) to save session data."
+      );
+    }
+  },
+});
 """
+
+
+def _copy_check_track_script(target_dir: Path) -> Path:
+    """复制 check_track.sh 到目标目录，返回目标路径"""
+    import shutil
+    target_dir.mkdir(parents=True, exist_ok=True)
+    src = _check_track_script_path()
+    dst = target_dir / "check_track.sh"
+    if not dst.exists() or dst.read_text("utf-8") != src.read_text("utf-8"):
+        shutil.copy2(src, dst)
+        dst.chmod(0o755)
+    return dst
+
+
+def _build_claude_code_hooks(script_path: str) -> dict:
+    """构建 Claude Code hooks 配置，填充实际脚本路径"""
+    import copy
+    cfg = copy.deepcopy(CLAUDE_CODE_HOOKS_CONFIG)
+    cfg["hooks"]["PreToolUse"][0]["hooks"][0]["command"] = script_path
+    return cfg
 
 
 def _write_claude_code_hooks(hooks_dir: Path) -> list[str]:
     """写入 Claude Code hooks 到 .claude/settings.json"""
     results = []
     hooks_dir.mkdir(parents=True, exist_ok=True)
+    # 复制检查脚本
+    script_dir = hooks_dir / "hooks"
+    script_path = _copy_check_track_script(script_dir)
+    results.append(f"✓ 已同步  Script: .claude/hooks/check_track.sh")
+    # 构建配置
+    new_hooks_cfg = _build_claude_code_hooks(str(script_path))
     filepath = hooks_dir / "settings.json"
     config = {}
     if filepath.exists():
@@ -520,15 +605,21 @@ def _write_claude_code_hooks(hooks_dir: Path) -> list[str]:
             config = json.loads(filepath.read_text("utf-8"))
         except (json.JSONDecodeError, OSError):
             config = {}
-    existing_hooks = config.get("hooks", {}).get("Stop", [])
-    new_hooks = CLAUDE_CODE_HOOKS_CONFIG["hooks"]["Stop"]
-    if existing_hooks == new_hooks:
-        results.append("- 无变更  Hook: .claude/settings.json (Stop)")
-    else:
+    existing = config.get("hooks", {})
+    new_hooks = new_hooks_cfg["hooks"]
+    changed = False
+    for event_name in ("PreToolUse", "Stop"):
+        if existing.get(event_name) != new_hooks[event_name]:
+            changed = True
+            break
+    if changed:
         config.setdefault("hooks", {})
-        config["hooks"]["Stop"] = new_hooks
+        config["hooks"]["PreToolUse"] = new_hooks["PreToolUse"]
+        config["hooks"]["Stop"] = new_hooks["Stop"]
         filepath.write_text(json.dumps(config, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-        results.append("✓ 已生成  Hook: .claude/settings.json (Stop)")
+        results.append("✓ 已生成  Hook: .claude/settings.json (PreToolUse + Stop)")
+    else:
+        results.append("- 无变更  Hook: .claude/settings.json (PreToolUse + Stop)")
     return results
 
 
@@ -578,12 +669,20 @@ def _write_opencode_plugins(plugins_dir: Path) -> list[str]:
 
 
 def _write_hooks(hooks_dir: Path) -> list[str]:
-    """写入 hook 文件到指定目录，返回变更列表"""
+    """写入 hook 文件到指定目录（Kiro），返回变更列表"""
+    import copy
     results = []
     hooks_dir.mkdir(parents=True, exist_ok=True)
+    # 复制 check_track.sh 到 hooks 目录
+    script_path = _copy_check_track_script(hooks_dir)
+    results.append("✓ 已同步  Script: check_track.sh")
     for hook in HOOKS_CONFIGS:
+        content = copy.deepcopy(hook["content"])
+        # 动态填充 pre-tool-use-check 的 command 路径
+        if hook["filename"] == "pre-tool-use-check.kiro.hook":
+            content["then"]["command"] = str(script_path)
         filepath = hooks_dir / hook["filename"]
-        new_content = json.dumps(hook["content"], indent=2, ensure_ascii=False) + "\n"
+        new_content = json.dumps(content, indent=2, ensure_ascii=False) + "\n"
         if filepath.exists():
             existing = filepath.read_text("utf-8")
             if existing.strip() == new_content.strip():
@@ -636,15 +735,24 @@ def _claude_desktop_path() -> Path | None:
 
 
 def _build_config(cmd: str, args: list[str], fmt: str) -> dict:
+    env_block = {}
+    hf_endpoint = os.environ.get("HF_ENDPOINT", "")
+    if hf_endpoint:
+        env_block["HF_ENDPOINT"] = hf_endpoint
     if fmt == "opencode":
-        return {"type": "local", "command": [cmd] + args, "enabled": True}
-    return {
+        cfg = {"type": "local", "command": [cmd] + args, "enabled": True}
+        if env_block:
+            cfg["env"] = env_block
+        return cfg
+    cfg = {
         "command": cmd,
         "args": args,
-        "env": {"HF_ENDPOINT": "https://hf-mirror.com"},
         "disabled": False,
         "autoApprove": ["remember", "recall", "forget", "status", "track", "digest", "auto_save"],
     }
+    if env_block:
+        cfg["env"] = env_block
+    return cfg
 
 
 def _merge_config(filepath: Path, key: str, server_name: str, server_config: dict) -> bool:
@@ -763,5 +871,5 @@ def run_install(project_dir: str | None = None):
         )
         cm.conn.commit()
         cm.close()
-    except Exception:
-        pass
+    except Exception as e:
+        print(f"\n⚠️  项目注册到数据库失败（Web 看板可能不显示此项目）: {e}")

@@ -77,8 +77,18 @@ def handle_api_request(handler, cm):
 
 
 def _read_body(handler) -> dict:
-    length = int(handler.headers.get("Content-Length", 0))
-    return json.loads(handler.rfile.read(length)) if length else {}
+    try:
+        length = int(handler.headers.get("Content-Length", 0))
+    except (ValueError, TypeError):
+        return {}
+    if length <= 0:
+        return {}
+    if length > 10 * 1024 * 1024:  # 10MB 上限
+        return {}
+    try:
+        return json.loads(handler.rfile.read(length))
+    except (json.JSONDecodeError, UnicodeDecodeError):
+        return {}
 
 
 def _json_response(handler, data, status=200):
@@ -101,7 +111,8 @@ def get_memories(cm, params, pdir):
     filter_dir = pdir if scope == "project" else (USER_SCOPE_DIR if scope == "user" else None)
 
     if tag:
-        all_rows = repo.list_by_tags([tag], scope=scope, project_dir=filter_dir or USER_SCOPE_DIR, limit=9999)
+        tag_filter_dir = filter_dir if filter_dir is not None else USER_SCOPE_DIR
+        all_rows = repo.list_by_tags([tag], scope=scope, project_dir=tag_filter_dir, limit=9999)
         total = len(all_rows)
         results = all_rows[offset:offset + limit]
     else:
@@ -494,9 +505,15 @@ def export_memories(cm, params, pdir):
             raw = row["embedding"]
             if isinstance(raw, (bytes, memoryview)):
                 import struct
-                entry["embedding"] = list(struct.unpack(f'{len(raw)//4}f', raw))
+                if len(raw) >= 4 and len(raw) % 4 == 0:
+                    entry["embedding"] = list(struct.unpack(f'{len(raw)//4}f', raw))
+                else:
+                    entry["embedding"] = None
             else:
-                entry["embedding"] = json.loads(raw)
+                try:
+                    entry["embedding"] = json.loads(raw)
+                except (json.JSONDecodeError, TypeError):
+                    entry["embedding"] = None
         else:
             entry["embedding"] = None
         result.append(entry)

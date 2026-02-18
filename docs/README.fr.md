@@ -332,6 +332,20 @@ Ou ajouter env dans la configuration MCP :
 
 ## 📋 Journal des Modifications
 
+### v0.2.3
+
+- 🛡️ Hook PreToolUse : vérification obligatoire du track issue avant Edit/Write, rejet si aucun issue actif (Claude Code / Kiro / OpenCode)
+- 🔌 Plugin OpenCode mis à niveau au format SDK `@opencode-ai/plugin` (hook tool.execute.before)
+- 🔧 `run install` déploie automatiquement check_track.sh avec injection dynamique du chemin
+- 🐛 Correction de l'incompatibilité `row.get()` avec `sqlite3.Row` dans issue_repo archive/delete
+- 🐛 Correction de la condition de concurrence session_id : lecture de la dernière valeur depuis la DB avant incrémentation
+- 🐛 Validation du format date de track (YYYY-MM-DD) + validation du type issue_id
+- 🐛 Renforcement de l'analyse des requêtes Web API (validation Content-Length + limite 10MB + gestion des erreurs JSON)
+- 🐛 Correction de la logique scope du filtre de tags (`filter_dir is not None` au lieu de vérification falsy)
+- 🐛 Validation de la longueur des octets struct.unpack pour l'export des données vectorielles
+- 🐛 Migration versionnée du schéma (table schema_version + migration incrémentielle v1/v2/v3)
+- 🐛 Correction de la synchronisation du numéro de version `__init__.py`
+
 ### v0.2.2
 
 - 🔇 Tableau de bord Web : paramètre `--quiet` pour supprimer les logs de requêtes

@@ -60,7 +60,8 @@ class IssueRepo:
         )
         self.conn.execute("DELETE FROM issues WHERE id=?", (issue_id,))
         self.conn.commit()
-        return {"issue_id": issue_id, "archived_at": now, "memory_id": row["memory_id"] if "memory_id" in row.keys() else ""}
+        memory_id = row["memory_id"] if "memory_id" in row.keys() else ""
+        return {"issue_id": issue_id, "archived_at": now, "memory_id": memory_id}
 
     def list_by_date(self, date: str | None = None, status: str | None = None) -> list[dict]:
         sql, params = "SELECT * FROM issues WHERE project_dir=?", [self.project_dir]
@@ -90,7 +91,7 @@ class IssueRepo:
                                 (issue_id, self.project_dir)).fetchone()
         if not row:
             return None
-        memory_id = row["memory_id"] if "memory_id" in row.keys() else ""
+        memory_id = row.get("memory_id", "")
         self.conn.execute("DELETE FROM issues WHERE id=?", (issue_id,))
         self.conn.commit()
         return {"issue_id": issue_id, "deleted": True, "memory_id": memory_id}
@@ -100,7 +101,7 @@ class IssueRepo:
                                 (archive_id, self.project_dir)).fetchone()
         if not row:
             return None
-        memory_id = row["memory_id"] if "memory_id" in row.keys() else ""
+        memory_id = row.get("memory_id", "")
         self.conn.execute("DELETE FROM issues_archive WHERE id=?", (archive_id,))
         self.conn.commit()
         return {"archive_id": archive_id, "deleted": True, "memory_id": memory_id}

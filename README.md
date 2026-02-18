@@ -341,6 +341,20 @@ export HF_ENDPOINT=https://hf-mirror.com
 
 ## 📋 更新日志
 
+### v0.2.3
+
+- 🛡️ PreToolUse Hook：Edit/Write 前强制检查 track issue，无活跃问题则拒绝执行（Claude Code / Kiro / OpenCode 三端支持）
+- 🔌 OpenCode 插件升级为 `@opencode-ai/plugin` SDK 格式（tool.execute.before hook）
+- 🔧 `run install` 自动部署 check_track.sh 检查脚本并动态填充路径
+- 🐛 issue_repo archive/delete 中 `row.get()` 对 `sqlite3.Row` 不兼容修复
+- 🐛 session_id 从 DB 读取最新值再递增，避免多实例竞态
+- 🐛 track date 参数格式校验（YYYY-MM-DD）+ issue_id 类型校验
+- 🐛 Web API 请求解析安全加固（Content-Length 校验 + 10MB 上限 + JSON 异常捕获）
+- 🐛 Tag 过滤 scope 逻辑修复（`filter_dir is not None` 替代 falsy 判断）
+- 🐛 Export 向量数据 struct.unpack 字节长度校验
+- 🐛 Schema 版本化迁移（schema_version 表 + v1/v2/v3 增量迁移）
+- 🐛 `__init__.py` 版本号同步修复
+
 ### v0.2.2
 
 - 🔇 Web 看板 `--quiet` 参数屏蔽请求日志

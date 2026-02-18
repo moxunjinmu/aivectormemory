@@ -43,8 +43,12 @@ class MCPServer:
         if not self._initialized:
             self._init_db()
             self._initialized = True
-        self._session_id += 1
-        # 持久化 session_id
+        # 从 DB 读取最新值再递增，避免多实例冲突
+        row = self.cm.conn.execute(
+            "SELECT last_session_id FROM session_state WHERE project_dir=?",
+            (self.cm.project_dir,)
+        ).fetchone()
+        self._session_id = (row["last_session_id"] if row else self._session_id) + 1
         self.cm.conn.execute(
             "UPDATE session_state SET last_session_id=? WHERE project_dir=?",
             (self._session_id, self.cm.project_dir)

@@ -1,4 +1,10 @@
 from aivectormemory.config import USER_SCOPE_DIR
+
+SCHEMA_VERSION_TABLE = """
+CREATE TABLE IF NOT EXISTS schema_version (
+    version INTEGER NOT NULL DEFAULT 0
+)"""
+
 MEMORIES_TABLE = """
 CREATE TABLE IF NOT EXISTS memories (
     id TEXT PRIMARY KEY,
@@ -60,6 +66,7 @@ CREATE TABLE IF NOT EXISTS issues_archive (
 INDEXES = [
     "CREATE INDEX IF NOT EXISTS idx_memories_project ON memories(project_dir)",
     "CREATE INDEX IF NOT EXISTS idx_memories_scope ON memories(scope)",
+    "CREATE INDEX IF NOT EXISTS idx_memories_tags ON memories(tags)",
     "CREATE INDEX IF NOT EXISTS idx_issues_date ON issues(date)",
     "CREATE INDEX IF NOT EXISTS idx_issues_status ON issues(status)",
     "CREATE INDEX IF NOT EXISTS idx_issues_project ON issues(project_dir)",
@@ -67,46 +74,72 @@ INDEXES = [
     "CREATE INDEX IF NOT EXISTS idx_issues_archive_date ON issues_archive(date)",
 ]
 
-ALL_TABLES = [MEMORIES_TABLE, VEC_MEMORIES_TABLE, SESSION_STATE_TABLE, ISSUES_TABLE, ISSUES_ARCHIVE_TABLE]
+ALL_TABLES = [SCHEMA_VERSION_TABLE, MEMORIES_TABLE, VEC_MEMORIES_TABLE, SESSION_STATE_TABLE, ISSUES_TABLE, ISSUES_ARCHIVE_TABLE]
+
+CURRENT_SCHEMA_VERSION = 3
+
+
+def _get_schema_version(conn) -> int:
+    row = conn.execute("SELECT version FROM schema_version").fetchone()
+    if row:
+        return row[0] if isinstance(row, tuple) else row["version"]
+    conn.execute("INSERT INTO schema_version (version) VALUES (0)")
+    conn.commit()
+    return 0
+
+
+def _set_schema_version(conn, version: int):
+    conn.execute("UPDATE schema_version SET version=?", (version,))
 
 
 def init_db(conn):
     for sql in ALL_TABLES:
         conn.execute(sql)
-    # 迁移：旧版 memories 表可能缺少 project_dir 列
-    cols = {row[1] for row in conn.execute("PRAGMA table_info(memories)").fetchall()}
-    if "project_dir" not in cols:
-        conn.execute("ALTER TABLE memories ADD COLUMN project_dir TEXT NOT NULL DEFAULT ''")
-    # 迁移：旧版 issues 表中 archived 记录移到 issues_archive
-    issue_cols = {row[1] for row in conn.execute("PRAGMA table_info(issues)").fetchall()}
-    if "archive_content" in issue_cols:
-        rows = conn.execute("SELECT * FROM issues WHERE status IN ('archived', 'migrated')").fetchall()
-        for r in rows:
-            conn.execute(
-                "INSERT INTO issues_archive (project_dir, issue_number, date, title, content, archived_at, created_at) VALUES (?,?,?,?,?,?,?)",
-                (r["project_dir"], r["issue_number"], r["date"], r["title"], r["content"], r["updated_at"], r["created_at"])
-            )
-            conn.execute("DELETE FROM issues WHERE id=?", (r["id"],))
-        # 重建 issues 表去掉废弃字段
-        conn.execute("CREATE TABLE IF NOT EXISTS issues_new (id INTEGER PRIMARY KEY AUTOINCREMENT, project_dir TEXT NOT NULL DEFAULT '', issue_number INTEGER NOT NULL, date TEXT NOT NULL, title TEXT NOT NULL, status TEXT NOT NULL DEFAULT 'pending', content TEXT NOT NULL DEFAULT '', created_at TEXT NOT NULL, updated_at TEXT NOT NULL)")
-        conn.execute("INSERT INTO issues_new SELECT id, project_dir, issue_number, date, title, status, content, created_at, updated_at FROM issues")
-        conn.execute("DROP TABLE issues")
-        conn.execute("ALTER TABLE issues_new RENAME TO issues")
+
+    ver = _get_schema_version(conn)
+
+    if ver < 1:
+        # v1: 确保 memories 有 project_dir 列
+        cols = {row[1] for row in conn.execute("PRAGMA table_info(memories)").fetchall()}
+        if "project_dir" not in cols:
+            conn.execute("ALTER TABLE memories ADD COLUMN project_dir TEXT NOT NULL DEFAULT ''")
+        # v1: 旧版 issues 表中 archived 记录移到 issues_archive
+        issue_cols = {row[1] for row in conn.execute("PRAGMA table_info(issues)").fetchall()}
+        if "archive_content" in issue_cols:
+            rows = conn.execute("SELECT * FROM issues WHERE status IN ('archived', 'migrated')").fetchall()
+            for r in rows:
+                conn.execute(
+                    "INSERT INTO issues_archive (project_dir, issue_number, date, title, content, archived_at, created_at) VALUES (?,?,?,?,?,?,?)",
+                    (r["project_dir"], r["issue_number"], r["date"], r["title"], r["content"], r["updated_at"], r["created_at"])
+                )
+                conn.execute("DELETE FROM issues WHERE id=?", (r["id"],))
+            conn.execute("CREATE TABLE IF NOT EXISTS issues_new (id INTEGER PRIMARY KEY AUTOINCREMENT, project_dir TEXT NOT NULL DEFAULT '', issue_number INTEGER NOT NULL, date TEXT NOT NULL, title TEXT NOT NULL, status TEXT NOT NULL DEFAULT 'pending', content TEXT NOT NULL DEFAULT '', created_at TEXT NOT NULL, updated_at TEXT NOT NULL)")
+            conn.execute("INSERT INTO issues_new SELECT id, project_dir, issue_number, date, title, status, content, created_at, updated_at FROM issues")
+            conn.execute("DROP TABLE issues")
+            conn.execute("ALTER TABLE issues_new RENAME TO issues")
+
+    if ver < 2:
+        # v2: session_state 加 last_session_id；issues/issues_archive 加 memory_id
+        state_cols = {row[1] for row in conn.execute("PRAGMA table_info(session_state)").fetchall()}
+        if "last_session_id" not in state_cols:
+            conn.execute("ALTER TABLE session_state ADD COLUMN last_session_id INTEGER NOT NULL DEFAULT 0")
+        issue_cols = {row[1] for row in conn.execute("PRAGMA table_info(issues)").fetchall()}
+        if "memory_id" not in issue_cols:
+            conn.execute("ALTER TABLE issues ADD COLUMN memory_id TEXT NOT NULL DEFAULT ''")
+        archive_cols = {row[1] for row in conn.execute("PRAGMA table_info(issues_archive)").fetchall()}
+        if "memory_id" not in archive_cols:
+            conn.execute("ALTER TABLE issues_archive ADD COLUMN memory_id TEXT NOT NULL DEFAULT ''")
+
+    if ver < 3:
+        # v3: user scope 记忆的 project_dir 从空字符串改为 @user@
+        conn.execute(
+            "UPDATE memories SET project_dir=? WHERE project_dir='' AND scope='user'",
+            (USER_SCOPE_DIR,)
+        )
+
     for sql in INDEXES:
         conn.execute(sql)
-    # 迁移：session_state 表加 last_session_id 字段
-    state_cols = {row[1] for row in conn.execute("PRAGMA table_info(session_state)").fetchall()}
-    if "last_session_id" not in state_cols:
-        conn.execute("ALTER TABLE session_state ADD COLUMN last_session_id INTEGER NOT NULL DEFAULT 0")
-    # 迁移：issues 表加 memory_id 字段
-    if "memory_id" not in issue_cols:
-        conn.execute("ALTER TABLE issues ADD COLUMN memory_id TEXT NOT NULL DEFAULT ''")
-    archive_cols = {row[1] for row in conn.execute("PRAGMA table_info(issues_archive)").fetchall()}
-    if "memory_id" not in archive_cols:
-        conn.execute("ALTER TABLE issues_archive ADD COLUMN memory_id TEXT NOT NULL DEFAULT ''")
-    # 迁移：user scope 记忆的 project_dir 从空字符串改为 @user@
-    conn.execute(
-        "UPDATE memories SET project_dir=? WHERE project_dir='' AND scope='user'",
-        (USER_SCOPE_DIR,)
-    )
+
+    if ver < CURRENT_SCHEMA_VERSION:
+        _set_schema_version(conn, CURRENT_SCHEMA_VERSION)
     conn.commit()
