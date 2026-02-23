@@ -8,35 +8,30 @@
   <p align="center">
     <a href="https://pypi.org/project/aivectormemory/"><img src="https://img.shields.io/pypi/v/aivectormemory?color=blue&label=PyPI" alt="PyPI"></a>
     <a href="https://pypi.org/project/aivectormemory/"><img src="https://img.shields.io/pypi/pyversions/aivectormemory" alt="Python"></a>
-    <a href="https://github.com/Edlineas/aivectormemory/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-green" alt="License"></a>
+    <a href="https://github.com/Edlineas/aivectormemory/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-Apache_2.0-green" alt="License"></a>
     <a href="https://modelcontextprotocol.io"><img src="https://img.shields.io/badge/MCP-compatible-purple" alt="MCP"></a>
   </p>
 </p>
 
 ---
 
-> **Problem**: AI assistants "forget" everything with each new session — repeating the same mistakes, forgetting project conventions, losing development progress. Worse, to compensate for this amnesia, you have to inject massive context into every conversation, wasting tokens.
+> **Sound familiar?** Every new session, your AI starts from scratch — project conventions you taught it yesterday? Forgotten. Pitfalls it already hit? It'll hit them again. Half-finished work? Gone. You end up copy-pasting project context over and over, watching tokens burn on repeat.
 >
-> **AIVectorMemory**: Provides a local vector memory store for AI via the MCP protocol, letting it remember everything — project knowledge, pitfalls, development decisions, work progress — persisted across sessions. Semantic retrieval recalls on demand, no more bulk injection, dramatically reducing token consumption.
+> **AIVectorMemory gives your AI long-term memory.** All project knowledge, lessons learned, dev decisions, and task progress are permanently stored in a local vector database. New sessions auto-restore context, semantic search retrieves exactly what's needed, and token usage drops 50%+.
 
 ## ✨ Core Features
 
 | Feature | Description |
 |---------|-------------|
-| 🔍 **Semantic Search** | Vector similarity based — searching "database timeout" finds "MySQL connection pool pitfall" |
-| 🏠 **Fully Local** | ONNX Runtime local inference, no API Key needed, data never leaves your machine |
-| 🔄 **Smart Dedup** | Cosine similarity > 0.95 auto-updates, no duplicate storage |
-| 📊 **Web Dashboard** | Built-in management UI with 3D vector network visualization |
-| 🔌 **All IDEs** | OpenCode / Claude Code / Cursor / Kiro / Windsurf / VSCode / Trae and more |
-| 📁 **Project Isolation** | Single DB shared across projects, auto-isolated by project_dir |
-| 🏷️ **Tag System** | Memory categorization, tag search, rename, merge |
-| 💰 **Save Tokens** | Semantic retrieval on demand replaces bulk context injection, reducing 50%+ redundant token usage |
-| 📋 **Issue Tracking** | Lightweight issue tracker, AI auto-records and archives |
-| 🔐 **Web Auth** | Dashboard supports Token authentication to prevent unauthorized access |
-| ⚡ **Embedding Cache** | No redundant vector computation for identical content, faster writes |
-| 📤 **Export/Import** | Memory data JSON export and import, supports migration and backup |
-| 🎯 **Action Feedback** | Toast notifications, empty state guides, complete interaction experience |
-| ➕ **Add Projects** | Add projects directly from dashboard with directory browser |
+| 🧠 **Cross-Session Memory** | Your AI finally remembers your project — pitfalls, decisions, conventions all persist across sessions |
+| 🔍 **Semantic Search** | No need to recall exact wording — search "database timeout" and find "MySQL connection pool issue" |
+| 💰 **Save 50%+ Tokens** | Stop copy-pasting project context every conversation. Semantic retrieval on demand, no more bulk injection |
+| 🔗 **Task-Driven Dev** | Issue tracking → task breakdown → status sync → linked archival. AI manages the full dev workflow |
+| 📊 **Web Dashboard** | Visual management for all memories and tasks, 3D vector network reveals knowledge connections at a glance |
+| 🏠 **Fully Local** | Zero cloud dependency. ONNX local inference, no API Key, data never leaves your machine |
+| 🔌 **All IDEs** | Cursor / Kiro / Claude Code / Windsurf / VSCode / OpenCode / Trae — one-click install, works out of the box |
+| 📁 **Multi-Project Isolation** | One DB for all projects, auto-isolated with zero interference, seamless project switching |
+| 🔄 **Smart Dedup** | Similarity > 0.95 auto-merges updates, keeping your memory store clean — never gets messy over time |
 
 ## 🏗️ Architecture
 
@@ -68,21 +63,40 @@
 
 ## 🚀 Quick Start
 
-### Option 1: pip install
+### Option 1: pip install (Recommended)
 
 ```bash
+# Install
 pip install aivectormemory
-pip install --upgrade aivectormemory  # Upgrade to latest version
+
+# Upgrade to latest version
+pip install --upgrade aivectormemory
+
+# Navigate to your project directory, one-click IDE setup
 cd /path/to/your/project
-run install          # Interactive IDE selection, one-click setup
+run install
 ```
 
+`run install` interactively guides you to select your IDE, auto-generating MCP config, Steering rules, and Hooks — no manual setup needed.
+
+> **macOS users note**:
+> - If you get `externally-managed-environment` error, add `--break-system-packages`
+> - If you get `enable_load_extension` error, your Python doesn't support SQLite extension loading (macOS built-in Python and python.org installers don't support it). Use Homebrew Python instead:
+>   ```bash
+>   brew install python
+>   /opt/homebrew/bin/python3 -m pip install aivectormemory
+>   ```
+
 ### Option 2: uvx (zero install)
+
+No `pip install` needed, run directly:
 
 ```bash
 cd /path/to/your/project
 uvx aivectormemory install
 ```
+
+> Requires [uv](https://docs.astral.sh/uv/getting-started/installation/) to be installed. `uvx` auto-downloads and runs the package — no manual installation needed.
 
 ### Option 3: Manual configuration
 
@@ -317,6 +331,41 @@ Or add env to MCP config:
 
 ## 📋 Changelog
 
+### v0.2.5
+
+**Task-Driven Development Mode**
+- 🔗 Issue tracking (track) and task management (task) linked via `feature_id` into a complete workflow: discover issue → create tasks → execute tasks → auto-sync status → linked archival
+- 🔄 `task update` auto-syncs linked issue status (all completed→completed, any in progress→in_progress)
+- 📦 `track archive` auto-archives linked tasks when archiving issues (triggered on last active issue)
+- 📦 `task` tool adds `archive` action, moves all tasks in a feature group to `tasks_archive` table
+- 📊 Issue cards show linked task progress (e.g. `5/10`), task page supports archive filtering
+
+**New Tools**
+- 🆕 `task` tool — task management (batch_create/update/list/delete/archive), tree-structured subtasks, linked to spec docs via feature_id
+- 🆕 `readme` tool — auto-generate README content from TOOL_DEFINITIONS/pyproject.toml, multi-language and diff comparison
+
+**Tool Enhancements**
+- 🔧 `track` adds delete action, 9 structured fields (description/investigation/root_cause/solution/test_result/notes/files_changed/feature_id/parent_id), list by issue_id for single item
+- 🔧 `recall` adds source parameter filtering (manual/auto_save) and brief mode (returns only content+tags, saves context)
+- 🔧 `auto_save` marks memories with source="auto_save", distinguishing manual memories from auto-saves
+
+**Knowledge Base Table Split**
+- 🗃️ project_memories + user_memories as independent tables, eliminates scope/filter_dir mixed queries, improved query performance
+- 📊 DB Schema v4→v6: issues add 9 structured fields + tasks/tasks_archive tables + memories.source field
+
+**Web Dashboard**
+- 📊 Homepage adds block status card (red blocked warning/green normal running), click to jump to session status page
+- 📊 New task management page (feature group collapse/expand, status filter, search, CRUD)
+- 📊 Sidebar navigation order optimized (session status, issues, tasks moved to core positions)
+- 📊 Memory list adds source filtering and exclude_tags exclusion filter
+
+**Stability & Standards**
+- 🛡️ Server main loop global exception handling, single message errors no longer crash the server
+- 🛡️ Protocol layer blank line skip and JSON parse error tolerance
+- 🕐 Timestamps changed from UTC to local timezone
+- 🧹 Cleanup redundant code (removed uncalled methods, redundant imports, backup files)
+- 📝 Steering template adds Spec workflow and task management section, context transfer continuation rules
+
 ### v0.2.4
 
 - 🔇 Stop hook prompt changed to direct instruction, eliminating Claude Code duplicate replies
@@ -386,4 +435,4 @@ Or add env to MCP config:
 
 ## License
 
-MIT
+Apache-2.0

@@ -8,35 +8,30 @@
   <p align="center">
     <a href="https://pypi.org/project/aivectormemory/"><img src="https://img.shields.io/pypi/v/aivectormemory?color=blue&label=PyPI" alt="PyPI"></a>
     <a href="https://pypi.org/project/aivectormemory/"><img src="https://img.shields.io/pypi/pyversions/aivectormemory" alt="Python"></a>
-    <a href="https://github.com/Edlineas/aivectormemory/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-green" alt="License"></a>
+    <a href="https://github.com/Edlineas/aivectormemory/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-Apache_2.0-green" alt="License"></a>
     <a href="https://modelcontextprotocol.io"><img src="https://img.shields.io/badge/MCP-compatible-purple" alt="MCP"></a>
   </p>
 </p>
 
 ---
 
-> **Problem**: KI-Assistenten „vergessen" alles bei jeder neuen Sitzung — sie wiederholen dieselben Fehler, vergessen Projektkonventionen und verlieren den Entwicklungsfortschritt. Schlimmer noch: Um diese Amnesie auszugleichen, muss man in jeder Konversation massiven Kontext injizieren und verschwendet dabei Tokens.
+> **Kommt dir das bekannt vor?** Jede neue Sitzung startet deine KI von Null — Projektkonventionen, die du ihr gestern beigebracht hast? Vergessen. Fehler, die sie schon gemacht hat? Macht sie wieder. Halbfertige Arbeit? Weg. Du kopierst immer wieder den Projektkontext und siehst zu, wie Tokens verbrannt werden.
 >
-> **AIVectorMemory**: Stellt über das MCP-Protokoll einen lokalen Vektor-Speicher für KI bereit, der sich an alles erinnert — Projektwissen, Fehlerprotokolle, Entwicklungsentscheidungen, Arbeitsfortschritt — sitzungsübergreifend persistent. Semantischer Abruf bei Bedarf, keine Masseninjektion mehr, drastische Reduzierung des Token-Verbrauchs.
+> **AIVectorMemory gibt deiner KI ein Langzeitgedächtnis.** Alles Projektwissen, Fehlerprotokolle, Entwicklungsentscheidungen und Aufgabenfortschritt werden dauerhaft in einer lokalen Vektordatenbank gespeichert. Neue Sitzungen stellen den Kontext automatisch wieder her, semantische Suche ruft genau das Richtige ab, und der Token-Verbrauch sinkt um 50%+.
 
 ## ✨ Kernfunktionen
 
 | Funktion | Beschreibung |
 |----------|-------------|
-| 🔍 **Semantische Suche** | Basierend auf Vektorähnlichkeit — Suche nach „Datenbank-Timeout" findet „MySQL Connection Pool Fehler" |
-| 🏠 **Vollständig Lokal** | ONNX Runtime lokale Inferenz, kein API Key nötig, Daten verlassen nie deinen Rechner |
-| 🔄 **Intelligente Deduplizierung** | Kosinus-Ähnlichkeit > 0.95 aktualisiert automatisch, keine doppelte Speicherung |
-| 📊 **Web-Dashboard** | Integrierte Verwaltungsoberfläche mit 3D-Vektornetzwerk-Visualisierung |
-| 🔌 **Alle IDEs** | OpenCode / Claude Code / Cursor / Kiro / Windsurf / VSCode / Trae und mehr |
-| 📁 **Projektisolierung** | Eine gemeinsame DB für alle Projekte, automatisch isoliert durch project_dir |
-| 🏷️ **Tag-System** | Erinnerungskategorisierung, Tag-Suche, Umbenennung, Zusammenführung |
-| 💰 **Token Sparen** | Semantischer Abruf bei Bedarf ersetzt Massen-Kontextinjektion, 50%+ weniger redundante Tokens |
-| 📋 **Problem-Tracking** | Leichtgewichtiger Issue-Tracker, KI zeichnet automatisch auf und archiviert |
-| 🔐 **Web-Authentifizierung** | Dashboard unterstützt Token-Authentifizierung gegen unbefugten Zugriff |
-| ⚡ **Embedding-Cache** | Keine redundante Vektorberechnung für identische Inhalte, schnellere Schreibvorgänge |
-| 📤 **Export/Import** | Erinnerungsdaten JSON-Export und -Import, unterstützt Migration und Backup |
-| 🎯 **Aktions-Feedback** | Toast-Benachrichtigungen, Leerstandsführungen, vollständige Interaktionserfahrung |
-| ➕ **Projekte hinzufügen** | Projekte direkt vom Dashboard mit Verzeichnis-Browser hinzufügen |
+| 🧠 **Sitzungsübergreifendes Gedächtnis** | Deine KI erinnert sich endlich an dein Projekt — Fehler, Entscheidungen, Konventionen bleiben über Sessions hinweg erhalten |
+| 🔍 **Semantische Suche** | Kein exakter Wortlaut nötig — suche „Datenbank-Timeout" und finde „MySQL Connection Pool Problem" |
+| 💰 **50%+ Tokens sparen** | Schluss mit Copy-Paste des Projektkontexts in jeder Konversation. Semantischer Abruf bei Bedarf statt Masseninjektion |
+| 🔗 **Aufgabengesteuertes Dev** | Problem-Tracking → Aufgabenzerlegung → Status-Sync → verknüpfte Archivierung. KI verwaltet den gesamten Dev-Workflow |
+| 📊 **Web-Dashboard** | Visuelle Verwaltung aller Erinnerungen und Aufgaben, 3D-Vektornetzwerk zeigt Wissensverbindungen auf einen Blick |
+| 🏠 **Vollständig Lokal** | Null Cloud-Abhängigkeit. ONNX lokale Inferenz, kein API Key, Daten verlassen nie deinen Rechner |
+| 🔌 **Alle IDEs** | Cursor / Kiro / Claude Code / Windsurf / VSCode / OpenCode / Trae — Ein-Klick-Installation, sofort einsatzbereit |
+| 📁 **Multi-Projekt-Isolation** | Eine DB für alle Projekte, automatisch isoliert ohne Interferenz, nahtloser Projektwechsel |
+| 🔄 **Intelligente Deduplizierung** | Ähnlichkeit > 0.95 führt automatisch zusammen, Wissensspeicher bleibt sauber — wird nie unübersichtlich |
 
 ## 🏗️ Architektur
 
@@ -68,21 +63,40 @@
 
 ## 🚀 Schnellstart
 
-### Option 1: pip Installation
+### Option 1: pip Installation (Empfohlen)
 
 ```bash
+# Installieren
 pip install aivectormemory
-pip install --upgrade aivectormemory  # Auf neueste Version aktualisieren
+
+# Auf neueste Version aktualisieren
+pip install --upgrade aivectormemory
+
+# In dein Projektverzeichnis wechseln, Ein-Klick-IDE-Setup
 cd /path/to/your/project
-run install          # Interaktive IDE-Auswahl, Ein-Klick-Konfiguration
+run install
 ```
 
+`run install` führt dich interaktiv durch die IDE-Auswahl und generiert automatisch MCP-Konfiguration, Steering-Regeln und Hooks — kein manuelles Setup nötig.
+
+> **macOS-Benutzer beachten**:
+> - Bei `externally-managed-environment` Fehler: `--break-system-packages` hinzufügen
+> - Bei `enable_load_extension` Fehler: Dein Python unterstützt kein SQLite-Extension-Loading (macOS-Standard-Python und python.org-Installer unterstützen es nicht). Verwende Homebrew Python:
+>   ```bash
+>   brew install python
+>   /opt/homebrew/bin/python3 -m pip install aivectormemory
+>   ```
+
 ### Option 2: uvx (ohne Installation)
+
+Kein `pip install` nötig, direkt ausführen:
 
 ```bash
 cd /path/to/your/project
 uvx aivectormemory install
 ```
+
+> [uv](https://docs.astral.sh/uv/getting-started/installation/) muss installiert sein. `uvx` lädt das Paket automatisch herunter und führt es aus.
 
 ### Option 3: Manuelle Konfiguration
 
@@ -317,6 +331,41 @@ Oder env in der MCP-Konfiguration hinzufügen:
 
 ## 📋 Änderungsprotokoll
 
+### v0.2.5
+
+**Aufgabengesteuerter Entwicklungsmodus**
+- 🔗 Issue-Tracking (track) und Aufgabenverwaltung (task) über `feature_id` zu einem vollständigen Workflow verbunden: Problem entdecken → Aufgaben erstellen → Aufgaben ausführen → Status automatisch synchronisieren → verknüpfte Archivierung
+- 🔄 `task update` synchronisiert bei Statusänderung automatisch den verknüpften Issue-Status (alle abgeschlossen→completed, in Bearbeitung→in_progress)
+- 📦 `track archive` archiviert bei Issue-Archivierung automatisch verknüpfte Aufgaben (ausgelöst beim letzten aktiven Issue)
+- 📦 `task`-Werkzeug mit neuem `archive`-Aktion, verschiebt alle Aufgaben einer Funktionsgruppe in die `tasks_archive`-Tabelle
+- 📊 Issue-Karten zeigen verknüpften Aufgabenfortschritt (z.B. `5/10`), Aufgabenseite unterstützt Archiv-Filterung
+
+**Neue Werkzeuge**
+- 🆕 `task`-Werkzeug — Aufgabenverwaltung (batch_create/update/list/delete/archive), Baumstruktur-Unteraufgaben, über feature_id mit Spec-Dokumenten verknüpft
+- 🆕 `readme`-Werkzeug — README-Inhalte automatisch aus TOOL_DEFINITIONS/pyproject.toml generieren, Mehrsprachigkeit und Diff-Vergleich
+
+**Werkzeug-Erweiterungen**
+- 🔧 `track` mit delete-Aktion, 9 strukturierten Feldern (description/investigation/root_cause/solution/test_result/notes/files_changed/feature_id/parent_id), list nach issue_id für Einzelabfrage
+- 🔧 `recall` mit source-Parameterfilterung (manual/auto_save) und brief-Modus (nur content+tags, spart Kontext)
+- 🔧 `auto_save` markiert Erinnerungen mit source="auto_save", unterscheidet manuelle Erinnerungen von automatischen Speicherungen
+
+**Wissensdatenbank-Tabellenaufteilung**
+- 🗃️ project_memories + user_memories als unabhängige Tabellen, eliminiert scope/filter_dir-Mischabfragen, verbesserte Abfrageleistung
+- 📊 DB Schema v4→v6: issues mit 9 strukturierten Feldern + tasks/tasks_archive-Tabellen + memories.source-Feld
+
+**Web-Dashboard**
+- 📊 Startseite mit Blockierungsstatus-Karte (rot blockiert/grün normal), Klick springt zur Sitzungsstatus-Seite
+- 📊 Neue Aufgabenverwaltungsseite (Funktionsgruppen ein-/ausklappen, Statusfilter, Suche, CRUD)
+- 📊 Seitenleisten-Navigation optimiert (Sitzungsstatus, Probleme, Aufgaben an Kernpositionen verschoben)
+- 📊 Erinnerungsliste mit source-Filterung und exclude_tags-Ausschlussfilter
+
+**Stabilität & Standards**
+- 🛡️ Server-Hauptschleife mit globaler Ausnahmebehandlung, einzelne Nachrichtenfehler beenden den Server nicht mehr
+- 🛡️ Protocol-Schicht mit Leerzeilen-Überspringung und JSON-Parse-Fehlertoleranz
+- 🕐 Zeitstempel von UTC auf lokale Zeitzone geändert
+- 🧹 Bereinigung redundanten Codes (entfernte ungenutzte Methoden, redundante Importe, Backup-Dateien)
+- 📝 Steering-Vorlage mit Spec-Workflow und Aufgabenverwaltungs-Abschnitt, context transfer Fortsetzungsregeln
+
 ### v0.2.4
 
 - 🔇 Stop-Hook-Prompt auf direkte Anweisung geändert, Claude Code doppelte Antworten eliminiert
@@ -386,4 +435,4 @@ Oder env in der MCP-Konfiguration hinzufügen:
 
 ## License
 
-MIT
+Apache-2.0

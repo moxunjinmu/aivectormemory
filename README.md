@@ -8,35 +8,30 @@
   <p align="center">
     <a href="https://pypi.org/project/aivectormemory/"><img src="https://img.shields.io/pypi/v/aivectormemory?color=blue&label=PyPI" alt="PyPI"></a>
     <a href="https://pypi.org/project/aivectormemory/"><img src="https://img.shields.io/pypi/pyversions/aivectormemory" alt="Python"></a>
-    <a href="https://github.com/Edlineas/aivectormemory/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-green" alt="License"></a>
+    <a href="https://github.com/Edlineas/aivectormemory/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-Apache_2.0-green" alt="License"></a>
     <a href="https://modelcontextprotocol.io"><img src="https://img.shields.io/badge/MCP-compatible-purple" alt="MCP"></a>
   </p>
 </p>
 
 ---
 
-> **问题**：AI 助手每次新会话都"失忆"，反复踩同样的坑、忘记项目约定、丢失开发进度。更糟的是，为了补偿失忆，你不得不在每次对话中重复注入大量上下文，白白浪费 Token。
+> **你是否也有这样的困扰？** 每开一个新会话，AI 就像换了个人 — 昨天刚教会它的项目规范今天又忘了，踩过的坑还会再踩一遍，开发到一半的进度全部归零。你只能一遍遍复制粘贴项目背景，眼睁睁看着 Token 被重复消耗。
 >
-> **AIVectorMemory**：通过 MCP 协议为 AI 提供本地向量记忆库，让它记住一切 — 项目知识、踩坑记录、开发决策、工作进度 — 跨会话永不丢失。语义检索按需召回，不再全量注入，大幅降低 Token 消耗。
+> **AIVectorMemory 让 AI 拥有长期记忆。** 所有项目知识、踩坑经验、开发决策、任务进度，跨会话永久保存在本地向量数据库中。新会话自动恢复上下文，语义搜索精准召回，Token 消耗直降 50%+。
 
 ## ✨ 核心特性
 
 | 特性 | 说明 |
 |------|------|
-| 🔍 **语义搜索** | 基于向量相似度，搜"数据库超时"能找到"MySQL 连接池踩坑" |
-| 🏠 **完全本地** | ONNX Runtime 本地推理，无需 API Key，数据不出本机 |
-| 🔄 **智能去重** | 余弦相似度 > 0.95 自动更新，不会重复存储 |
-| 📊 **Web 看板** | 内置管理界面，3D 向量网络可视化 |
-| 🔌 **全 IDE 支持** | OpenCode / Claude Code / Cursor / Kiro / Windsurf / VSCode / Trae 等 |
-| 📁 **项目隔离** | 多项目共用一个 DB，通过 project_dir 自动隔离 |
-| 🏷️ **标签体系** | 记忆分类管理，支持标签搜索、重命名、合并 |
-| 💰 **节省 Token** | 语义检索按需召回，替代全量上下文注入，减少 50%+ 重复 Token 消耗 |
-| 📋 **问题追踪** | 轻量级 issue tracker，AI 自动记录和归档 |
-| 🔐 **Web 认证** | 看板支持 Token 认证，防止未授权访问 |
-| ⚡ **Embedding 缓存** | 相同内容不重复计算向量，提升写入性能 |
-| 📤 **导出/导入** | 记忆数据 JSON 导出导入，支持迁移和备份 |
-| 🎯 **操作反馈** | Toast 提示、空状态引导，交互体验完整 |
-| ➕ **看板添加项目** | 前端直接添加项目，支持目录浏览器选择 |
+| 🧠 **跨会话记忆** | AI 终于能记住你的项目了 — 踩过的坑、做过的决策、定下的规范，换个会话照样记得 |
+| 🔍 **语义搜索** | 不用记原文怎么写的，搜"数据库超时"就能找到"MySQL 连接池踩坑" |
+| 💰 **省 50%+ Token** | 不再每次对话都复制粘贴项目背景，语义检索按需召回，告别全量上下文注入 |
+| 🔗 **任务驱动开发** | 问题追踪 → 任务拆分 → 状态同步 → 联动归档，AI 自动管理完整开发流程 |
+| 📊 **Web 看板** | 可视化管理所有记忆和任务，3D 向量网络一眼看清知识关联 |
+| 🏠 **完全本地** | 零依赖云服务，ONNX 本地推理，无需 API Key，数据不出你的电脑 |
+| 🔌 **全 IDE 通吃** | Cursor / Kiro / Claude Code / Windsurf / VSCode / OpenCode / Trae — 一键安装，开箱即用 |
+| 📁 **多项目隔离** | 一个 DB 管所有项目，自动隔离互不干扰，切换项目无感知 |
+| 🔄 **智能去重** | 相似度 > 0.95 自动合并更新，记忆库永远干净，不会越用越乱 |
 
 ## 🏗️ 架构
 
@@ -69,14 +64,21 @@
 
 ## 🚀 快速开始
 
-### 方式一：pip 安装
+### 方式一：pip 安装（推荐）
 
 ```bash
+# 安装
 pip install aivectormemory
-pip install --upgrade aivectormemory  # 升级到最新版
+
+# 升级到最新版
+pip install --upgrade aivectormemory
+
+# 进入你的项目目录，一键配置 IDE
 cd /path/to/your/project
-run install          # 交互式选择 IDE，一键配置
+run install
 ```
+
+`run install` 会交互式引导你选择 IDE，自动生成 MCP 配置、Steering 规则和 Hooks，无需手动编写。
 
 > **macOS 用户注意**：
 > - 遇到 `externally-managed-environment` 错误，加 `--break-system-packages`
@@ -88,10 +90,14 @@ run install          # 交互式选择 IDE，一键配置
 
 ### 方式二：uvx 运行（零安装）
 
+无需 `pip install`，直接运行：
+
 ```bash
 cd /path/to/your/project
 uvx aivectormemory install
 ```
+
+> 需要先安装 [uv](https://docs.astral.sh/uv/getting-started/installation/)，`uvx` 会自动下载并运行，无需手动安装包。
 
 ### 方式三：手动配置
 
@@ -326,25 +332,40 @@ export HF_ENDPOINT=https://hf-mirror.com
 
 ## 📋 更新日志
 
-### v0.2.5（未发布）
+### v0.2.5
 
-- 🆕 新增 `task` 工具 — 任务管理（batch_create/update/list/delete），通过 feature_id 关联 spec 文档，支持树形子任务
-- 🆕 新增 `readme` 工具 — 从 TOOL_DEFINITIONS/pyproject.toml 自动生成 README 内容，支持多语言和差异对比
-- 🔧 `track` 工具增强：新增 delete action、9 个结构化字段（description/investigation/root_cause/solution 等）、parent_id 子问题、list 按 issue_id 查单条
-- 🔧 `track create` 自动创建 ISSUE_STEPS 关联任务（5 步排查流程），archive 时自动完成关联任务
+**任务驱动开发模式**
+- 🔗 问题跟踪（track）与任务管理（task）通过 `feature_id` 打通成完整链路：发现问题 → 创建任务 → 执行任务 → 状态自动同步 → 联动归档
+- 🔄 `task update` 更新任务状态时自动同步关联问题状态（全部完成→completed，有进行中→in_progress）
+- 📦 `track archive` 归档问题时自动归档关联任务（最后一个活跃问题归档时联动）
+- 📦 `task` 工具新增 `archive` action，将功能组所有任务移入 `tasks_archive` 归档表
+- 📊 问题卡片显示关联任务进度（如 `5/10`），任务页面支持归档筛选
+
+**新增工具**
+- 🆕 `task` 工具 — 任务管理（batch_create/update/list/delete/archive），支持树形子任务，通过 feature_id 关联 spec 文档
+- 🆕 `readme` 工具 — 从 TOOL_DEFINITIONS/pyproject.toml 自动生成 README 内容，支持多语言和差异对比
+
+**工具增强**
+- 🔧 `track` 新增 delete action、9 个结构化字段（description/investigation/root_cause/solution/test_result/notes/files_changed/feature_id/parent_id）、list 按 issue_id 查单条
 - 🔧 `recall` 新增 source 参数过滤（manual/auto_save）和 brief 精简模式（只返回 content+tags，节省上下文）
-- 🔧 `digest` 新增 limit/max_chars 参数防止上下文溢出，单条超 500 字自动截断
-- 🔧 `auto_save` 新增 digest 阈值检测，碎片超 20 条自动创建系统任务并返回 digest_hint
 - 🔧 `auto_save` 写入记忆标记 source="auto_save"，区分手动记忆和自动保存
-- 📊 DB Schema v4→v6：issues/issues_archive 新增 9 个结构化字段 + tasks 表 + memories.source 字段 + tasks 树形结构
-- 🛡️ Server 主循环增加全局异常捕获，单条消息错误不再导致 server 退出
-- 🛡️ Protocol 层增加空行跳过和 JSON 解析异常容错
-- 🕐 时间戳从 UTC 改为本地时区（memory_repo/issue_repo/state_repo/server）
-- 📊 Web 看板新增任务管理 CRUD API（GET/POST/PUT/DELETE /api/tasks）
-- 📊 Web 看板记忆列表新增 source 过滤和 exclude_tags 排除过滤
-- 📊 Web 看板前端大幅增强（+258 行 JS、+376 行 i18n、+66 行 CSS）
+
+**知识库拆表重构**
+- 🗃️ project_memories + user_memories 独立表，消除 scope/filter_dir 混合查询，查询性能提升
+- 📊 DB Schema v4→v6：issues 新增 9 个结构化字段 + tasks/tasks_archive 表 + memories.source 字段
+
+**Web 看板**
+- 📊 首页新增阻塞状态卡片（红色阻塞警告/绿色正常运行），点击跳转会话状态页
+- 📊 新增任务管理页面（功能组折叠/展开、状态筛选、搜索、CRUD）
+- 📊 侧边栏导航顺序优化（会话状态、问题跟踪、任务管理提前至核心位置）
+- 📊 记忆列表新增 source 过滤和 exclude_tags 排除过滤
+
+**稳定性与规范**
+- 🛡️ Server 主循环全局异常捕获，单条消息错误不再导致 server 退出
+- 🛡️ Protocol 层空行跳过和 JSON 解析异常容错
+- 🕐 时间戳从 UTC 改为本地时区
+- 🧹 清理冗余代码（删除无调用方法、冗余导入、备份文件）
 - 📝 Steering 模板新增 Spec 流程与任务管理章节、context transfer 续接规则
-- 📝 各 IDE hooks 生成逻辑同步更新
 
 ### v0.2.4
 
@@ -415,4 +436,4 @@ export HF_ENDPOINT=https://hf-mirror.com
 
 ## License
 
-MIT
+Apache-2.0

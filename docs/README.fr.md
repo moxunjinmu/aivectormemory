@@ -8,35 +8,30 @@
   <p align="center">
     <a href="https://pypi.org/project/aivectormemory/"><img src="https://img.shields.io/pypi/v/aivectormemory?color=blue&label=PyPI" alt="PyPI"></a>
     <a href="https://pypi.org/project/aivectormemory/"><img src="https://img.shields.io/pypi/pyversions/aivectormemory" alt="Python"></a>
-    <a href="https://github.com/Edlineas/aivectormemory/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-green" alt="License"></a>
+    <a href="https://github.com/Edlineas/aivectormemory/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-Apache_2.0-green" alt="License"></a>
     <a href="https://modelcontextprotocol.io"><img src="https://img.shields.io/badge/MCP-compatible-purple" alt="MCP"></a>
   </p>
 </p>
 
 ---
 
-> **Problème** : Les assistants IA « oublient » tout à chaque nouvelle session — répétant les mêmes erreurs, oubliant les conventions du projet, perdant la progression du développement. Pire encore, pour compenser cette amnésie, vous devez injecter un contexte massif dans chaque conversation, gaspillant des tokens.
+> **Ça vous parle ?** À chaque nouvelle session, votre IA repart de zéro — les conventions de projet enseignées hier ? Oubliées. Les erreurs déjà commises ? Elle les refera. Le travail en cours ? Disparu. Vous finissez par copier-coller le contexte du projet encore et encore, en regardant les tokens brûler.
 >
-> **AIVectorMemory** : Fournit un stockage de mémoire vectorielle local pour l'IA via le protocole MCP, lui permettant de se souvenir de tout — connaissances du projet, erreurs rencontrées, décisions de développement, progression du travail — persistant entre les sessions. La récupération sémantique à la demande élimine l'injection massive, réduisant considérablement la consommation de tokens.
+> **AIVectorMemory donne une mémoire à long terme à votre IA.** Toutes les connaissances du projet, les leçons apprises, les décisions de développement et la progression des tâches sont stockées de façon permanente dans une base vectorielle locale. Les nouvelles sessions restaurent automatiquement le contexte, la recherche sémantique retrouve exactement ce qu'il faut, et la consommation de tokens chute de 50%+.
 
 ## ✨ Fonctionnalités Principales
 
 | Fonctionnalité | Description |
 |----------------|-------------|
-| 🔍 **Recherche Sémantique** | Basée sur la similarité vectorielle — chercher « timeout base de données » trouve « erreur pool de connexions MySQL » |
-| 🏠 **Entièrement Local** | Inférence locale ONNX Runtime, pas de clé API nécessaire, les données ne quittent jamais votre machine |
-| 🔄 **Déduplication Intelligente** | Similarité cosinus > 0.95 met à jour automatiquement, pas de stockage en double |
-| 📊 **Tableau de Bord Web** | Interface de gestion intégrée avec visualisation 3D du réseau vectoriel |
-| 🔌 **Tous les IDEs** | OpenCode / Claude Code / Cursor / Kiro / Windsurf / VSCode / Trae et plus |
-| 📁 **Isolation par Projet** | Une seule BD partagée entre projets, isolée automatiquement par project_dir |
-| 🏷️ **Système d'Étiquettes** | Catégorisation des mémoires, recherche, renommage et fusion d'étiquettes |
-| 💰 **Économie de Tokens** | Récupération sémantique à la demande remplace l'injection massive de contexte, réduisant 50%+ de tokens redondants |
-| 📋 **Suivi des Problèmes** | Traqueur d'issues léger, l'IA enregistre et archive automatiquement |
-| 🔐 **Authentification Web** | Le tableau de bord supporte l'authentification par Token contre les accès non autorisés |
-| ⚡ **Cache Embedding** | Pas de calcul vectoriel redondant pour un contenu identique, écritures plus rapides |
-| 📤 **Export/Import** | Export et import des données mémoire en JSON, supporte la migration et la sauvegarde |
-| 🎯 **Retour d'action** | Notifications Toast, guides d'état vide, expérience d'interaction complète |
-| ➕ **Ajouter des projets** | Ajouter des projets directement depuis le tableau de bord avec navigateur de répertoires |
+| 🧠 **Mémoire Inter-Sessions** | Votre IA se souvient enfin de votre projet — erreurs rencontrées, décisions prises, conventions établies, tout persiste entre les sessions |
+| 🔍 **Recherche Sémantique** | Pas besoin de se rappeler les mots exacts — chercher « timeout base de données » trouve « erreur pool de connexions MySQL » |
+| 💰 **Économie 50%+ Tokens** | Fini le copier-coller du contexte projet à chaque conversation. Récupération sémantique à la demande, adieu l'injection massive |
+| 🔗 **Dev Piloté par Tâches** | Suivi des problèmes → découpage en tâches → synchronisation des statuts → archivage lié. L'IA gère tout le workflow de développement |
+| 📊 **Tableau de Bord Web** | Gestion visuelle de toutes les mémoires et tâches, réseau vectoriel 3D pour voir les connexions de connaissances d'un coup d'œil |
+| 🏠 **Entièrement Local** | Zéro dépendance cloud. Inférence locale ONNX, pas de clé API, les données ne quittent jamais votre machine |
+| 🔌 **Tous les IDEs** | Cursor / Kiro / Claude Code / Windsurf / VSCode / OpenCode / Trae — installation en un clic, prêt à l'emploi |
+| 📁 **Isolation Multi-Projets** | Une seule BD pour tous les projets, isolation automatique sans interférence, changement de projet transparent |
+| 🔄 **Déduplication Intelligente** | Similarité > 0.95 fusionne automatiquement, la base de mémoires reste propre — ne devient jamais désordonnée |
 
 ## 🏗️ Architecture
 
@@ -68,21 +63,40 @@
 
 ## 🚀 Démarrage Rapide
 
-### Option 1 : Installation pip
+### Option 1 : Installation pip (Recommandé)
 
 ```bash
+# Installer
 pip install aivectormemory
-pip install --upgrade aivectormemory  # Mettre à jour vers la dernière version
+
+# Mettre à jour vers la dernière version
+pip install --upgrade aivectormemory
+
+# Aller dans votre répertoire de projet, configuration IDE en un clic
 cd /path/to/your/project
-run install          # Sélection interactive de l'IDE, configuration en un clic
+run install
 ```
 
+`run install` vous guide interactivement pour choisir votre IDE, génère automatiquement la configuration MCP, les règles Steering et les Hooks — aucune configuration manuelle nécessaire.
+
+> **Utilisateurs macOS attention** :
+> - En cas d'erreur `externally-managed-environment`, ajoutez `--break-system-packages`
+> - En cas d'erreur `enable_load_extension`, votre Python ne supporte pas le chargement d'extensions SQLite (le Python intégré de macOS et les installateurs python.org ne le supportent pas). Utilisez Homebrew Python :
+>   ```bash
+>   brew install python
+>   /opt/homebrew/bin/python3 -m pip install aivectormemory
+>   ```
+
 ### Option 2 : uvx (sans installation)
+
+Pas besoin de `pip install`, exécutez directement :
 
 ```bash
 cd /path/to/your/project
 uvx aivectormemory install
 ```
+
+> [uv](https://docs.astral.sh/uv/getting-started/installation/) doit être installé. `uvx` télécharge et exécute automatiquement le paquet.
 
 ### Option 3 : Configuration manuelle
 
@@ -317,6 +331,41 @@ Ou ajouter env dans la configuration MCP :
 
 ## 📋 Journal des Modifications
 
+### v0.2.5
+
+**Mode de développement piloté par les tâches**
+- 🔗 Le suivi des problèmes (track) et la gestion des tâches (task) sont reliés par `feature_id` en un flux complet : découverte du problème → création de tâche → exécution → synchronisation automatique des statuts → archivage lié
+- 🔄 `task update` synchronise automatiquement le statut du problème associé lors de la mise à jour (tout terminé→completed, en cours→in_progress)
+- 📦 `track archive` archive automatiquement les tâches associées (liaison lors de l'archivage du dernier problème actif)
+- 📦 Nouvelle action `archive` pour l'outil `task`, déplace toutes les tâches du groupe fonctionnel dans la table d'archives `tasks_archive`
+- 📊 Les cartes de problèmes affichent la progression des tâches associées (ex. `5/10`), la page des tâches supporte le filtrage par archives
+
+**Nouveaux outils**
+- 🆕 Outil `task` — gestion des tâches (batch_create/update/list/delete/archive), sous-tâches arborescentes, lié aux documents spec via feature_id
+- 🆕 Outil `readme` — génération automatique du contenu README depuis TOOL_DEFINITIONS/pyproject.toml, multilingue et comparaison de différences
+
+**Améliorations des outils**
+- 🔧 `track` : nouvelle action delete, 9 champs structurés (description/investigation/root_cause/solution/test_result/notes/files_changed/feature_id/parent_id), list par issue_id pour élément unique
+- 🔧 `recall` : nouveau paramètre source (manual/auto_save) et mode brief (retourne uniquement content+tags, économise le contexte)
+- 🔧 `auto_save` : marque les mémoires avec source="auto_save", distingue les mémoires manuelles des sauvegardes automatiques
+
+**Refactorisation par séparation des tables de connaissances**
+- 🗃️ project_memories + user_memories en tables indépendantes, élimine les requêtes mixtes scope/filter_dir, amélioration des performances
+- 📊 DB Schema v4→v6 : issues ajoutent 9 champs structurés + tables tasks/tasks_archive + champ memories.source
+
+**Tableau de bord Web**
+- 📊 Page d'accueil avec carte d'état de blocage (rouge bloqué/vert normal), clic pour accéder à la page d'état de session
+- 📊 Nouvelle page de gestion des tâches (groupes fonctionnels pliables, filtrage par statut, recherche, CRUD)
+- 📊 Navigation latérale optimisée (état de session, problèmes, tâches remontés en position centrale)
+- 📊 Liste des mémoires avec filtrage source et filtre d'exclusion exclude_tags
+
+**Stabilité et normes**
+- 🛡️ Boucle principale du serveur avec capture globale des exceptions, les erreurs de message unique ne font plus planter le serveur
+- 🛡️ Couche Protocol avec saut de lignes vides et tolérance aux erreurs de parsing JSON
+- 🕐 Horodatages changés d'UTC au fuseau horaire local
+- 🧹 Nettoyage du code redondant (méthodes non appelées, imports redondants, fichiers de sauvegarde)
+- 📝 Modèle Steering avec section workflow Spec et gestion des tâches, règles de continuation context transfer
+
 ### v0.2.4
 
 - 🔇 Prompt du hook Stop changé en instruction directe, éliminant les réponses dupliquées de Claude Code
@@ -386,4 +435,4 @@ Ou ajouter env dans la configuration MCP :
 
 ## License
 
-MIT
+Apache-2.0

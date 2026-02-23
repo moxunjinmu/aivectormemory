@@ -8,35 +8,30 @@
   <p align="center">
     <a href="https://pypi.org/project/aivectormemory/"><img src="https://img.shields.io/pypi/v/aivectormemory?color=blue&label=PyPI" alt="PyPI"></a>
     <a href="https://pypi.org/project/aivectormemory/"><img src="https://img.shields.io/pypi/pyversions/aivectormemory" alt="Python"></a>
-    <a href="https://github.com/Edlineas/aivectormemory/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-green" alt="License"></a>
+    <a href="https://github.com/Edlineas/aivectormemory/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-Apache_2.0-green" alt="License"></a>
     <a href="https://modelcontextprotocol.io"><img src="https://img.shields.io/badge/MCP-compatible-purple" alt="MCP"></a>
   </p>
 </p>
 
 ---
 
-> **問題**：AIアシスタントは新しいセッションごとにすべてを「忘れて」しまいます — 同じミスを繰り返し、プロジェクトの規約を忘れ、開発の進捗を失います。さらに悪いことに、この記憶喪失を補うために、毎回の会話に大量のコンテキストを注入する必要があり、トークンを無駄にしています。
+> **こんな経験ありませんか？** 新しいセッションを開くたびに、AIはまるで別人 — 昨日教えたプロジェクト規約は今日もう忘れている、踏んだ地雷をまた踏む、途中まで進めた作業はゼロに戻る。プロジェクト背景を何度もコピペするしかなく、トークンが無駄に消費されていくのを見ているだけ。
 >
-> **AIVectorMemory**：MCPプロトコルを通じてAIにローカルベクトル記憶ストアを提供し、すべてを記憶させます — プロジェクト知識、つまずいた記録、開発の意思決定、作業進捗 — セッション間で永続化。セマンティック検索でオンデマンドに呼び出し、一括注入不要、トークン消費を大幅に削減。
+> **AIVectorMemory はAIに長期記憶を与えます。** すべてのプロジェクト知識、失敗の教訓、開発の意思決定、タスク進捗が、ローカルベクトルデータベースにセッションを超えて永続保存。新セッションは自動的にコンテキストを復元、セマンティック検索で的確に呼び出し、トークン消費を50%+削減。
 
 ## ✨ 主な機能
 
 | 機能 | 説明 |
 |------|------|
-| 🔍 **セマンティック検索** | ベクトル類似度ベース —「データベースタイムアウト」で検索すると「MySQLコネクションプールの問題」が見つかる |
-| 🏠 **完全ローカル** | ONNX Runtimeローカル推論、APIキー不要、データはマシンから出ない |
-| 🔄 **スマート重複排除** | コサイン類似度 > 0.95 で自動更新、重複保存なし |
-| 📊 **Webダッシュボード** | 内蔵管理UI、3Dベクトルネットワーク可視化 |
-| 🔌 **全IDE対応** | OpenCode / Claude Code / Cursor / Kiro / Windsurf / VSCode / Trae など |
-| 📁 **プロジェクト分離** | 単一DBを複数プロジェクトで共有、project_dirで自動分離 |
-| 🏷️ **タグシステム** | 記憶の分類管理、タグ検索・名前変更・統合 |
-| 💰 **トークン節約** | セマンティック検索でオンデマンド呼び出し、一括コンテキスト注入を置き換え、50%+の冗長トークンを削減 |
-| 📋 **問題追跡** | 軽量イシュートラッカー、AIが自動記録・アーカイブ |
-| 🔐 **Web認証** | ダッシュボードがToken認証をサポート、不正アクセスを防止 |
-| ⚡ **Embeddingキャッシュ** | 同一コンテンツの冗長なベクトル計算なし、書き込み高速化 |
-| 📤 **エクスポート/インポート** | 記憶データのJSONエクスポート・インポート、移行とバックアップをサポート |
-| 🎯 **操作フィードバック** | Toast通知、空状態ガイド、完全なインタラクション体験 |
-| ➕ **プロジェクト追加** | ダッシュボードから直接プロジェクトを追加、ディレクトリブラウザ対応 |
+| 🧠 **クロスセッション記憶** | AIがついにプロジェクトを覚えてくれる — 踏んだ地雷、下した決定、決めた規約、セッションが変わっても忘れない |
+| 🔍 **セマンティック検索** | 原文の書き方を覚えていなくてOK —「データベースタイムアウト」で検索すれば「MySQLコネクションプール問題」が見つかる |
+| 💰 **50%+トークン節約** | 毎回プロジェクト背景をコピペする必要なし。セマンティック検索でオンデマンド呼び出し、一括注入とはお別れ |
+| 🔗 **タスク駆動開発** | 問題追跡 → タスク分割 → ステータス同期 → 連動アーカイブ。AIが開発フロー全体を自動管理 |
+| 📊 **Webダッシュボード** | すべての記憶とタスクを視覚的に管理、3Dベクトルネットワークで知識の繋がりが一目瞭然 |
+| 🏠 **完全ローカル** | クラウド依存ゼロ。ONNXローカル推論、APIキー不要、データはマシンから出ない |
+| 🔌 **全IDE対応** | Cursor / Kiro / Claude Code / Windsurf / VSCode / OpenCode / Trae — ワンクリックインストール、すぐ使える |
+| 📁 **マルチプロジェクト分離** | 1つのDBで全プロジェクト管理、自動分離で干渉なし、プロジェクト切り替えもシームレス |
+| 🔄 **スマート重複排除** | 類似度 > 0.95 で自動マージ更新、記憶ストアは常にクリーン — 使い続けても散らからない |
 
 ## 🏗️ アーキテクチャ
 
@@ -68,21 +63,40 @@
 
 ## 🚀 クイックスタート
 
-### 方法1：pip インストール
+### 方法1：pip インストール（推奨）
 
 ```bash
+# インストール
 pip install aivectormemory
-pip install --upgrade aivectormemory  # 最新版にアップグレード
+
+# 最新版にアップグレード
+pip install --upgrade aivectormemory
+
+# プロジェクトディレクトリに移動し、ワンクリックで IDE を設定
 cd /path/to/your/project
-run install          # 対話式IDE選択、ワンクリック設定
+run install
 ```
 
+`run install` は対話式で IDE を選択し、MCP 設定・Steering ルール・Hooks を自動生成します。手動設定は不要です。
+
+> **macOS ユーザーへの注意**：
+> - `externally-managed-environment` エラーが出た場合は `--break-system-packages` を追加してください
+> - `enable_load_extension` エラーが出た場合、現在の Python が SQLite 拡張読み込みに対応していません（macOS 標準 Python および python.org 公式インストーラは非対応）。Homebrew Python をご利用ください：
+>   ```bash
+>   brew install python
+>   /opt/homebrew/bin/python3 -m pip install aivectormemory
+>   ```
+
 ### 方法2：uvx 実行（インストール不要）
+
+`pip install` 不要、直接実行できます：
 
 ```bash
 cd /path/to/your/project
 uvx aivectormemory install
 ```
+
+> 事前に [uv](https://docs.astral.sh/uv/getting-started/installation/) のインストールが必要です。`uvx` が自動的にダウンロード・実行するため、手動でのパッケージインストールは不要です。
 
 ### 方法3：手動設定
 
@@ -317,6 +331,41 @@ export HF_ENDPOINT=https://hf-mirror.com
 
 ## 📋 更新履歴
 
+### v0.2.5
+
+**タスク駆動開発モード**
+- 🔗 イシュー追跡（track）とタスク管理（task）を `feature_id` で完全なワークフローに統合：問題発見 → タスク作成 → タスク実行 → ステータス自動同期 → 連動アーカイブ
+- 🔄 `task update` でタスクステータス更新時に関連イシューのステータスを自動同期（全完了→completed、進行中あり→in_progress）
+- 📦 `track archive` でイシューアーカイブ時に関連タスクを自動アーカイブ（最後のアクティブイシューアーカイブ時に連動）
+- 📦 `task` ツールに `archive` アクション追加、機能グループの全タスクを `tasks_archive` テーブルに移動
+- 📊 イシューカードに関連タスク進捗を表示（例：`5/10`）、タスクページでアーカイブフィルタリング対応
+
+**新規ツール**
+- 🆕 `task` ツール — タスク管理（batch_create/update/list/delete/archive）、ツリー構造サブタスク対応、feature_id で spec ドキュメントと連携
+- 🆕 `readme` ツール — TOOL_DEFINITIONS/pyproject.toml から README コンテンツを自動生成、多言語・差分比較対応
+
+**ツール強化**
+- 🔧 `track` に delete アクション追加、9 つの構造化フィールド（description/investigation/root_cause/solution/test_result/notes/files_changed/feature_id/parent_id）、list で issue_id 単一検索
+- 🔧 `recall` に source パラメータフィルタリング（manual/auto_save）と brief 簡潔モード（content+tags のみ返却、コンテキスト節約）を追加
+- 🔧 `auto_save` がメモリに source="auto_save" を付与、手動メモリと自動保存を区別
+
+**ナレッジベーステーブル分割リファクタリング**
+- 🗃️ project_memories + user_memories を独立テーブル化、scope/filter_dir 混合クエリを解消、クエリ性能向上
+- 📊 DB Schema v4→v6：issues に 9 つの構造化フィールド追加 + tasks/tasks_archive テーブル + memories.source フィールド
+
+**Web ダッシュボード**
+- 📊 トップページにブロック状態カード追加（赤ブロック警告/緑正常稼働）、クリックでセッション状態ページへ遷移
+- 📊 タスク管理ページ新規追加（機能グループ折りたたみ/展開、ステータスフィルタ、検索、CRUD）
+- 📊 サイドバーナビゲーション順序最適化（セッション状態・イシュー・タスクをコア位置に移動）
+- 📊 メモリリストに source フィルタリングと exclude_tags 除外フィルタを追加
+
+**安定性と規範**
+- 🛡️ Server メインループにグローバル例外キャッチ追加、単一メッセージエラーで server が終了しなくなった
+- 🛡️ Protocol 層に空行スキップと JSON パースエラー耐性を追加
+- 🕐 タイムスタンプを UTC からローカルタイムゾーンに変更
+- 🧹 冗長コードのクリーンアップ（未使用メソッド・冗長インポート・バックアップファイルの削除）
+- 📝 Steering テンプレートに Spec ワークフローとタスク管理セクション、context transfer 継続ルールを追加
+
 ### v0.2.4
 
 - 🔇 Stop hook プロンプトを直接指示に変更、Claude Code の重複応答を解消
@@ -386,4 +435,4 @@ export HF_ENDPOINT=https://hf-mirror.com
 
 ## License
 
-MIT
+Apache-2.0

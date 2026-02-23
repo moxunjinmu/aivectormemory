@@ -8,35 +8,30 @@
   <p align="center">
     <a href="https://pypi.org/project/aivectormemory/"><img src="https://img.shields.io/pypi/v/aivectormemory?color=blue&label=PyPI" alt="PyPI"></a>
     <a href="https://pypi.org/project/aivectormemory/"><img src="https://img.shields.io/pypi/pyversions/aivectormemory" alt="Python"></a>
-    <a href="https://github.com/Edlineas/aivectormemory/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-green" alt="License"></a>
+    <a href="https://github.com/Edlineas/aivectormemory/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-Apache_2.0-green" alt="License"></a>
     <a href="https://modelcontextprotocol.io"><img src="https://img.shields.io/badge/MCP-compatible-purple" alt="MCP"></a>
   </p>
 </p>
 
 ---
 
-> **問題**：AI 助手每次新會話都「失憶」，反覆踩同樣的坑、忘記專案約定、遺失開發進度。更糟的是，為了補償失憶，你不得不在每次對話中重複注入大量上下文，白白浪費 Token。
+> **你是否也有這樣的困擾？** 每開一個新會話，AI 就像換了個人 — 昨天剛教會它的專案規範今天又忘了，踩過的坑還會再踩一遍，開發到一半的進度全部歸零。你只能一遍遍複製貼上專案背景，眼睜睜看著 Token 被重複消耗。
 >
-> **AIVectorMemory**：透過 MCP 協議為 AI 提供本地向量記憶庫，讓它記住一切 — 專案知識、踩坑記錄、開發決策、工作進度 — 跨會話永不遺失。語義檢索按需召回，不再全量注入，大幅降低 Token 消耗。
+> **AIVectorMemory 讓 AI 擁有長期記憶。** 所有專案知識、踩坑經驗、開發決策、任務進度，跨會話永久保存在本地向量資料庫中。新會話自動恢復上下文，語義搜尋精準召回，Token 消耗直降 50%+。
 
 ## ✨ 核心特性
 
 | 特性 | 說明 |
 |------|------|
-| 🔍 **語義搜尋** | 基於向量相似度，搜「資料庫逾時」能找到「MySQL 連線池踩坑」 |
-| 🏠 **完全本地** | ONNX Runtime 本地推理，無需 API Key，資料不出本機 |
-| 🔄 **智慧去重** | 餘弦相似度 > 0.95 自動更新，不會重複儲存 |
-| 📊 **Web 看板** | 內建管理介面，3D 向量網路視覺化 |
-| 🔌 **全 IDE 支援** | OpenCode / Claude Code / Cursor / Kiro / Windsurf / VSCode / Trae 等 |
-| 📁 **專案隔離** | 多專案共用一個 DB，透過 project_dir 自動隔離 |
-| 🏷️ **標籤體系** | 記憶分類管理，支援標籤搜尋、重新命名、合併 |
-| 💰 **節省 Token** | 語義檢索按需召回，替代全量上下文注入，減少 50%+ 重複 Token 消耗 |
-| 📋 **問題追蹤** | 輕量級 issue tracker，AI 自動記錄和歸檔 |
-| 🔐 **Web 認證** | 看板支援 Token 認證，防止未授權存取 |
-| ⚡ **Embedding 快取** | 相同內容不重複計算向量，提升寫入效能 |
-| 📤 **匯出/匯入** | 記憶資料 JSON 匯出匯入，支援遷移和備份 |
-| 🎯 **操作回饋** | Toast 提示、空狀態引導，互動體驗完整 |
-| ➕ **看板新增專案** | 前端直接新增專案，支援目錄瀏覽器選擇 |
+| 🧠 **跨會話記憶** | AI 終於能記住你的專案了 — 踩過的坑、做過的決策、定下的規範，換個會話照樣記得 |
+| 🔍 **語義搜尋** | 不用記原文怎麼寫的，搜「資料庫逾時」就能找到「MySQL 連線池踩坑」 |
+| 💰 **省 50%+ Token** | 不再每次對話都複製貼上專案背景，語義檢索按需召回，告別全量上下文注入 |
+| 🔗 **任務驅動開發** | 問題追蹤 → 任務拆分 → 狀態同步 → 聯動歸檔，AI 自動管理完整開發流程 |
+| 📊 **Web 看板** | 視覺化管理所有記憶和任務，3D 向量網路一眼看清知識關聯 |
+| 🏠 **完全本地** | 零依賴雲端服務，ONNX 本地推理，無需 API Key，資料不出你的電腦 |
+| 🔌 **全 IDE 通吃** | Cursor / Kiro / Claude Code / Windsurf / VSCode / OpenCode / Trae — 一鍵安裝，開箱即用 |
+| 📁 **多專案隔離** | 一個 DB 管所有專案，自動隔離互不干擾，切換專案無感知 |
+| 🔄 **智慧去重** | 相似度 > 0.95 自動合併更新，記憶庫永遠乾淨，不會越用越亂 |
 
 ## 🏗️ 架構
 
@@ -68,21 +63,40 @@
 
 ## 🚀 快速開始
 
-### 方式一：pip 安裝
+### 方式一：pip 安裝（推薦）
 
 ```bash
+# 安裝
 pip install aivectormemory
-pip install --upgrade aivectormemory  # 升級到最新版
+
+# 升級到最新版
+pip install --upgrade aivectormemory
+
+# 進入你的專案目錄，一鍵配置 IDE
 cd /path/to/your/project
-run install          # 互動式選擇 IDE，一鍵配置
+run install
 ```
 
+`run install` 會互動式引導你選擇 IDE，自動生成 MCP 配置、Steering 規則和 Hooks，無需手動編寫。
+
+> **macOS 使用者注意**：
+> - 遇到 `externally-managed-environment` 錯誤，加 `--break-system-packages`
+> - 遇到 `enable_load_extension` 錯誤，說明當前 Python 不支援 SQLite 擴展載入（macOS 自帶 Python 和 python.org 官方安裝包均不支援），請改用 Homebrew Python：
+>   ```bash
+>   brew install python
+>   /opt/homebrew/bin/python3 -m pip install aivectormemory
+>   ```
+
 ### 方式二：uvx 執行（零安裝）
+
+無需 `pip install`，直接執行：
 
 ```bash
 cd /path/to/your/project
 uvx aivectormemory install
 ```
+
+> 需要先安裝 [uv](https://docs.astral.sh/uv/getting-started/installation/)，`uvx` 會自動下載並執行，無需手動安裝套件。
 
 ### 方式三：手動配置
 
@@ -317,6 +331,41 @@ export HF_ENDPOINT=https://hf-mirror.com
 
 ## 📋 更新日誌
 
+### v0.2.5
+
+**任務驅動開發模式**
+- 🔗 問題追蹤（track）與任務管理（task）透過 `feature_id` 打通成完整鏈路：發現問題 → 建立任務 → 執行任務 → 狀態自動同步 → 聯動歸檔
+- 🔄 `task update` 更新任務狀態時自動同步關聯問題狀態（全部完成→completed，有進行中→in_progress）
+- 📦 `track archive` 歸檔問題時自動歸檔關聯任務（最後一個活躍問題歸檔時聯動）
+- 📦 `task` 工具新增 `archive` action，將功能組所有任務移入 `tasks_archive` 歸檔表
+- 📊 問題卡片顯示關聯任務進度（如 `5/10`），任務頁面支援歸檔篩選
+
+**新增工具**
+- 🆕 `task` 工具 — 任務管理（batch_create/update/list/delete/archive），支援樹狀子任務，透過 feature_id 關聯 spec 文件
+- 🆕 `readme` 工具 — 從 TOOL_DEFINITIONS/pyproject.toml 自動生成 README 內容，支援多語言和差異對比
+
+**工具增強**
+- 🔧 `track` 新增 delete action、9 個結構化欄位（description/investigation/root_cause/solution/test_result/notes/files_changed/feature_id/parent_id）、list 按 issue_id 查單條
+- 🔧 `recall` 新增 source 參數過濾（manual/auto_save）和 brief 精簡模式（只回傳 content+tags，節省上下文）
+- 🔧 `auto_save` 寫入記憶標記 source="auto_save"，區分手動記憶和自動儲存
+
+**知識庫拆表重構**
+- 🗃️ project_memories + user_memories 獨立表，消除 scope/filter_dir 混合查詢，查詢效能提升
+- 📊 DB Schema v4→v6：issues 新增 9 個結構化欄位 + tasks/tasks_archive 表 + memories.source 欄位
+
+**Web 看板**
+- 📊 首頁新增阻塞狀態卡片（紅色阻塞警告/綠色正常運行），點擊跳轉會話狀態頁
+- 📊 新增任務管理頁面（功能組摺疊/展開、狀態篩選、搜尋、CRUD）
+- 📊 側邊欄導覽順序最佳化（會話狀態、問題追蹤、任務管理提前至核心位置）
+- 📊 記憶列表新增 source 過濾和 exclude_tags 排除過濾
+
+**穩定性與規範**
+- 🛡️ Server 主迴圈全域例外捕獲，單條訊息錯誤不再導致 server 退出
+- 🛡️ Protocol 層空行跳過和 JSON 解析例外容錯
+- 🕐 時間戳從 UTC 改為本地時區
+- 🧹 清理冗餘程式碼（刪除無呼叫方法、冗餘匯入、備份檔案）
+- 📝 Steering 範本新增 Spec 流程與任務管理章節、context transfer 續接規則
+
 ### v0.2.4
 
 - 🔇 Stop hook prompt 改為直接指令，消除 Claude Code 重複回覆
@@ -386,4 +435,4 @@ export HF_ENDPOINT=https://hf-mirror.com
 
 ## License
 
-MIT
+Apache-2.0
