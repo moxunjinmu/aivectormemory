@@ -1,7 +1,6 @@
 """aivectormemory install - 交互式为当前项目配置 MCP + Steering 规则"""
 import json
 import os
-import platform
 import sys
 from pathlib import Path
 
@@ -22,14 +21,13 @@ IDES = [
      lambda root: root / ".windsurf/rules/aivectormemory.md", "file",
      lambda root: root / ".windsurf"),
     ("VSCode",         lambda root: root / ".vscode/mcp.json",         "standard", False,
-     lambda root: root / ".github/copilot-instructions.md", "append", None),
+     lambda root: root / ".github/copilot-instructions.md", "append",
+     lambda root: root / ".claude"),
     ("Trae",           lambda root: root / ".trae/mcp.json",           "standard", False,
      lambda root: root / ".trae/rules/aivectormemory.md", "file", None),
     ("OpenCode",       lambda root: root / "opencode.json",            "opencode", False,
      lambda root: root / "AGENTS.md", "append",
      lambda root: root / ".opencode/plugins"),
-    ("Claude Desktop", lambda _: _claude_desktop_path(),               "standard", True,
-     None, None, None),
 ]
 
 RUNNERS = [
@@ -242,6 +240,48 @@ STEERING_CONTENT = """# AIVectorMemory - 工作规则
 """
 
 
+DEV_WORKFLOW_PROMPT = (
+    "## ⚠️ IDENTITY & TONE\n\n"
+    "- Role：你是首席工程师兼高级数据科学家\n"
+    "- Voice：Professional，Concise，Result-Oriented。No \"I hope this helps\"\n"
+    "- Authority：The user is the Lead Architect. Execute explicit commands immediately (not questions).\n\n"
+    "---\n\n"
+    "## ⚠️ 消息类型判断\n\n"
+    "收到用户消息后，严谨认真理解用户消息的意思然后判断消息类型，询问仅限闲聊，进度、讨论规则、简单确认不记录问题文档，其他所有情况必须需要记录问题文档，然后告诉用户方案，等用户确认后再执行\n\n"
+    "**⚠️ 回复时用自然语言说明判断结果**，例如：\n"
+    "- \"这是个询问，验证相应文件代码后回答\"\n"
+    "- \"这是个问题，方案如下...\"\n"
+    "- \"这个问题需要记录\"\n\n"
+    "**⚠️ 消息处理必须严格按流程执行，禁止跳步、省略、合并步骤。每个步骤完成后才能进入下一步，禁止自作主张跳过任何环节。**\n\n"
+    "---\n\n"
+    "## ⚠️ 核心原则\n\n"
+    "1. **任何操作前必须验证，不能假设，不能靠记忆**。\n"
+    "2. **遇到需要处理的问题时禁止盲目测试，必须查看问题对应的代码文件，必须找到问题的根本原因，必须与实际错误对应**。\n"
+    "3. **禁止口头承诺，口头答应，一切以测试通过为准**。\n"
+    "4. **任何文件修改前必须查看代码强制严谨思考**。\n"
+    "5. **开发、自测过程中禁止让用户手动操作，能自己执行的不要让用户做**。\n"
+    "6. **用户要求读取文件时，禁止以「已读过」「上下文已有」为由跳过，必须重新调用工具读取最新内容**。\n\n"
+    "---\n\n"
+    "## ⚠️ IDE 卡死防范\n\n"
+    "- **禁止** `$(...)` + 管道组合\n"
+    "- **禁止** MySQL `-e` 执行多条语句\n"
+    "- **禁止** `python3 -c \"...\"` 执行多行脚本（超过2行必须写成 .py 文件再执行）\n"
+    "- **禁止** `lsof -ti:端口` 不加 ignoreWarning（会被安全检查拦截）\n"
+    "- **正确做法**：SQL 写入 `.sql` 文件用 `< data/xxx.sql` 执行；Python 验证脚本写成 .py 文件用 `python3 xxx.py` 执行；端口检查用 `lsof -ti:端口` + ignoreWarning:true\n\n"
+    "---\n\n"
+    "## ⚠️ 自测要求\n\n"
+    "**禁止让用户手动操作** - 能自己执行的，不要让用户做\n\n"
+    "- Python：`python -m pytest` 或直接运行脚本验证\n"
+    "- MCP Server：通过 stdio 发送 JSON-RPC 消息验证\n"
+    "- Web 看板：Playwright 验证\n"
+    "- 自测通过后才能说\"等待验证\"\n\n"
+    "---\n\n"
+    "## ⚠️ 开发规则\n\n"
+    "> 禁止口头承诺，一切以测试通过为准。\n"
+    "> 任何文件修改前必须强制严谨思考。\n"
+    "> 遇到报错或异常时严禁盲目测试，必须分析问题根本原因。"
+)
+
 HOOKS_CONFIGS = [
     {
         "filename": "dev-workflow-check.kiro.hook",
@@ -252,47 +292,7 @@ HOOKS_CONFIGS = [
             "when": {"type": "promptSubmit"},
             "then": {
                 "type": "askAgent",
-                "prompt": (
-                    "## ⚠️ IDENTITY & TONE\n\n"
-                    "- Role：你是首席工程师兼高级数据科学家\n"
-                    "- Voice：Professional，Concise，Result-Oriented。No \"I hope this helps\"\n"
-                    "- Authority：The user is the Lead Architect. Execute explicit commands immediately (not questions).\n\n"
-                    "---\n\n"
-                    "## ⚠️ 消息类型判断\n\n"
-                    "收到用户消息后，严谨认真理解用户消息的意思然后判断消息类型，询问仅限闲聊，进度、讨论规则、简单确认不记录问题文档，其他所有情况必须需要记录问题文档，然后告诉用户方案，等用户确认后再执行\n\n"
-                    "**⚠️ 回复时用自然语言说明判断结果**，例如：\n"
-                    "- \"这是个询问，验证相应文件代码后回答\"\n"
-                    "- \"这是个问题，方案如下...\"\n"
-                    "- \"这个问题需要记录\"\n\n"
-                    "**⚠️ 消息处理必须严格按流程执行，禁止跳步、省略、合并步骤。每个步骤完成后才能进入下一步，禁止自作主张跳过任何环节。**\n\n"
-                    "---\n\n"
-                    "## ⚠️ 核心原则\n\n"
-                    "1. **任何操作前必须验证，不能假设，不能靠记忆**。\n"
-                    "2. **遇到需要处理的问题时禁止盲目测试，必须查看问题对应的代码文件，必须找到问题的根本原因，必须与实际错误对应**。\n"
-                    "3. **禁止口头承诺，口头答应，一切以测试通过为准**。\n"
-                    "4. **任何文件修改前必须查看代码强制严谨思考**。\n"
-                    "5. **开发、自测过程中禁止让用户手动操作，能自己执行的不要让用户做**。\n"
-                    "6. **用户要求读取文件时，禁止以「已读过」「上下文已有」为由跳过，必须重新调用工具读取最新内容**。\n\n"
-                    "---\n\n"
-                    "## ⚠️ IDE 卡死防范\n\n"
-                    "- **禁止** `$(...)` + 管道组合\n"
-                    "- **禁止** MySQL `-e` 执行多条语句\n"
-                    "- **禁止** `python3 -c \"...\"` 执行多行脚本（超过2行必须写成 .py 文件再执行）\n"
-                    "- **禁止** `lsof -ti:端口` 不加 ignoreWarning（会被安全检查拦截）\n"
-                    "- **正确做法**：SQL 写入 `.sql` 文件用 `< data/xxx.sql` 执行；Python 验证脚本写成 .py 文件用 `python3 xxx.py` 执行；端口检查用 `lsof -ti:端口` + ignoreWarning:true\n\n"
-                    "---\n\n"
-                    "## ⚠️ 自测要求\n\n"
-                    "**禁止让用户手动操作** - 能自己执行的，不要让用户做\n\n"
-                    "- Python：`python -m pytest` 或直接运行脚本验证\n"
-                    "- MCP Server：通过 stdio 发送 JSON-RPC 消息验证\n"
-                    "- Web 看板：Playwright 验证\n"
-                    "- 自测通过后才能说\"等待验证\"\n\n"
-                    "---\n\n"
-                    "## ⚠️ 开发规则\n\n"
-                    "> 禁止口头承诺，一切以测试通过为准。\n"
-                    "> 任何文件修改前必须强制严谨思考。\n"
-                    "> 遇到报错或异常时严禁盲目测试，必须分析问题根本原因。"
-                ),
+                "prompt": DEV_WORKFLOW_PROMPT,
             },
         },
     },
@@ -319,6 +319,17 @@ def _check_track_script_path() -> Path:
 
 CLAUDE_CODE_HOOKS_CONFIG = {
     "hooks": {
+        "UserPromptSubmit": [
+            {
+                "matcher": "*",
+                "hooks": [
+                    {
+                        "type": "prompt",
+                        "prompt": DEV_WORKFLOW_PROMPT,
+                    }
+                ]
+            }
+        ],
         "PreToolUse": [
             {
                 "matcher": "Edit|Write",
@@ -336,11 +347,32 @@ CLAUDE_CODE_HOOKS_CONFIG = {
 
 CURSOR_HOOKS_CONFIG = {
     "version": 1,
-    "hooks": {}
+    "hooks": {
+        "beforeSubmitPrompt": [
+            {
+                "type": "prompt",
+                "command": DEV_WORKFLOW_PROMPT,
+            }
+        ],
+        "preToolUse": [
+            {
+                "matcher": "edit|write",
+                "command": "",  # 占位，install 时动态填充实际路径
+                "timeout": 10,
+            }
+        ]
+    }
 }
 
 WINDSURF_HOOKS_CONFIG = {
-    "hooks": {}
+    "hooks": {
+        "pre_write_code": [
+            {
+                "command": "",  # 占位，install 时动态填充实际路径
+                "show_output": True,
+            }
+        ]
+    }
 }
 
 
@@ -487,49 +519,98 @@ def _write_claude_code_hooks(hooks_dir: Path) -> list[str]:
             config = {}
     existing = config.get("hooks", {})
     new_hooks = new_hooks_cfg["hooks"]
-    changed = existing.get("PreToolUse") != new_hooks.get("PreToolUse")
+    changed = (existing.get("PreToolUse") != new_hooks.get("PreToolUse")
+               or existing.get("UserPromptSubmit") != new_hooks.get("UserPromptSubmit"))
     # 清理旧的 Stop hook（如果存在）
     has_old_stop = "Stop" in existing
     if changed or has_old_stop:
         config.setdefault("hooks", {})
         config["hooks"]["PreToolUse"] = new_hooks["PreToolUse"]
+        config["hooks"]["UserPromptSubmit"] = new_hooks["UserPromptSubmit"]
         config["hooks"].pop("Stop", None)
         filepath.write_text(json.dumps(config, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-        results.append("✓ 已生成  Hook: .claude/settings.json (PreToolUse)")
+        results.append("✓ 已生成  Hook: .claude/settings.json (PreToolUse + UserPromptSubmit)")
     else:
-        results.append("- 无变更  Hook: .claude/settings.json (PreToolUse)")
+        results.append("- 无变更  Hook: .claude/settings.json (PreToolUse + UserPromptSubmit)")
     return results
+
+
+def _build_cursor_hooks(script_path: str) -> dict:
+    """构建 Cursor hooks 配置，填充实际脚本路径"""
+    import copy
+    cfg = copy.deepcopy(CURSOR_HOOKS_CONFIG)
+    cfg["hooks"]["preToolUse"][0]["command"] = script_path
+    return cfg
 
 
 def _write_cursor_hooks(hooks_dir: Path) -> list[str]:
     """写入 Cursor hooks 到 .cursor/hooks.json"""
     results = []
     hooks_dir.mkdir(parents=True, exist_ok=True)
+    # 复制检查脚本
+    script_dir = hooks_dir / "hooks"
+    script_path, script_changed = _copy_check_track_script(script_dir)
+    results.append(f"{'✓ 已同步' if script_changed else '- 无变更'}  Script: .cursor/hooks/check_track.sh")
+    # 构建配置
+    new_cfg = _build_cursor_hooks(str(script_path))
     filepath = hooks_dir / "hooks.json"
-    new_content = json.dumps(CURSOR_HOOKS_CONFIG, indent=2, ensure_ascii=False) + "\n"
+    config = {}
     if filepath.exists():
-        existing = filepath.read_text("utf-8")
-        if existing.strip() == new_content.strip():
-            results.append("- 无变更  Hook: .cursor/hooks.json")
-            return results
-    filepath.write_text(new_content, encoding="utf-8")
-    results.append("✓ 已生成  Hook: .cursor/hooks.json")
+        try:
+            config = json.loads(filepath.read_text("utf-8"))
+        except (json.JSONDecodeError, OSError):
+            config = {}
+    existing_hooks = config.get("hooks", {})
+    new_hooks = new_cfg["hooks"]
+    changed = (existing_hooks.get("preToolUse") != new_hooks.get("preToolUse")
+               or existing_hooks.get("beforeSubmitPrompt") != new_hooks.get("beforeSubmitPrompt"))
+    if changed:
+        config["version"] = new_cfg["version"]
+        config.setdefault("hooks", {})
+        config["hooks"]["preToolUse"] = new_hooks["preToolUse"]
+        config["hooks"]["beforeSubmitPrompt"] = new_hooks["beforeSubmitPrompt"]
+        filepath.write_text(json.dumps(config, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+        results.append("✓ 已生成  Hook: .cursor/hooks.json (preToolUse + beforeSubmitPrompt)")
+    else:
+        results.append("- 无变更  Hook: .cursor/hooks.json (preToolUse + beforeSubmitPrompt)")
     return results
+
+
+def _build_windsurf_hooks(script_path: str) -> dict:
+    """构建 Windsurf hooks 配置，填充实际脚本路径"""
+    import copy
+    cfg = copy.deepcopy(WINDSURF_HOOKS_CONFIG)
+    cfg["hooks"]["pre_write_code"][0]["command"] = script_path
+    return cfg
 
 
 def _write_windsurf_hooks(hooks_dir: Path) -> list[str]:
     """写入 Windsurf hooks 到 .windsurf/hooks.json"""
     results = []
     hooks_dir.mkdir(parents=True, exist_ok=True)
+    # 复制检查脚本
+    script_dir = hooks_dir / "hooks"
+    script_path, script_changed = _copy_check_track_script(script_dir)
+    results.append(f"{'✓ 已同步' if script_changed else '- 无变更'}  Script: .windsurf/hooks/check_track.sh")
+    # 构建配置
+    new_cfg = _build_windsurf_hooks(str(script_path))
     filepath = hooks_dir / "hooks.json"
-    new_content = json.dumps(WINDSURF_HOOKS_CONFIG, indent=2, ensure_ascii=False) + "\n"
+    config = {}
     if filepath.exists():
-        existing = filepath.read_text("utf-8")
-        if existing.strip() == new_content.strip():
-            results.append("- 无变更  Hook: .windsurf/hooks.json")
-            return results
-    filepath.write_text(new_content, encoding="utf-8")
-    results.append("✓ 已生成  Hook: .windsurf/hooks.json")
+        try:
+            config = json.loads(filepath.read_text("utf-8"))
+        except (json.JSONDecodeError, OSError):
+            config = {}
+    existing_hooks = config.get("hooks", {})
+    new_hooks = new_cfg["hooks"]
+    changed = existing_hooks.get("pre_write_code") != new_hooks.get("pre_write_code")
+    if changed:
+        config.setdefault("hooks", {})
+        config["hooks"]["pre_write_code"] = new_hooks["pre_write_code"]
+        filepath.write_text(json.dumps(config, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+        results.append("✓ 已生成  Hook: .windsurf/hooks.json (pre_write_code)")
+    else:
+        results.append("- 无变更  Hook: .windsurf/hooks.json (pre_write_code)")
     return results
 
 
@@ -643,18 +724,6 @@ def _write_steering(filepath: Path, mode: str, ide_name: str = "") -> bool:
             f.write(block)
         return True
     return False
-
-
-def _claude_desktop_path() -> Path | None:
-    s = platform.system()
-    if s == "Darwin":
-        return Path.home() / "Library/Application Support/Claude/claude_desktop_config.json"
-    if s == "Windows":
-        import os
-        return Path(os.environ.get("APPDATA", "")) / "Claude/claude_desktop_config.json"
-    if s == "Linux":
-        return Path.home() / ".config/Claude/claude_desktop_config.json"
-    return None
 
 
 def _build_config(cmd: str, args: list[str], fmt: str) -> dict:

@@ -1,16 +1,21 @@
 🌐 简体中文 | [繁體中文](docs/README.zh-TW.md) | [English](docs/README.en.md) | [Español](docs/README.es.md) | [Deutsch](docs/README.de.md) | [Français](docs/README.fr.md) | [日本語](docs/README.ja.md)
 
 <p align="center">
-  <h1 align="center">🧠 AIVectorMemory</h1>
-  <p align="center">
-    <strong>给 AI 编程助手装上记忆 — 跨会话持久化记忆 MCP Server</strong>
-  </p>
-  <p align="center">
-    <a href="https://pypi.org/project/aivectormemory/"><img src="https://img.shields.io/pypi/v/aivectormemory?color=blue&label=PyPI" alt="PyPI"></a>
-    <a href="https://pypi.org/project/aivectormemory/"><img src="https://img.shields.io/pypi/pyversions/aivectormemory" alt="Python"></a>
-    <a href="https://github.com/Edlineas/aivectormemory/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-Apache_2.0-green" alt="License"></a>
-    <a href="https://modelcontextprotocol.io"><img src="https://img.shields.io/badge/MCP-compatible-purple" alt="MCP"></a>
-  </p>
+  <img src="docs/logo.png" alt="AIVectorMemory Logo" width="200">
+</p>
+<h1 align="center">AIVectorMemory</h1>
+<p align="center">
+  <strong>给 AI 编程助手装上记忆 — 跨会话持久化记忆 MCP Server</strong>
+</p>
+<p align="center">
+  <a href="https://pypi.org/project/aivectormemory/"><img src="https://img.shields.io/pypi/v/aivectormemory?color=blue&label=PyPI" alt="PyPI"></a>
+  <a href="https://pypi.org/project/aivectormemory/"><img src="https://img.shields.io/pypi/pyversions/aivectormemory" alt="Python"></a>
+  <a href="https://github.com/Edlineas/aivectormemory/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-Apache_2.0-green" alt="License"></a>
+  <a href="https://modelcontextprotocol.io"><img src="https://img.shields.io/badge/MCP-compatible-purple" alt="MCP"></a>
+</p>
+<p align="center">
+  QQ群：1085682431 &nbsp;|&nbsp; 微信：changhuibiz<br>
+  源码加QQ群或微信获取
 </p>
 
 ---
@@ -124,7 +129,6 @@ uvx aivectormemory install
 | VSCode | `.vscode/mcp.json` |
 | Trae | `.trae/mcp.json` |
 | OpenCode | `opencode.json` |
-| Claude Desktop | `~/Library/Application Support/Claude/claude_desktop_config.json` |
 
 </details>
 
@@ -240,6 +244,12 @@ run web --port 9080 --quiet --daemon  # 后台运行（macOS/Linux）
   <em>统计概览 & 向量网络可视化</em>
 </p>
 
+<p align="center">
+  <img src="docs/20260306234753_6_1635.jpg" alt="微信群：AI向量永久记忆-Aivectormemory" width="300">
+  <br>
+  <em>微信扫码加群</em>
+</p>
+
 ## ⚡ 配合 Steering 规则
 
 AIVectorMemory 是存储层，通过 Steering 规则告诉 AI **何时、如何**调用这些工具。
@@ -252,7 +262,7 @@ AIVectorMemory 是存储层，通过 Steering 规则告诉 AI **何时、如何*
 | Cursor | `.cursor/rules/aivectormemory.md` | `.cursor/hooks.json` |
 | Claude Code | `CLAUDE.md`（追加） | `.claude/settings.json` |
 | Windsurf | `.windsurf/rules/aivectormemory.md` | `.windsurf/hooks.json` |
-| VSCode | `.github/copilot-instructions.md`（追加） | — |
+| VSCode | `.github/copilot-instructions.md`（追加） | `.claude/settings.json` |
 | Trae | `.trae/rules/aivectormemory.md` | — |
 | OpenCode | `AGENTS.md`（追加） | `.opencode/plugins/*.js` |
 
