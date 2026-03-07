@@ -86,6 +86,8 @@ export function SearchMemories(arg1:string,arg2:string,arg3:string,arg4:Array<st
 
 export function SelectDirectory():Promise<string>;
 
+export function SetLanguage(arg1:string):Promise<void>;
+
 export function SetAutoStart(arg1:boolean):Promise<void>;
 
 export function StopWebDashboard():Promise<void>;

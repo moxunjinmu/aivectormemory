@@ -9,6 +9,8 @@ import (
 	"sort"
 	"strings"
 
+	"os/exec"
+
 	"desktop/internal/backup"
 	"desktop/internal/db"
 	"desktop/internal/embedding"
@@ -356,6 +358,35 @@ func (a *App) GetSettings() *settings.Settings {
 func (a *App) SaveSettings(s *settings.Settings) error {
 	a.settings = s
 	return settings.Save(s)
+}
+
+func (a *App) SetLanguage(lang string) error {
+	// 1. 更新桌面设置
+	a.settings.Language = lang
+	if err := settings.Save(a.settings); err != nil {
+		return fmt.Errorf("save desktop settings: %w", err)
+	}
+	// 2. 写入 Python 侧 settings.json
+	home, _ := os.UserHomeDir()
+	settingsPath := filepath.Join(home, ".aivectormemory", "settings.json")
+	pySettings := map[string]interface{}{}
+	if data, err := os.ReadFile(settingsPath); err == nil {
+		json.Unmarshal(data, &pySettings)
+	}
+	pySettings["language"] = lang
+	data, _ := json.MarshalIndent(pySettings, "", "  ")
+	os.MkdirAll(filepath.Dir(settingsPath), 0755)
+	os.WriteFile(settingsPath, append(data, '\n'), 0644)
+	// 3. 调用 regenerate 更新所有项目文件
+	pythonPath := a.engine.PythonPath
+	if pythonPath == "" {
+		pythonPath = "python3"
+	}
+	cmd := exec.Command(pythonPath, "-m", "aivectormemory", "regenerate", "--lang", lang)
+	if output, err := cmd.CombinedOutput(); err != nil {
+		return fmt.Errorf("regenerate failed: %s\n%s", err, string(output))
+	}
+	return nil
 }
 
 func (a *App) SetAutoStart(enabled bool) error {

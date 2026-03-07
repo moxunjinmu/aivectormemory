@@ -4,7 +4,7 @@ import { useI18n } from 'vue-i18n'
 import { useSettingsStore } from '../stores/settings'
 import { useThemeStore, type ThemeMode } from '../stores/theme'
 import { LANGS } from '../i18n'
-import { DetectPython, SetAutoStart, LaunchWebDashboard, StopWebDashboard, IsWebDashboardRunning } from '../../wailsjs/go/main/App'
+import { DetectPython, SetAutoStart, SetLanguage, LaunchWebDashboard, StopWebDashboard, IsWebDashboardRunning } from '../../wailsjs/go/main/App'
 
 const { t, locale } = useI18n()
 const settingsStore = useSettingsStore()
@@ -31,6 +31,7 @@ function onLangChange(e: Event) {
   const lang = (e.target as HTMLSelectElement).value
   locale.value = lang
   settingsStore.save({ language: lang })
+  SetLanguage(lang).catch((err: Error) => console.error('SetLanguage failed:', err))
 }
 
 // DB path
@@ -97,7 +98,7 @@ async function toggleWebDashboard() {
       <div class="settings-row">
         <label class="settings-label">{{ t('language') }}</label>
         <select class="filter-select" :value="locale" @change="onLangChange">
-          <option v-for="(label, code) in LANGS" :key="code" :value="code">{{ label }}</option>
+          <option v-for="(lang, code) in LANGS" :key="code" :value="code">{{ lang.label }}</option>
         </select>
       </div>
     </section>

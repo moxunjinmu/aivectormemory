@@ -29,16 +29,16 @@ git checkout main
 git checkout dev -- README.md
 git checkout dev -- docs/README.de.md docs/README.en.md docs/README.es.md docs/README.fr.md docs/README.ja.md docs/README.zh-TW.md 2>/dev/null || true
 
-# Check if there are changes
-if [ -z "$(git status --porcelain)" ]; then
+# Stage only README files
+git add README.md docs/README.*.md 2>/dev/null || true
+
+# Check if there are staged changes
+if [ -z "$(git diff --cached --name-only)" ]; then
     echo "No README changes to sync"
     git checkout "$CURRENT_BRANCH"
     if [ "$STASHED" = true ]; then git stash pop; fi
     exit 0
 fi
-
-# Commit and push to public
-git add README.md docs/README.*.md
 git commit -m "docs: sync README from dev"
 git push public main
 

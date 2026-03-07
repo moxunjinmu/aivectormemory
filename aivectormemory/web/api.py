@@ -75,6 +75,7 @@ def handle_api_request(handler, cm):
             "/api/projects": lambda: projects.get_projects(cm),
             "/api/export": lambda: memories.export_memories(cm, params, pdir),
             "/api/browse": lambda: projects.browse_directory(params),
+            "/api/settings/language": lambda: _get_language(),
         },
         "POST": {
             "/api/import": lambda: memories.import_memories(handler, cm, pdir),
@@ -82,6 +83,7 @@ def handle_api_request(handler, cm):
             "/api/projects": lambda: projects.add_project(handler, cm),
             "/api/issues": lambda: issues.post_issue(handler, cm, pdir),
             "/api/tasks": lambda: tasks.post_tasks(handler, cm, pdir),
+            "/api/settings/language": lambda: _set_language(handler),
         },
         "PUT": {
             "/api/status": lambda: _put_status(handler, cm, pdir),
@@ -139,3 +141,23 @@ def _put_status(handler, cm, pdir):
     body = _read_body(handler)
     repo = StateRepo(cm.conn, pdir)
     return repo.upsert(**body)
+
+# --- Language Settings ---
+
+def _get_language():
+    from aivectormemory.settings import get_language
+    return {"language": get_language()}
+
+
+def _set_language(handler):
+    body = _read_body(handler)
+    lang = body.get("language", "")
+    if not lang:
+        return {"error": "language is required"}
+    from aivectormemory.settings import set_language, SUPPORTED_LANGS
+    if lang not in SUPPORTED_LANGS:
+        return {"error": f"Unsupported language: {lang}. Supported: {', '.join(SUPPORTED_LANGS)}"}
+    set_language(lang)
+    from aivectormemory.regenerate import run_regenerate
+    run_regenerate(lang)
+    return {"success": True, "language": lang}

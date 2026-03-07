@@ -6,7 +6,7 @@ import { useProjectStore, type Project } from '../stores/project'
 import { useSettingsStore } from '../stores/settings'
 import { LANGS } from '../i18n'
 import Modal from '../components/layout/Modal.vue'
-import { BrowseDirectory, SelectDirectory } from '../../wailsjs/go/main/App'
+import { BrowseDirectory, SelectDirectory, SetLanguage } from '../../wailsjs/go/main/App'
 
 const router = useRouter()
 const { t, locale } = useI18n()
@@ -37,6 +37,7 @@ function onLangChange(e: Event) {
   const lang = (e.target as HTMLSelectElement).value
   locale.value = lang
   settingsStore.save({ language: lang })
+  SetLanguage(lang).catch((err: Error) => console.error('SetLanguage failed:', err))
 }
 
 // Add project
@@ -114,7 +115,7 @@ async function confirmDelete() {
     <!-- Language switcher -->
     <div class="lang-switcher--topright">
       <select class="lang-select" :value="locale" @change="onLangChange">
-        <option v-for="(label, code) in LANGS" :key="code" :value="code">{{ label }}</option>
+        <option v-for="(lang, code) in LANGS" :key="code" :value="code">{{ lang.label }}</option>
       </select>
     </div>
 

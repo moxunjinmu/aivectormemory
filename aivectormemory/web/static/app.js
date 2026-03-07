@@ -1317,6 +1317,7 @@ $('#import-file')?.addEventListener('change', async (e) => {
 });
 
 // 初始化
+initLangFromServer();
 setLang(currentLang);
 renderLangSwitcher('lang-switcher-project');
 

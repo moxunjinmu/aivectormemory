@@ -37,6 +37,22 @@ func DefaultSettings() *Settings {
 	}
 }
 
+func readPythonSettingsLang() string {
+	home, _ := os.UserHomeDir()
+	data, err := os.ReadFile(filepath.Join(home, ".aivectormemory", "settings.json"))
+	if err != nil {
+		return ""
+	}
+	var m map[string]interface{}
+	if json.Unmarshal(data, &m) != nil {
+		return ""
+	}
+	if lang, ok := m["language"].(string); ok {
+		return lang
+	}
+	return ""
+}
+
 func configPath() string {
 	home, _ := os.UserHomeDir()
 	return filepath.Join(home, ".aivectormemory", "desktop.json")
@@ -59,6 +75,11 @@ func Load() *Settings {
 	if strings.HasPrefix(s.DBPath, "~") {
 		home, _ := os.UserHomeDir()
 		s.DBPath = filepath.Join(home, s.DBPath[1:])
+	}
+
+	// Sync language from Python-side settings.json (source of truth)
+	if pyLang := readPythonSettingsLang(); pyLang != "" {
+		s.Language = pyLang
 	}
 
 	// Apply defaults for zero values

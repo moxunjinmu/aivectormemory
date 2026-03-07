@@ -1210,7 +1210,7 @@ function t(key) {
   return key.split('.').reduce((o, k) => o?.[k], lang) ?? key;
 }
 
-function setLang(lang) {
+function setLang(lang, syncToServer = false) {
   if (!messages[lang]) return;
   currentLang = lang;
   localStorage.setItem('avm-lang', lang);
@@ -1230,6 +1230,21 @@ function setLang(lang) {
   });
   const langSelects = document.querySelectorAll('.lang-select');
   langSelects.forEach(s => s.value = lang);
+  if (syncToServer) {
+    fetch('/api/settings/language', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ language: lang }),
+    }).catch(() => {});
+  }
+}
+
+function initLangFromServer() {
+  fetch('/api/settings/language').then(r => r.json()).then(data => {
+    if (data.language && messages[data.language] && data.language !== currentLang) {
+      setLang(data.language);
+    }
+  }).catch(() => {});
 }
 
 function renderLangSwitcher(containerId) {
@@ -1240,7 +1255,7 @@ function renderLangSwitcher(containerId) {
   ).join('');
   el.innerHTML = `<select class="lang-select">${options}</select>`;
   el.querySelector('.lang-select').addEventListener('change', (e) => {
-    setLang(e.target.value);
+    setLang(e.target.value, true);
     if (typeof window._reloadCurrentView === 'function') window._reloadCurrentView();
   });
 }
