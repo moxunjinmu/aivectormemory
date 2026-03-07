@@ -26,19 +26,25 @@ jobs:
             goos: darwin
             goarch: arm64
             platform: macos-arm64
-            vec_asset: sqlite-vec-$SQLITE_VEC_VER-loadable-macos-aarch64.tar.gz
+            vec_os: macos
+            vec_arch: aarch64
+            vec_ext: tar.gz
             vec_file: vec0.dylib
           - os: windows-latest
             goos: windows
             goarch: amd64
             platform: windows-x64
-            vec_asset: sqlite-vec-$SQLITE_VEC_VER-loadable-windows-x86_64.zip
+            vec_os: windows
+            vec_arch: x86_64
+            vec_ext: zip
             vec_file: vec0.dll
           - os: ubuntu-22.04
             goos: linux
             goarch: amd64
             platform: linux-x64
-            vec_asset: sqlite-vec-$SQLITE_VEC_VER-loadable-linux-x86_64.tar.gz
+            vec_os: linux
+            vec_arch: x86_64
+            vec_ext: tar.gz
             vec_file: vec0.so
 
     runs-on: ${{ matrix.os }}
@@ -105,26 +111,20 @@ jobs:
             echo "tag=${GITHUB_REF#refs/tags/}" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Download sqlite-vec (unix)
-        if: matrix.goos != 'windows'
+      - name: Download sqlite-vec
         shell: bash
         run: |
           VEC_VER="${{ env.SQLITE_VEC_VERSION }}"
-          ASSET_NAME=$(echo "${{ matrix.vec_asset }}" | sed "s/\$SQLITE_VEC_VER/$VEC_VER/g")
-          curl -L -o vec.tar.gz "https://github.com/asg017/sqlite-vec/releases/download/v${VEC_VER}/${ASSET_NAME}"
+          ASSET="sqlite-vec-v${VEC_VER}-loadable-${{ matrix.vec_os }}-${{ matrix.vec_arch }}.${{ matrix.vec_ext }}"
+          URL="https://github.com/asg017/sqlite-vec/releases/download/v${VEC_VER}/${ASSET}"
+          echo "Downloading: ${URL}"
+          curl -fSL -o "vec_archive.${{ matrix.vec_ext }}" "${URL}"
           mkdir -p vec_extract
-          tar xzf vec.tar.gz -C vec_extract
-          find vec_extract -name "${{ matrix.vec_file }}" -exec cp {} . \;
-
-      - name: Download sqlite-vec (windows)
-        if: matrix.goos == 'windows'
-        shell: bash
-        run: |
-          VEC_VER="${{ env.SQLITE_VEC_VERSION }}"
-          ASSET_NAME=$(echo "${{ matrix.vec_asset }}" | sed "s/\$SQLITE_VEC_VER/$VEC_VER/g")
-          curl -L -o vec.zip "https://github.com/asg017/sqlite-vec/releases/download/v${VEC_VER}/${ASSET_NAME}"
-          mkdir -p vec_extract
-          unzip -o vec.zip -d vec_extract
+          if [ "${{ matrix.vec_ext }}" = "zip" ]; then
+            unzip -o "vec_archive.${{ matrix.vec_ext }}" -d vec_extract
+          else
+            tar xzf "vec_archive.${{ matrix.vec_ext }}" -C vec_extract
+          fi
           find vec_extract -name "${{ matrix.vec_file }}" -exec cp {} . \;
 
       # --- Package ---
