@@ -36,7 +36,7 @@ jobs:
             platform: windows-x64
             vec_os: windows
             vec_arch: x86_64
-            vec_ext: zip
+            vec_ext: tar.gz
             vec_file: vec0.dll
           - os: ubuntu-22.04
             goos: linux
@@ -115,16 +115,12 @@ jobs:
         shell: bash
         run: |
           VEC_VER="${{ env.SQLITE_VEC_VERSION }}"
-          ASSET="sqlite-vec-v${VEC_VER}-loadable-${{ matrix.vec_os }}-${{ matrix.vec_arch }}.${{ matrix.vec_ext }}"
+          ASSET="sqlite-vec-${VEC_VER}-loadable-${{ matrix.vec_os }}-${{ matrix.vec_arch }}.${{ matrix.vec_ext }}"
           URL="https://github.com/asg017/sqlite-vec/releases/download/v${VEC_VER}/${ASSET}"
           echo "Downloading: ${URL}"
-          curl -fSL -o "vec_archive.${{ matrix.vec_ext }}" "${URL}"
+          curl -fSL -o vec_archive.tar.gz "${URL}"
           mkdir -p vec_extract
-          if [ "${{ matrix.vec_ext }}" = "zip" ]; then
-            unzip -o "vec_archive.${{ matrix.vec_ext }}" -d vec_extract
-          else
-            tar xzf "vec_archive.${{ matrix.vec_ext }}" -C vec_extract
-          fi
+          tar xzf vec_archive.tar.gz -C vec_extract
           find vec_extract -name "${{ matrix.vec_file }}" -exec cp {} . \;
 
       # --- Package ---
