@@ -13,11 +13,6 @@
   <a href="https://github.com/Edlineas/aivectormemory/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-Apache_2.0-green" alt="License"></a>
   <a href="https://modelcontextprotocol.io"><img src="https://img.shields.io/badge/MCP-compatible-purple" alt="MCP"></a>
 </p>
-<p align="center">
-  Groupe QQ : 1085682431 &nbsp;|&nbsp; WeChat : changhuibiz<br>
-  Contactez-nous pour obtenir le code source
-</p>
-
 ---
 
 > **Vous utilisez encore CLAUDE.md / MEMORY.md comme mémoire ?** Cette approche mémoire par fichier Markdown a des défauts fatals : le fichier grossit sans cesse, injectant tout à chaque session et consumant une quantité massive de tokens ; le contenu ne supporte que la recherche par mots-clés — chercher « timeout base de données » ne trouve pas « piège du pool de connexions MySQL » ; partager un fichier entre projets cause une contamination croisée ; il n'y a pas de suivi des tâches, la progression du développement repose uniquement sur votre mémoire ; sans parler de la troncature à 200 lignes, de la maintenance manuelle et de l'impossibilité de dédupliquer ou fusionner.
@@ -37,6 +32,11 @@
 | 🔌 **Tous les IDEs** | Cursor / Kiro / Claude Code / Windsurf / VSCode / OpenCode / Trae — installation en un clic, prêt à l'emploi |
 | 📁 **Isolation Multi-Projets** | Une seule BD pour tous les projets, isolation automatique sans interférence, changement de projet transparent |
 | 🔄 **Déduplication Intelligente** | Similarité > 0.95 fusionne automatiquement, la base de mémoires reste propre — ne devient jamais désordonnée |
+
+<p align="center">
+  QQ群：1085682431 &nbsp;|&nbsp; 微信：changhuibiz<br>
+  源码加QQ群或微信获取
+</p>
 
 ## 🏗️ Architecture
 
@@ -220,7 +220,7 @@ run web --port 9080 --quiet          # Supprimer les logs de requêtes
 run web --port 9080 --quiet --daemon  # Exécuter en arrière-plan (macOS/Linux)
 ```
 
-Visitez `http://localhost:9080` dans votre navigateur.
+Visitez `http://localhost:9080` dans votre navigateur. Nom d'utilisateur par défaut `admin`, mot de passe `admin123` (modifiable dans les paramètres après la première connexion).
 
 - Basculement entre projets, parcourir/rechercher/modifier/supprimer/exporter/importer les mémoires
 - Recherche sémantique (correspondance par similarité vectorielle)
@@ -230,6 +230,12 @@ Visitez `http://localhost:9080` dans votre navigateur.
 - Protection par authentification Token
 - Visualisation 3D du réseau vectoriel de mémoires
 - 🌐 Support multilingue (简体中文 / 繁體中文 / English / Español / Deutsch / Français / 日本語)
+
+<p align="center">
+  <img src="003.png" alt="Connexion" width="100%">
+  <br>
+  <em>Connexion</em>
+</p>
 
 <p align="center">
   <img src="dashboard-projects.png" alt="Sélection de Projet" width="100%">

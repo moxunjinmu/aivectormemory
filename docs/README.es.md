@@ -13,11 +13,6 @@
   <a href="https://github.com/Edlineas/aivectormemory/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-Apache_2.0-green" alt="License"></a>
   <a href="https://modelcontextprotocol.io"><img src="https://img.shields.io/badge/MCP-compatible-purple" alt="MCP"></a>
 </p>
-<p align="center">
-  Grupo QQ: 1085682431 &nbsp;|&nbsp; WeChat: changhuibiz<br>
-  Contáctenos para obtener el código fuente
-</p>
-
 ---
 
 > **¿Sigues usando CLAUDE.md / MEMORY.md como memoria?** Este enfoque de memoria basado en archivos Markdown tiene defectos fatales: el archivo crece sin parar, inyectando todo en cada sesión y consumiendo una enorme cantidad de tokens; el contenido solo permite búsqueda por palabras clave — buscar "timeout de base de datos" no encuentra "error en pool de conexiones MySQL"; compartir un archivo entre proyectos causa contaminación cruzada; no hay seguimiento de tareas, así que el progreso del desarrollo depende solo de tu cabeza; sin mencionar el truncamiento a 200 líneas, el mantenimiento manual y la imposibilidad de deduplicar o fusionar.
@@ -37,6 +32,11 @@
 | 🔌 **Todos los IDEs** | Cursor / Kiro / Claude Code / Windsurf / VSCode / OpenCode / Trae — instalación con un clic, listo para usar |
 | 📁 **Aislamiento Multi-Proyecto** | Una sola BD para todos los proyectos, aislamiento automático sin interferencia, cambio de proyecto transparente |
 | 🔄 **Deduplicación Inteligente** | Similitud > 0.95 fusiona automáticamente, la base de memorias siempre limpia — nunca se desordena con el uso |
+
+<p align="center">
+  QQ群：1085682431 &nbsp;|&nbsp; 微信：changhuibiz<br>
+  源码加QQ群或微信获取
+</p>
 
 ## 🏗️ Arquitectura
 
@@ -220,7 +220,7 @@ run web --port 9080 --quiet          # Suprimir logs de solicitudes
 run web --port 9080 --quiet --daemon  # Ejecutar en segundo plano (macOS/Linux)
 ```
 
-Visita `http://localhost:9080` en tu navegador.
+Visita `http://localhost:9080` en tu navegador. Usuario predeterminado `admin`, contraseña `admin123` (se puede cambiar en la configuración después del primer inicio de sesión).
 
 - Cambio entre múltiples proyectos, explorar/buscar/editar/eliminar/exportar/importar memorias
 - Búsqueda semántica (coincidencia por similitud vectorial)
@@ -230,6 +230,12 @@ Visita `http://localhost:9080` en tu navegador.
 - Protección por autenticación Token
 - Visualización 3D de red vectorial de memorias
 - 🌐 Soporte multilingüe (简体中文 / 繁體中文 / English / Español / Deutsch / Français / 日本語)
+
+<p align="center">
+  <img src="003.png" alt="Inicio de sesión" width="100%">
+  <br>
+  <em>Inicio de sesión</em>
+</p>
 
 <p align="center">
   <img src="dashboard-projects.png" alt="Selección de Proyecto" width="100%">

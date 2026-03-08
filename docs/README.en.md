@@ -13,11 +13,6 @@
   <a href="https://github.com/Edlineas/aivectormemory/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-Apache_2.0-green" alt="License"></a>
   <a href="https://modelcontextprotocol.io"><img src="https://img.shields.io/badge/MCP-compatible-purple" alt="MCP"></a>
 </p>
-<p align="center">
-  QQ Group: 1085682431 &nbsp;|&nbsp; WeChat: changhuibiz<br>
-  Contact us for source code
-</p>
-
 ---
 
 > **Still using CLAUDE.md / MEMORY.md as memory?** This Markdown-file memory approach has fatal flaws: the file keeps growing, injecting everything into every session and burning massive tokens; content only supports keyword matching — search "database timeout" and you won't find "MySQL connection pool pitfall"; sharing one file across projects causes cross-contamination; there's no task tracking, so dev progress lives entirely in your head; not to mention the 200-line truncation, manual maintenance, and inability to deduplicate or merge.
@@ -37,6 +32,11 @@
 | 🔌 **All IDEs** | Cursor / Kiro / Claude Code / Windsurf / VSCode / OpenCode / Trae — one-click install, works out of the box |
 | 📁 **Multi-Project Isolation** | One DB for all projects, auto-isolated with zero interference, seamless project switching |
 | 🔄 **Smart Dedup** | Similarity > 0.95 auto-merges updates, keeping your memory store clean — never gets messy over time |
+
+<p align="center">
+  QQ群：1085682431 &nbsp;|&nbsp; 微信：changhuibiz<br>
+  源码加QQ群或微信获取
+</p>
 
 ## 🏗️ Architecture
 
@@ -220,7 +220,7 @@ run web --port 9080 --quiet          # Suppress request logs
 run web --port 9080 --quiet --daemon  # Run in background (macOS/Linux)
 ```
 
-Visit `http://localhost:9080` in your browser.
+Visit `http://localhost:9080` in your browser. Default username `admin`, password `admin123` (can be changed in settings after first login).
 
 - Multi-project switching, memory browse/search/edit/delete/export/import
 - Semantic search (vector similarity matching)
@@ -230,6 +230,12 @@ Visit `http://localhost:9080` in your browser.
 - Token authentication protection
 - 3D vector memory network visualization
 - 🌐 Multi-language support (简体中文 / 繁體中文 / English / Español / Deutsch / Français / 日本語)
+
+<p align="center">
+  <img src="003.png" alt="Login" width="100%">
+  <br>
+  <em>Login</em>
+</p>
 
 <p align="center">
   <img src="dashboard-projects.png" alt="Project Selection" width="100%">

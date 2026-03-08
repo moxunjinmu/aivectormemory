@@ -13,11 +13,6 @@
   <a href="https://github.com/Edlineas/aivectormemory/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-Apache_2.0-green" alt="License"></a>
   <a href="https://modelcontextprotocol.io"><img src="https://img.shields.io/badge/MCP-compatible-purple" alt="MCP"></a>
 </p>
-<p align="center">
-  QQグループ：1085682431 &nbsp;|&nbsp; WeChat：changhuibiz<br>
-  ソースコードはQQグループまたはWeChatでお問い合わせください
-</p>
-
 ---
 
 > **まだ CLAUDE.md / MEMORY.md を記憶として使っていますか？** この Markdown ファイル記憶方式には致命的な欠陥があります：ファイルは膨らみ続け、毎回のセッションで全量注入して大量のトークンを消費；内容はキーワード検索しかできず、「データベースタイムアウト」で検索しても「MySQL コネクションプールの落とし穴」は見つからない；複数プロジェクトで1つのファイルを共有すると相互汚染；タスク追跡がなく、開発進捗は頭の中だけ；200行での切り捨て、手動メンテナンス、重複排除や統合ができないという日常的な問題も。
@@ -37,6 +32,11 @@
 | 🔌 **全IDE対応** | Cursor / Kiro / Claude Code / Windsurf / VSCode / OpenCode / Trae — ワンクリックインストール、すぐ使える |
 | 📁 **マルチプロジェクト分離** | 1つのDBで全プロジェクト管理、自動分離で干渉なし、プロジェクト切り替えもシームレス |
 | 🔄 **スマート重複排除** | 類似度 > 0.95 で自動マージ更新、記憶ストアは常にクリーン — 使い続けても散らからない |
+
+<p align="center">
+  QQ群：1085682431 &nbsp;|&nbsp; 微信：changhuibiz<br>
+  源码加QQ群或微信获取
+</p>
 
 ## 🏗️ アーキテクチャ
 
@@ -220,7 +220,7 @@ run web --port 9080 --quiet          # リクエストログを非表示
 run web --port 9080 --quiet --daemon  # バックグラウンド実行（macOS/Linux）
 ```
 
-ブラウザで `http://localhost:9080` にアクセス。
+ブラウザで `http://localhost:9080` にアクセス。デフォルトユーザー名 `admin`、パスワード `admin123`（初回ログイン後に設定で変更可能）。
 
 - マルチプロジェクト切り替え、記憶の閲覧/検索/編集/削除/エクスポート/インポート
 - セマンティック検索（ベクトル類似度マッチング）
@@ -230,6 +230,12 @@ run web --port 9080 --quiet --daemon  # バックグラウンド実行（macOS/L
 - Token認証保護
 - 3Dベクトル記憶ネットワーク可視化
 - 🌐 多言語対応（简体中文 / 繁體中文 / English / Español / Deutsch / Français / 日本語）
+
+<p align="center">
+  <img src="003.png" alt="ログイン画面" width="100%">
+  <br>
+  <em>ログイン画面</em>
+</p>
 
 <p align="center">
   <img src="dashboard-projects.png" alt="プロジェクト選択" width="100%">

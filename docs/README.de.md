@@ -13,11 +13,6 @@
   <a href="https://github.com/Edlineas/aivectormemory/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-Apache_2.0-green" alt="License"></a>
   <a href="https://modelcontextprotocol.io"><img src="https://img.shields.io/badge/MCP-compatible-purple" alt="MCP"></a>
 </p>
-<p align="center">
-  QQ-Gruppe: 1085682431 &nbsp;|&nbsp; WeChat: changhuibiz<br>
-  Kontaktieren Sie uns für den Quellcode
-</p>
-
 ---
 
 > **Nutzt du immer noch CLAUDE.md / MEMORY.md als Gedächtnis?** Dieser Markdown-Datei-Ansatz hat fatale Schwächen: Die Datei wird immer größer, jede Sitzung injiziert alles und verbraucht massiv Tokens; Inhalte unterstützen nur Stichwortsuche — suche „Datenbank-Timeout" und du findest nicht „MySQL Connection Pool Fallstrick"; eine Datei für mehrere Projekte führt zu gegenseitiger Kontamination; es gibt kein Aufgaben-Tracking, der Entwicklungsfortschritt existiert nur in deinem Kopf; ganz zu schweigen von der 200-Zeilen-Kürzung, manueller Pflege und der Unmöglichkeit, Duplikate zu erkennen oder zusammenzuführen.
@@ -37,6 +32,11 @@
 | 🔌 **Alle IDEs** | Cursor / Kiro / Claude Code / Windsurf / VSCode / OpenCode / Trae — Ein-Klick-Installation, sofort einsatzbereit |
 | 📁 **Multi-Projekt-Isolation** | Eine DB für alle Projekte, automatisch isoliert ohne Interferenz, nahtloser Projektwechsel |
 | 🔄 **Intelligente Deduplizierung** | Ähnlichkeit > 0.95 führt automatisch zusammen, Wissensspeicher bleibt sauber — wird nie unübersichtlich |
+
+<p align="center">
+  QQ群：1085682431 &nbsp;|&nbsp; 微信：changhuibiz<br>
+  源码加QQ群或微信获取
+</p>
 
 ## 🏗️ Architektur
 
@@ -220,7 +220,7 @@ run web --port 9080 --quiet          # Anfrage-Logs unterdrücken
 run web --port 9080 --quiet --daemon  # Im Hintergrund ausführen (macOS/Linux)
 ```
 
-Besuche `http://localhost:9080` im Browser.
+Besuche `http://localhost:9080` im Browser. Standardbenutzername `admin`, Passwort `admin123` (kann nach der ersten Anmeldung in den Einstellungen geändert werden).
 
 - Mehrere Projekte wechseln, Erinnerungen durchsuchen/bearbeiten/löschen/exportieren/importieren
 - Semantische Suche (Vektorähnlichkeits-Matching)
@@ -230,6 +230,12 @@ Besuche `http://localhost:9080` im Browser.
 - Token-Authentifizierungsschutz
 - 3D-Vektornetzwerk-Visualisierung
 - 🌐 Mehrsprachige Unterstützung (简体中文 / 繁體中文 / English / Español / Deutsch / Français / 日本語)
+
+<p align="center">
+  <img src="003.png" alt="Anmeldung" width="100%">
+  <br>
+  <em>Anmeldung</em>
+</p>
 
 <p align="center">
   <img src="dashboard-projects.png" alt="Projektauswahl" width="100%">

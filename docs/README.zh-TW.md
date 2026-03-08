@@ -13,11 +13,6 @@
   <a href="https://github.com/Edlineas/aivectormemory/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-Apache_2.0-green" alt="License"></a>
   <a href="https://modelcontextprotocol.io"><img src="https://img.shields.io/badge/MCP-compatible-purple" alt="MCP"></a>
 </p>
-<p align="center">
-  QQ群：1085682431 &nbsp;|&nbsp; 微信：changhuibiz<br>
-  源碼加QQ群或微信獲取
-</p>
-
 ---
 
 > **你還在用 CLAUDE.md / MEMORY.md 當記憶？** 這類 Markdown 檔案記憶模式有致命缺陷：檔案越寫越大，每次會話全量注入吃掉大量 Token；內容只能關鍵詞匹配，搜「資料庫逾時」找不到「MySQL 連線池踩坑」；多專案共用一個檔案互相污染；沒有任務追蹤，開發進度全靠人腦記；更別提 200 行截斷、手動維護、無法去重合併這些日常痛點了。
@@ -37,6 +32,11 @@
 | 🔌 **全 IDE 通吃** | Cursor / Kiro / Claude Code / Windsurf / VSCode / OpenCode / Trae — 一鍵安裝，開箱即用 |
 | 📁 **多專案隔離** | 一個 DB 管所有專案，自動隔離互不干擾，切換專案無感知 |
 | 🔄 **智慧去重** | 相似度 > 0.95 自動合併更新，記憶庫永遠乾淨，不會越用越亂 |
+
+<p align="center">
+  QQ群：1085682431 &nbsp;|&nbsp; 微信：changhuibiz<br>
+  源碼加QQ群或微信獲取
+</p>
 
 ## 🏗️ 架構
 
@@ -220,7 +220,7 @@ run web --port 9080 --quiet          # 屏蔽請求日誌
 run web --port 9080 --quiet --daemon  # 背景執行（macOS/Linux）
 ```
 
-瀏覽器存取 `http://localhost:9080`
+瀏覽器存取 `http://localhost:9080`，預設用戶名 `admin`，密碼 `admin123`（首次登入後可在設定中修改）
 
 - 多專案切換，記憶瀏覽/搜尋/編輯/刪除/匯出/匯入
 - 語義搜尋（向量相似度匹配）
@@ -230,6 +230,12 @@ run web --port 9080 --quiet --daemon  # 背景執行（macOS/Linux）
 - Token 認證保護
 - 3D 向量記憶網路視覺化
 - 🌐 多語言支援（简体中文 / 繁體中文 / English / Español / Deutsch / Français / 日本語）
+
+<p align="center">
+  <img src="003.png" alt="登入介面" width="100%">
+  <br>
+  <em>登入介面</em>
+</p>
 
 <p align="center">
   <img src="dashboard-projects.png" alt="專案選擇" width="100%">
