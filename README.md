@@ -17,10 +17,6 @@
   <a href="https://github.com/Edlineas/aivectormemory/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-Apache_2.0-green" alt="License"></a>
   <a href="https://modelcontextprotocol.io"><img src="https://img.shields.io/badge/MCP-compatible-purple" alt="MCP"></a>
 </p>
-<p align="center">
-  QQ群：1085682431 &nbsp;|&nbsp; 微信：changhuibiz<br>
-  源码加QQ群或微信获取
-</p>
 
 ---
 
@@ -29,6 +25,11 @@
 > **AIVectorMemory 是完全不同的方案。** 本地向量数据库存储，语义搜索精准召回（用词不同也能匹配），按需检索只加载相关记忆（Token 消耗直降 50%+），多项目自动隔离互不干扰，内置问题追踪 + 任务管理让 AI 全自动管理开发流程。所有数据永久保存在你的电脑上，零云依赖，换会话、换 IDE 都不丢。
 
 ## ✨ 核心特性
+
+<p align="center">
+  QQ群：1085682431 &nbsp;|&nbsp; 微信：changhuibiz<br>
+  源码加QQ群或微信获取
+</p>
 
 | 特性 | 说明 |
 |------|------|
