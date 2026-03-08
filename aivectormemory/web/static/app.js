@@ -1371,6 +1371,7 @@ function exitProject() {
   $('#app').style.display = 'none';
   $('#project-select').style.display = '';
   $('#sidebar-project-info').style.display = 'none';
+  updateProjectSelectUser(localStorage.getItem('avm-username') || '');
   loadProjects();
 }
 
@@ -1534,6 +1535,7 @@ $('#auth-form').addEventListener('submit', async (e) => {
   localStorage.setItem('avm-token', authToken);
   localStorage.setItem('avm-username', username);
   updateSidebarUser(username);
+  updateProjectSelectUser(username);
   hideAuthPage();
   const hp = location.hash ? decodeURIComponent(location.hash.slice(1)) : '';
   hp ? enterProject(hp) : (($('#project-select').style.display = ''), loadProjects());
@@ -1553,6 +1555,12 @@ function updateSidebarUser(username) {
   }
 }
 
+function updateProjectSelectUser(username) {
+  const el = $('#project-select-user');
+  if (!el || !username) return;
+  el.innerHTML = `<div class="avatar">${username.charAt(0).toUpperCase()}</div><span>${username}</span><button class="btn btn--ghost-danger" onclick="doLogoutWeb()">${t('auth.logout')}</button>`;
+}
+
 async function checkAuth() {
   if (!authToken) return showAuthPage();
   try {
@@ -1563,7 +1571,9 @@ async function checkAuth() {
       return showAuthPage();
     }
     if (res.username) localStorage.setItem('avm-username', res.username);
-    updateSidebarUser(res.username || localStorage.getItem('avm-username') || '');
+    const uname = res.username || localStorage.getItem('avm-username') || '';
+    updateSidebarUser(uname);
+    updateProjectSelectUser(uname);
     hideAuthPage();
     const hp = location.hash ? decodeURIComponent(location.hash.slice(1)) : '';
     hp ? enterProject(hp) : (($('#project-select').style.display = ''), loadProjects());
