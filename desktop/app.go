@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"strconv"
 	"strings"
 
 	"io"
@@ -24,7 +25,7 @@ import (
 	wailsRuntime "github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
-const AppVersion = "1.0.10"
+const AppVersion = "1.0.11"
 
 type App struct {
 	ctx       context.Context
@@ -539,7 +540,7 @@ func (a *App) CheckUpgrade(currentAvmVersion string) map[string]interface{} {
 				if len(parts) > 0 {
 					latest := strings.TrimSpace(parts[len(parts)-1])
 					result["avm_latest"] = latest
-					if latest != "" && latest != currentAvmVersion {
+					if latest != "" && isNewerVersion(latest, currentAvmVersion) {
 						result["avm_update_available"] = true
 					}
 				}
@@ -562,7 +563,7 @@ func (a *App) CheckUpgrade(currentAvmVersion string) map[string]interface{} {
 				appLatest := strings.TrimPrefix(release.TagName, "v")
 				result["app_latest"] = appLatest
 				result["app_download_url"] = release.HTMLURL
-				if appLatest != AppVersion {
+				if isNewerVersion(appLatest, AppVersion) {
 					result["app_update_available"] = true
 				}
 			}
@@ -570,6 +571,28 @@ func (a *App) CheckUpgrade(currentAvmVersion string) map[string]interface{} {
 	}
 
 	return result
+}
+
+// isNewerVersion returns true if remote > local (semver comparison)
+func isNewerVersion(remote, local string) bool {
+	rParts := strings.Split(remote, ".")
+	lParts := strings.Split(local, ".")
+	for i := 0; i < len(rParts) || i < len(lParts); i++ {
+		var r, l int
+		if i < len(rParts) {
+			r, _ = strconv.Atoi(rParts[i])
+		}
+		if i < len(lParts) {
+			l, _ = strconv.Atoi(lParts[i])
+		}
+		if r > l {
+			return true
+		}
+		if r < l {
+			return false
+		}
+	}
+	return false
 }
 
 func (a *App) InstallPackage(upgrade bool) (string, error) {
