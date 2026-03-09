@@ -1,3 +1,4 @@
+import json
 from datetime import datetime
 
 MAX_CONTENT_LENGTH = 50000
@@ -19,7 +20,20 @@ def validate_content(content: str) -> str:
     return content
 
 
+def normalize_tags(tags) -> list[str] | None:
+    """将各种格式的 tags 统一为 list[str]，None 保持 None"""
+    if tags is None:
+        return None
+    if isinstance(tags, str):
+        try:
+            tags = json.loads(tags)
+        except (json.JSONDecodeError, TypeError):
+            tags = [t.strip() for t in tags.split(",") if t.strip()]
+    return tags if isinstance(tags, list) else [tags]
+
+
 def validate_tags(tags) -> list[str]:
+    tags = normalize_tags(tags) or []
     if not isinstance(tags, list):
         raise ValueError("tags must be a list")
     if len(tags) > MAX_TAGS_COUNT:

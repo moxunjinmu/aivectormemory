@@ -4,6 +4,7 @@ from aivectormemory.db.user_memory_repo import UserMemoryRepo
 from aivectormemory.db.issue_repo import IssueRepo
 from aivectormemory.errors import success_response
 from aivectormemory.i18n.responses import to_json
+from aivectormemory.utils import normalize_tags
 
 
 BRIEF_KEYS = {"content", "tags"}
@@ -31,7 +32,7 @@ def handle_recall(args, *, cm, engine, **_):
 
     scope = args.get("scope", "all")
     query = args.get("query")
-    tags = args.get("tags")
+    tags = normalize_tags(args.get("tags"))
     top_k = args.get("top_k", DEFAULT_TOP_K)
     brief = args.get("brief", False)
     tags_mode = args.get("tags_mode", "any" if query and tags else "all")

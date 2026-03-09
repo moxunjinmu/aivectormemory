@@ -1,12 +1,13 @@
 from aivectormemory.db.memory_repo import MemoryRepo
 from aivectormemory.db.user_memory_repo import UserMemoryRepo
 from aivectormemory.i18n.responses import fmt
+from aivectormemory.utils import normalize_tags
 
 
 def handle_forget(args, *, cm, **_):
     mid = args.get("memory_id")
     mids = args.get("memory_ids", [])
-    tags = args.get("tags")
+    tags = normalize_tags(args.get("tags"))
     scope = args.get("scope", "all")
 
     mem_repo = MemoryRepo(cm.conn, cm.project_dir)
