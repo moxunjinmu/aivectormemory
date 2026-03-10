@@ -33,7 +33,8 @@ class IssueRepo(BaseRepo):
         ).fetchone()
         return dict(row) if row else None
 
-    def create(self, date: str, title: str, content: str = "", memory_id: str = "", parent_id: int = 0) -> dict:
+    def create(self, date: str, title: str, content: str = "", memory_id: str = "",
+               parent_id: int = 0, tags: list[str] | None = None) -> dict:
         # 去重：同项目 + 同标题 + 未归档 → 返回已有记录
         existing = self.conn.execute(
             "SELECT * FROM issues WHERE project_dir=? AND title=? AND status!='archived'",
@@ -43,9 +44,10 @@ class IssueRepo(BaseRepo):
             return {"id": existing["id"], "issue_number": existing["issue_number"], "date": existing["date"], "deduplicated": True}
         now = self._now()
         num = self._next_number()
+        tags_json = json.dumps(tags or [], ensure_ascii=False)
         cur = self.conn.execute(
-            "INSERT INTO issues (project_dir, issue_number, date, title, status, content, memory_id, parent_id, created_at, updated_at) VALUES (?,?,?,?,?,?,?,?,?,?)",
-            (self.project_dir, num, date, title, "pending", content, memory_id, parent_id, now, now)
+            "INSERT INTO issues (project_dir, issue_number, date, title, status, content, tags, memory_id, parent_id, created_at, updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?)",
+            (self.project_dir, num, date, title, "pending", content, tags_json, memory_id, parent_id, now, now)
         )
         self._commit()
         return {"id": cur.lastrowid, "issue_number": num, "date": date}
@@ -55,7 +57,7 @@ class IssueRepo(BaseRepo):
                                 (issue_id, self.project_dir)).fetchone()
         if not row:
             return None
-        allowed = {"title", "status", "content", "memory_id",
+        allowed = {"title", "status", "content", "tags", "memory_id",
                    "description", "investigation", "root_cause", "solution",
                    "files_changed", "test_result", "notes", "feature_id"}
         updates = {k: v for k, v in fields.items() if k in allowed}
@@ -75,12 +77,12 @@ class IssueRepo(BaseRepo):
         now = self._now()
         r = dict(row)
         cur = self.conn.execute(
-            """INSERT INTO issues_archive (project_dir, issue_number, date, title, content, memory_id,
+            """INSERT INTO issues_archive (project_dir, issue_number, date, title, content, tags, memory_id,
                description, investigation, root_cause, solution, files_changed, test_result, notes,
                feature_id, parent_id, status, original_issue_id, archived_at, created_at)
-               VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+               VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
             (r["project_dir"], r["issue_number"], r["date"], r["title"], r["content"],
-             r.get("memory_id", ""),
+             r.get("tags", "[]"), r.get("memory_id", ""),
              r.get("description", ""), r.get("investigation", ""), r.get("root_cause", ""),
              r.get("solution", ""), r.get("files_changed", "[]"), r.get("test_result", ""),
              r.get("notes", ""), r.get("feature_id", ""), r.get("parent_id", 0),

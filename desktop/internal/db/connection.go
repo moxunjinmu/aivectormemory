@@ -65,6 +65,7 @@ var coreTables = []string{
 		title TEXT NOT NULL,
 		status TEXT NOT NULL DEFAULT 'pending',
 		content TEXT NOT NULL DEFAULT '',
+		tags TEXT NOT NULL DEFAULT '[]',
 		description TEXT NOT NULL DEFAULT '',
 		investigation TEXT NOT NULL DEFAULT '',
 		root_cause TEXT NOT NULL DEFAULT '',
@@ -85,6 +86,7 @@ var coreTables = []string{
 		date TEXT NOT NULL,
 		title TEXT NOT NULL,
 		content TEXT NOT NULL DEFAULT '',
+		tags TEXT NOT NULL DEFAULT '[]',
 		description TEXT NOT NULL DEFAULT '',
 		investigation TEXT NOT NULL DEFAULT '',
 		root_cause TEXT NOT NULL DEFAULT '',
@@ -182,6 +184,11 @@ func Open(dbPath string) (*DB, error) {
 	}
 	for _, idx := range coreIndexes {
 		conn.Exec(idx) // indexes are non-fatal
+	}
+
+	// Migrate: add tags column to issues/issues_archive if missing
+	for _, tbl := range []string{"issues", "issues_archive"} {
+		conn.Exec(fmt.Sprintf("ALTER TABLE %s ADD COLUMN tags TEXT NOT NULL DEFAULT '[]'", tbl))
 	}
 
 	return &DB{conn: conn}, nil

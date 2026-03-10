@@ -16,6 +16,7 @@ type Issue struct {
 	Title         string         `json:"title"`
 	Status        string         `json:"status"`
 	Content       string         `json:"content"`
+	Tags          string         `json:"tags"`
 	Description   string         `json:"description"`
 	Investigation string         `json:"investigation"`
 	RootCause     string         `json:"root_cause"`
@@ -164,17 +165,28 @@ func (d *DB) GetIssueDetail(id int, projectDir string) (*Issue, error) {
 	if len(issues) > 0 {
 		return &issues[0], nil
 	}
+	// Fallback: check archived issues
+	arow, err := d.Query("SELECT id, project_dir, issue_number, date, title, content, description, investigation, root_cause, solution, files_changed, test_result, notes, feature_id, parent_id, status, created_at, archived_at as updated_at FROM issues_archive WHERE id=? AND project_dir=?", id, projectDir)
+	if err != nil {
+		return nil, fmt.Errorf("issue not found: %d", id)
+	}
+	defer arow.Close()
+	archived := scanIssues(arow)
+	if len(archived) > 0 {
+		return &archived[0], nil
+	}
 	return nil, fmt.Errorf("issue not found: %d", id)
 }
 
-func (d *DB) CreateIssue(projectDir, date, title, content string, tags []string, parentID int) (*Issue, bool, error) {
+func (d *DB) CreateIssue(projectDir, title, content, status string, tags []string, parentID int) (*Issue, bool, error) {
 	if title == "" {
 		return nil, false, fmt.Errorf("title required")
 	}
-	if date == "" {
-		date = time.Now().Format("2006-01-02")
-	}
+	date := time.Now().Format("2006-01-02")
 	now := time.Now().Format(time.RFC3339)
+	if status == "" {
+		status = "pending"
+	}
 
 	// Dedup check
 	var dupCount int
@@ -187,9 +199,16 @@ func (d *DB) CreateIssue(projectDir, date, title, content string, tags []string,
 	var maxNum int
 	d.QueryRow("SELECT COALESCE(MAX(issue_number),0) FROM issues WHERE project_dir=?", projectDir).Scan(&maxNum)
 
+	tagsJSON := "[]"
+	if len(tags) > 0 {
+		if b, err := json.Marshal(tags); err == nil {
+			tagsJSON = string(b)
+		}
+	}
+
 	result, err := d.Exec(
-		"INSERT INTO issues (project_dir, issue_number, date, title, status, content, description, investigation, root_cause, solution, files_changed, test_result, notes, feature_id, parent_id, created_at, updated_at) VALUES (?,?,?,?,'pending',?,'','','','','[]','','','',?,?,?)",
-		projectDir, maxNum+1, date, title, content, parentID, now, now)
+		"INSERT INTO issues (project_dir, issue_number, date, title, status, content, tags, description, investigation, root_cause, solution, files_changed, test_result, notes, feature_id, parent_id, created_at, updated_at) VALUES (?,?,?,?,?,?,?,'','','','','[]','','','',?,?,?)",
+		projectDir, maxNum+1, date, title, status, content, tagsJSON, parentID, now, now)
 	if err != nil {
 		return nil, false, err
 	}
@@ -212,14 +231,14 @@ func (d *DB) UpdateIssue(id int, projectDir string, fields map[string]interface{
 			"root_cause", "solution", "test_result", "notes", "feature_id":
 			sets = append(sets, k+"=?")
 			args = append(args, v)
-		case "files_changed":
+		case "tags", "files_changed":
 			switch val := v.(type) {
 			case string:
-				sets = append(sets, "files_changed=?")
+				sets = append(sets, k+"=?")
 				args = append(args, val)
 			default:
 				b, _ := json.Marshal(val)
-				sets = append(sets, "files_changed=?")
+				sets = append(sets, k+"=?")
 				args = append(args, string(b))
 			}
 		}
@@ -252,9 +271,9 @@ func (d *DB) ArchiveIssue(id int, projectDir string) error {
 	now := time.Now().Format(time.RFC3339)
 
 	_, err = d.Exec(
-		"INSERT INTO issues_archive (project_dir, issue_number, date, title, content, description, investigation, root_cause, solution, files_changed, test_result, notes, feature_id, parent_id, status, original_issue_id, archived_at, created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+		"INSERT INTO issues_archive (project_dir, issue_number, date, title, content, tags, description, investigation, root_cause, solution, files_changed, test_result, notes, feature_id, parent_id, status, original_issue_id, archived_at, created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
 		issue.ProjectDir, issue.IssueNumber, issue.Date, issue.Title, issue.Content,
-		issue.Description, issue.Investigation, issue.RootCause, issue.Solution,
+		issue.Tags, issue.Description, issue.Investigation, issue.RootCause, issue.Solution,
 		issue.FilesChanged, issue.TestResult, issue.Notes, issue.FeatureID,
 		issue.ParentID, issue.Status, issue.ID, now, issue.CreatedAt)
 	if err != nil {
@@ -340,6 +359,11 @@ func scanIssues(rows *sql.Rows) []Issue {
 				issue.Status = s
 			case "content":
 				issue.Content = s
+			case "tags":
+				if s == "" {
+					s = "[]"
+				}
+				issue.Tags = s
 			case "description":
 				issue.Description = s
 			case "investigation":

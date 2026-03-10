@@ -25,7 +25,7 @@ import (
 	wailsRuntime "github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
-const AppVersion = "1.0.15"
+const AppVersion = "1.0.16"
 
 type App struct {
 	ctx       context.Context
@@ -96,9 +96,19 @@ func (a *App) shutdown(ctx context.Context) {
 	}
 }
 
+func (a *App) ensureDB() error {
+	if a.database == nil {
+		return fmt.Errorf("database not initialized")
+	}
+	return nil
+}
+
 // ============== Projects ==============
 
 func (a *App) GetProjects() ([]db.Project, error) {
+	if err := a.ensureDB(); err != nil {
+		return nil, err
+	}
 	return a.database.GetProjects()
 }
 
@@ -111,6 +121,9 @@ func (a *App) DeleteProject(projectDir string) (int, error) {
 }
 
 func (a *App) GetStats(projectDir string) (map[string]interface{}, error) {
+	if err := a.ensureDB(); err != nil {
+		return nil, err
+	}
 	// Memory counts
 	projResult, _ := a.database.GetMemories("project", projectDir, "", "", "", 1, 0)
 	userResult, _ := a.database.GetMemories("user", "", "", "", "", 1, 0)
@@ -216,8 +229,8 @@ func (a *App) GetIssueDetail(id int, projectDir string) (*db.Issue, error) {
 	return a.database.GetIssueDetail(id, projectDir)
 }
 
-func (a *App) CreateIssue(projectDir, date, title, content string, tags []string, parentID int) (map[string]interface{}, error) {
-	issue, dedup, err := a.database.CreateIssue(projectDir, date, title, content, tags, parentID)
+func (a *App) CreateIssue(projectDir, title, content, status string, tags []string, parentID int) (map[string]interface{}, error) {
+	issue, dedup, err := a.database.CreateIssue(projectDir, title, content, status, tags, parentID)
 	if err != nil {
 		return nil, err
 	}
