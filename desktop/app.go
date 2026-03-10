@@ -25,7 +25,7 @@ import (
 	wailsRuntime "github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
-const AppVersion = "1.0.14"
+const AppVersion = "1.0.15"
 
 type App struct {
 	ctx       context.Context
@@ -358,6 +358,15 @@ func (a *App) StopWebDashboard() error {
 
 func (a *App) IsWebDashboardRunning() bool {
 	return a.launcher.IsRunning()
+}
+
+func (a *App) OpenWebDashboard() error {
+	port := a.settings.WebPort
+	if port == 0 {
+		port = 9080
+	}
+	url := fmt.Sprintf("http://localhost:%d", port)
+	return exec.Command("open", url).Start()
 }
 
 // ============== Settings ==============
