@@ -359,6 +359,24 @@ O agregar env en la configuración MCP:
 
 ## 📋 Registro de Cambios
 
+### v2.0
+
+**Rendimiento: Cuantización ONNX INT8**
+- ⚡ El modelo de embedding se cuantiza automáticamente de FP32 a INT8 en la primera carga, archivo del modelo de 448MB a 113MB
+- ⚡ Uso de memoria del MCP Server reducido de ~1,6GB a ~768MB (reducción superior al 50%)
+- ⚡ La cuantización es transparente para el usuario — automática en el primer uso, en caché para cargas posteriores, retroceso a FP32 en caso de fallo
+
+**Nuevo: Recordar contraseña**
+- 🔐 La página de inicio de sesión en escritorio y panel web ahora tiene un checkbox "Recordar contraseña"
+- 🔐 Al activar, las credenciales se guardan en localStorage y se rellenan automáticamente en el próximo inicio de sesión; al desactivar, se eliminan las credenciales guardadas
+- 🔐 El checkbox se oculta en modo de registro
+
+**Mejora: Reglas Steering**
+- 📝 Sección IDENTITY & TONE fortalecida con restricciones más específicas (sin cortesías, sin traducir mensajes del usuario, etc.)
+- 📝 Requisitos de autotest ahora distinguen entre backend puro, MCP Server y cambios visibles en frontend (Playwright requerido para frontend)
+- 📝 Reglas de desarrollo ahora exigen autotest después de completar el desarrollo
+- 📝 Las 7 versiones de idiomas sincronizadas
+
 ### v1.0.11
 
 - 🐛 Comparación de versión del escritorio cambiada a versionado semántico, corrigiendo falsas alertas de actualización cuando la versión local es superior

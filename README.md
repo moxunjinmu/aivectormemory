@@ -365,6 +365,24 @@ Or add env to MCP config:
 
 ## 📋 Changelog
 
+### v2.0
+
+**Performance: ONNX INT8 Quantization**
+- ⚡ Embedding model auto-quantized from FP32 to INT8 on first load, model file from 448MB down to 113MB
+- ⚡ MCP Server memory usage reduced from ~1.6GB to ~768MB (50%+ reduction)
+- ⚡ Quantization is transparent to users — automatic on first use, cached for subsequent loads, falls back to FP32 on failure
+
+**New: Remember Password**
+- 🔐 Login page on both desktop and web dashboard now has a "Remember password" checkbox
+- 🔐 When checked, credentials are saved to localStorage and auto-filled on next login; when unchecked, saved credentials are cleared
+- 🔐 Checkbox is hidden in registration mode
+
+**Enhancement: Steering Rules**
+- 📝 IDENTITY & TONE section strengthened with more specific constraints (no pleasantries, no translating user messages, etc.)
+- 📝 Self-testing requirements now distinguish between backend-only, MCP Server, and frontend-visible changes (Playwright required for frontend)
+- 📝 Development rules now mandate self-testing after completing development
+- 📝 All 7 language versions synchronized
+
 ### v1.0.11
 
 - 🐛 Desktop app version comparison switched to semantic versioning, fixing false upgrade prompts when local version is higher

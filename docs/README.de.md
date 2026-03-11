@@ -359,6 +359,24 @@ Oder env in der MCP-Konfiguration hinzufügen:
 
 ## 📋 Änderungsprotokoll
 
+### v2.0
+
+**Leistung: ONNX INT8-Quantisierung**
+- ⚡ Embedding-Modell wird beim ersten Laden automatisch von FP32 auf INT8 quantisiert, Modelldatei von 448MB auf 113MB reduziert
+- ⚡ MCP Server Speicherverbrauch von ~1,6GB auf ~768MB reduziert (über 50% Reduktion)
+- ⚡ Quantisierung ist für Benutzer transparent — automatisch beim ersten Einsatz, gecacht für spätere Ladevorgänge, Fallback auf FP32 bei Fehler
+
+**Neu: Passwort merken**
+- 🔐 Anmeldeseite auf Desktop und Web-Dashboard hat jetzt eine "Passwort merken"-Checkbox
+- 🔐 Bei Aktivierung werden Anmeldedaten im localStorage gespeichert und beim nächsten Login automatisch ausgefüllt; bei Deaktivierung werden gespeicherte Daten gelöscht
+- 🔐 Checkbox ist im Registrierungsmodus ausgeblendet
+
+**Verstärkung: Steering-Regeln**
+- 📝 IDENTITY & TONE-Abschnitt mit spezifischeren Einschränkungen verstärkt (keine Höflichkeitsfloskeln, keine Übersetzung von Benutzernachrichten usw.)
+- 📝 Selbsttest-Anforderungen unterscheiden nun zwischen reinem Backend, MCP Server und Frontend-sichtbaren Änderungen (Playwright für Frontend erforderlich)
+- 📝 Entwicklungsregeln schreiben nun Selbsttest nach Fertigstellung vor
+- 📝 Alle 7 Sprachversionen synchronisiert
+
 ### v1.0.11
 
 - 🐛 Desktop-Versionsvergleich auf semantische Versionierung umgestellt, falsche Upgrade-Meldungen bei höherer lokaler Version behoben

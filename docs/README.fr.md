@@ -359,6 +359,24 @@ Ou ajouter env dans la configuration MCP :
 
 ## 📋 Journal des Modifications
 
+### v2.0
+
+**Performance : Quantification ONNX INT8**
+- ⚡ Le modèle d'embedding est automatiquement quantifié de FP32 à INT8 au premier chargement, fichier modèle de 448Mo à 113Mo
+- ⚡ Utilisation mémoire du MCP Server réduite de ~1,6Go à ~768Mo (réduction de plus de 50%)
+- ⚡ La quantification est transparente pour l'utilisateur — automatique à la première utilisation, mise en cache pour les chargements suivants, retour au FP32 en cas d'échec
+
+**Nouveau : Se souvenir du mot de passe**
+- 🔐 La page de connexion du client de bureau et du tableau de bord web dispose désormais d'une case "Se souvenir du mot de passe"
+- 🔐 Lorsque cochée, les identifiants sont sauvegardés dans localStorage et remplis automatiquement à la prochaine connexion ; lorsque décochée, les identifiants sauvegardés sont supprimés
+- 🔐 La case est masquée en mode inscription
+
+**Renforcement : Règles Steering**
+- 📝 Section IDENTITY & TONE renforcée avec des contraintes plus spécifiques (pas de formules de politesse, pas de traduction des messages utilisateur, etc.)
+- 📝 Les exigences d'auto-test distinguent désormais entre backend pur, MCP Server et changements visibles en frontend (Playwright requis pour le frontend)
+- 📝 Les règles de développement exigent désormais l'auto-test après la fin du développement
+- 📝 Les 7 versions linguistiques synchronisées
+
 ### v1.0.11
 
 - 🐛 Comparaison de version du client de bureau passée au versionnage sémantique, correction des fausses alertes de mise à jour quand la version locale est supérieure
