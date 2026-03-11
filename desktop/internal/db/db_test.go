@@ -278,3 +278,60 @@ func TestHealthCheck(t *testing.T) {
 		t.Fatalf("expected 0 memories, got %d", report.MemoriesTotal)
 	}
 }
+
+func TestTaskChildrenCompleteWithInterleavedSortOrder(t *testing.T) {
+	d := setupTestDB(t)
+	pdir := "/test/project"
+
+	tasks := []map[string]interface{}{
+		{"title": "Group 1", "children": []interface{}{
+			map[string]interface{}{"title": "1.1"},
+			map[string]interface{}{"title": "1.2"},
+			map[string]interface{}{"title": "1.3"},
+			map[string]interface{}{"title": "1.4"},
+			map[string]interface{}{"title": "1.5"},
+			map[string]interface{}{"title": "1.6"},
+		}},
+		{"title": "Group 2", "children": []interface{}{
+			map[string]interface{}{"title": "2.1"},
+			map[string]interface{}{"title": "2.2"},
+			map[string]interface{}{"title": "2.3"},
+			map[string]interface{}{"title": "2.4"},
+			map[string]interface{}{"title": "2.5"},
+		}},
+		{"title": "Group 3", "children": []interface{}{
+			map[string]interface{}{"title": "3.1"},
+			map[string]interface{}{"title": "3.2"},
+			map[string]interface{}{"title": "3.3"},
+		}},
+	}
+
+	_, err := d.CreateTasks(pdir, "multi-group", tasks, "manual")
+	if err != nil {
+		t.Fatalf("CreateTasks: %v", err)
+	}
+
+	groups, err := d.GetTasks(pdir, "", "", "")
+	if err != nil {
+		t.Fatalf("GetTasks: %v", err)
+	}
+	if len(groups) != 1 {
+		t.Fatalf("expected 1 feature group, got %d", len(groups))
+	}
+
+	g := groups[0]
+	if len(g.Tasks) != 3 {
+		t.Fatalf("expected 3 parent tasks, got %d", len(g.Tasks))
+	}
+
+	expected := map[string]int{"Group 1": 6, "Group 2": 5, "Group 3": 3}
+	for _, task := range g.Tasks {
+		want, ok := expected[task.Title]
+		if !ok {
+			t.Fatalf("unexpected parent task: %s", task.Title)
+		}
+		if len(task.Children) != want {
+			t.Fatalf("%s: expected %d children, got %d", task.Title, want, len(task.Children))
+		}
+	}
+}

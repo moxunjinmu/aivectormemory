@@ -211,15 +211,19 @@ func buildTaskGroups(allTasks []Task, projectDir string, d *DB) []TaskGroup {
 		taskMap[allTasks[i].ID] = &allTasks[i]
 	}
 
-	var roots []Task
 	for i := range allTasks {
 		if allTasks[i].ParentID > 0 {
 			if parent, ok := taskMap[allTasks[i].ParentID]; ok {
 				parent.Children = append(parent.Children, &allTasks[i])
-				continue
 			}
 		}
-		roots = append(roots, allTasks[i])
+	}
+
+	var roots []Task
+	for i := range allTasks {
+		if allTasks[i].ParentID == 0 || taskMap[allTasks[i].ParentID] == nil {
+			roots = append(roots, allTasks[i])
+		}
 	}
 
 	// Group by feature_id
