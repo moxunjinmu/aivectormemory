@@ -8,6 +8,7 @@ from aivectormemory.utils import normalize_tags
 
 
 BRIEF_KEYS = {"content", "tags"}
+KW_BOOST = 0.2
 
 
 def _to_brief(rows):
@@ -22,6 +23,29 @@ def _add_similarity(rows, has_tags=False):
         results.append(r)
     results.sort(key=lambda x: x["similarity"], reverse=True)
     return results
+
+
+def _merge_hybrid(vec_results, kw_results, top_k):
+    """合并向量搜索和关键词搜索结果，关键词命中的结果获得分数加成"""
+    if not kw_results:
+        return vec_results[:top_k]
+    kw_map = {r["id"]: r.get("_kw_score", 0) for r in kw_results}
+    seen = set()
+    merged = []
+    for r in vec_results:
+        rid = r["id"]
+        if rid in kw_map:
+            r["similarity"] = min(1.0, r["similarity"] + KW_BOOST * kw_map[rid])
+        merged.append(r)
+        seen.add(rid)
+    for r in kw_results:
+        if r["id"] not in seen:
+            kw_score = r.pop("_kw_score", 0)
+            r["similarity"] = round(0.5 + 0.3 * kw_score, 4)
+            merged.append(r)
+            seen.add(r["id"])
+    merged.sort(key=lambda x: x.get("similarity", 0), reverse=True)
+    return merged[:top_k]
 
 
 def handle_recall(args, *, cm, engine, **_):
@@ -58,12 +82,16 @@ def _query_user(cm, engine, query, tags, top_k, source, tags_mode="all"):
         return rows
     embedding = engine.encode(query)
     if tags:
-        return _add_similarity(repo.search_by_vector_with_tags(embedding, tags, top_k=top_k), has_tags=True)
-    return _add_similarity(repo.search_by_vector(embedding, top_k=top_k))
+        vec = _add_similarity(repo.search_by_vector_with_tags(embedding, tags, top_k=top_k * 2), has_tags=True)
+    else:
+        vec = _add_similarity(repo.search_by_vector(embedding, top_k=top_k * 2))
+    kw = repo.keyword_search(query, top_k=top_k, source=source)
+    return _merge_hybrid(vec, kw, top_k)
 
 
 def _query_project(cm, engine, query, tags, top_k, source, tags_mode="all"):
     repo = MemoryRepo(cm.conn, cm.project_dir)
+    filters = {"scope": "project", "project_dir": cm.project_dir, "source": source}
     if not query:
         if not tags:
             raise ValueError("query or tags is required")
@@ -73,8 +101,11 @@ def _query_project(cm, engine, query, tags, top_k, source, tags_mode="all"):
         return rows
     embedding = engine.encode(query)
     if tags:
-        return _add_similarity(repo.search_by_vector_with_tags(embedding, tags, top_k=top_k, scope="project", project_dir=cm.project_dir, source=source), has_tags=True)
-    return _add_similarity(repo.search_by_vector(embedding, top_k=top_k, scope="project", project_dir=cm.project_dir, source=source))
+        vec = _add_similarity(repo.search_by_vector_with_tags(embedding, tags, top_k=top_k * 2, **filters), has_tags=True)
+    else:
+        vec = _add_similarity(repo.search_by_vector(embedding, top_k=top_k * 2, **filters))
+    kw = repo.keyword_search(query, top_k=top_k, **filters)
+    return _merge_hybrid(vec, kw, top_k)
 
 
 def _query_all(cm, engine, query, tags, top_k, source, tags_mode="all"):

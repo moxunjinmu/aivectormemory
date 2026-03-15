@@ -153,6 +153,31 @@ class BaseMemoryRepo(BaseRepo):
         """子类覆盖"""
         raise NotImplementedError
 
+    def keyword_search(self, query_text: str, top_k: int = 5, **filters) -> list[dict]:
+        """关键词搜索：按空格分词，LIKE 匹配 content，返回带 _kw_score 的结果"""
+        keywords = [kw.strip() for kw in query_text.split() if len(kw.strip()) >= 2]
+        if not keywords:
+            return []
+        or_clauses = " OR ".join(["content LIKE ?" for _ in keywords])
+        params = [f"%{kw}%" for kw in keywords]
+        sql = f"SELECT * FROM {self.TABLE} WHERE ({or_clauses})"
+        sql, params = self._apply_keyword_filters(sql, params, filters)
+        sql += " LIMIT ?"
+        params.append(top_k * 3)
+        rows = self.conn.execute(sql, params).fetchall()
+        results = []
+        for r in rows:
+            d = dict(r)
+            content = d["content"]
+            d["_kw_score"] = sum(1 for kw in keywords if kw in content) / len(keywords)
+            results.append(d)
+        results.sort(key=lambda x: x["_kw_score"], reverse=True)
+        return results[:top_k]
+
+    def _apply_keyword_filters(self, sql: str, params: list, filters: dict) -> tuple[str, list]:
+        """子类覆盖添加关键词搜索的过滤条件"""
+        return sql, params
+
     def get_tag_counts(self, **filters) -> dict[str, int]:
         """子类覆盖"""
         raise NotImplementedError

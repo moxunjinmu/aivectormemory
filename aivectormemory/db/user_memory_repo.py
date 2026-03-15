@@ -17,6 +17,13 @@ class UserMemoryRepo(BaseMemoryRepo):
         vals = [mid, content, json.dumps(tags, ensure_ascii=False), source, session_id, now, now]
         return cols, vals
 
+    def _apply_keyword_filters(self, sql, params, filters):
+        source = filters.get("source")
+        if source:
+            sql += " AND source=?"
+            params.append(source)
+        return sql, params
+
     def _build_tag_filter(self, base_sql: str, tags: list[str],
                           tags_mode: str, source: str | None = None,
                           query: str | None = None) -> tuple[str, list]:

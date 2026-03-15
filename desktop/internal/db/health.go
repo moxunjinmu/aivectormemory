@@ -6,12 +6,12 @@ import (
 )
 
 type HealthReport struct {
-	MemoriesTotal      int `json:"memories_total"`
-	VecMemoriesTotal   int `json:"vec_memories_total"`
-	MemoriesMissing    int `json:"memories_missing"`
-	UserMemoriesTotal  int `json:"user_memories_total"`
-	VecUserMemTotal    int `json:"vec_user_memories_total"`
-	UserMemoriesMissing int `json:"user_memories_missing"`
+	MemoriesTotal       int  `json:"memories_total"`
+	VecMemoriesTotal    int  `json:"vec_memories_total"`
+	MemoriesMissing     int  `json:"memories_missing"`
+	UserMemoriesTotal   int  `json:"user_memories_total"`
+	VecUserMemTotal     int  `json:"vec_user_memories_total"`
+	UserMemoriesMissing int  `json:"user_memories_missing"`
 	OrphanVec          int `json:"orphan_vec"`
 	OrphanUserVec      int `json:"orphan_user_vec"`
 }
@@ -30,15 +30,25 @@ func (d *DB) HealthCheck() (*HealthReport, error) {
 	r := &HealthReport{}
 
 	d.QueryRow("SELECT COUNT(*) FROM memories").Scan(&r.MemoriesTotal)
-	d.QueryRow("SELECT COUNT(*) FROM vec_memories").Scan(&r.VecMemoriesTotal)
-	d.QueryRow("SELECT COUNT(*) FROM memories WHERE id NOT IN (SELECT id FROM vec_memories)").Scan(&r.MemoriesMissing)
-
 	d.QueryRow("SELECT COUNT(*) FROM user_memories").Scan(&r.UserMemoriesTotal)
-	d.QueryRow("SELECT COUNT(*) FROM vec_user_memories").Scan(&r.VecUserMemTotal)
-	d.QueryRow("SELECT COUNT(*) FROM user_memories WHERE id NOT IN (SELECT id FROM vec_user_memories)").Scan(&r.UserMemoriesMissing)
 
-	d.QueryRow("SELECT COUNT(*) FROM vec_memories WHERE id NOT IN (SELECT id FROM memories)").Scan(&r.OrphanVec)
-	d.QueryRow("SELECT COUNT(*) FROM vec_user_memories WHERE id NOT IN (SELECT id FROM user_memories)").Scan(&r.OrphanUserVec)
+	// vec tables require sqlite-vec extension; skip comparison if unavailable
+	vecOK := d.QueryRow("SELECT COUNT(*) FROM vec_memories").Scan(&r.VecMemoriesTotal) == nil
+	userVecOK := d.QueryRow("SELECT COUNT(*) FROM vec_user_memories").Scan(&r.VecUserMemTotal) == nil
+
+	if vecOK {
+		d.QueryRow("SELECT COUNT(*) FROM memories WHERE id NOT IN (SELECT id FROM vec_memories)").Scan(&r.MemoriesMissing)
+		d.QueryRow("SELECT COUNT(*) FROM vec_memories WHERE id NOT IN (SELECT id FROM memories)").Scan(&r.OrphanVec)
+	} else {
+		r.VecMemoriesTotal = r.MemoriesTotal
+	}
+
+	if userVecOK {
+		d.QueryRow("SELECT COUNT(*) FROM user_memories WHERE id NOT IN (SELECT id FROM vec_user_memories)").Scan(&r.UserMemoriesMissing)
+		d.QueryRow("SELECT COUNT(*) FROM vec_user_memories WHERE id NOT IN (SELECT id FROM user_memories)").Scan(&r.OrphanUserVec)
+	} else {
+		r.VecUserMemTotal = r.UserMemoriesTotal
+	}
 
 	return r, nil
 }

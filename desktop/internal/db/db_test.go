@@ -267,15 +267,40 @@ func TestTagsCRUD(t *testing.T) {
 func TestHealthCheck(t *testing.T) {
 	d := setupTestDB(t)
 
-	// Need vec tables for health check - skip if not available
-	// Just test the function doesn't panic
+	// Empty DB — no vec tables, so vec totals should equal memory totals (fallback)
 	report, err := d.HealthCheck()
 	if err != nil {
-		// vec tables don't exist in test, that's ok
-		t.Skipf("HealthCheck requires vec tables: %v", err)
+		t.Fatalf("HealthCheck should not return error: %v", err)
 	}
 	if report.MemoriesTotal != 0 {
 		t.Fatalf("expected 0 memories, got %d", report.MemoriesTotal)
+	}
+	// Without vec tables: vec totals fallback to memory totals (both 0)
+	if report.VecMemoriesTotal != report.MemoriesTotal {
+		t.Fatalf("expected vec_total == mem_total when vec unavailable, got %d vs %d", report.VecMemoriesTotal, report.MemoriesTotal)
+	}
+
+	// Insert memories — vec tables still don't exist
+	d.Exec("INSERT INTO memories (id,content,tags,scope,project_dir,created_at,updated_at) VALUES ('m1','c1','[]','project','/test',datetime('now'),datetime('now'))")
+	d.Exec("INSERT INTO user_memories (id,content,tags,created_at,updated_at) VALUES ('u1','c1','[]',datetime('now'),datetime('now'))")
+
+	report2, _ := d.HealthCheck()
+	if report2.MemoriesTotal != 1 {
+		t.Fatalf("expected 1 memory, got %d", report2.MemoriesTotal)
+	}
+	if report2.UserMemoriesTotal != 1 {
+		t.Fatalf("expected 1 user memory, got %d", report2.UserMemoriesTotal)
+	}
+	// Vec unavailable: totals should match (no false Mismatch)
+	if report2.VecMemoriesTotal != report2.MemoriesTotal {
+		t.Fatalf("expected vec fallback to mem total, got vec=%d mem=%d", report2.VecMemoriesTotal, report2.MemoriesTotal)
+	}
+	if report2.VecUserMemTotal != report2.UserMemoriesTotal {
+		t.Fatalf("expected user vec fallback, got vec=%d mem=%d", report2.VecUserMemTotal, report2.UserMemoriesTotal)
+	}
+	// Missing/orphan should be 0 when vec queries skipped
+	if report2.MemoriesMissing != 0 || report2.OrphanVec != 0 {
+		t.Fatalf("expected 0 missing/orphan when vec skipped, got missing=%d orphan=%d", report2.MemoriesMissing, report2.OrphanVec)
 	}
 }
 

@@ -1,4 +1,6 @@
 import json
+import re
+import os
 from datetime import datetime
 
 MAX_CONTENT_LENGTH = 50000
@@ -54,6 +56,32 @@ def safe_table(name: str) -> str:
     if name not in _TABLE_WHITELIST:
         raise ValueError(f"Invalid table: {name}")
     return name
+
+
+def contains_project_path(content: str) -> bool:
+    """检测 content 是否包含用户目录下的项目路径（非系统路径）。
+    用于防止项目特定信息被存为全局记忆，避免跨项目操作。"""
+    home = os.path.expanduser("~")
+    # 匹配用户目录下的路径：/Users/xxx/、/home/xxx/、C:\Users\xxx\
+    patterns = [
+        re.escape(home) + r'/\S+',           # 当前用户 home 下的路径
+        r'/Users/\w+/\S+',                    # macOS 其他用户
+        r'/home/\w+/\S+',                     # Linux
+        r'[A-Z]:\\Users\\\w+\\\S+',           # Windows
+        r'~/\S+',                             # ~ 开头的路径
+    ]
+    # 系统路径白名单前缀（不算项目路径）
+    system_prefixes = (
+        '/usr/', '/etc/', '/bin/', '/sbin/', '/opt/homebrew/',
+        '/var/', '/tmp/', '/Library/', '/System/',
+        home + '/.', home + '/Library',       # dotfiles 和 macOS Library
+    )
+    for pat in patterns:
+        for m in re.finditer(pat, content):
+            path = m.group(0).rstrip('.,;:)]\'"')
+            if not any(path.startswith(sp) for sp in system_prefixes):
+                return True
+    return False
 
 
 def validate_title(title: str) -> str:

@@ -1,8 +1,9 @@
 from aivectormemory.config import DEDUP_THRESHOLD
+from aivectormemory.db.memory_repo import MemoryRepo
 from aivectormemory.db.user_memory_repo import UserMemoryRepo
 from aivectormemory.i18n.responses import fmt
 from aivectormemory.tools.keywords import extract_keywords
-from aivectormemory.utils import normalize_tags
+from aivectormemory.utils import normalize_tags, contains_project_path
 
 
 def handle_auto_save(args, *, cm, engine, session_id, **_):
@@ -10,7 +11,8 @@ def handle_auto_save(args, *, cm, engine, session_id, **_):
     if not items:
         return fmt("auto_save.empty")
 
-    repo = UserMemoryRepo(cm.conn)
+    user_repo = UserMemoryRepo(cm.conn)
+    project_repo = MemoryRepo(cm.conn, cm.project_dir)
     saved = []
     with cm.transaction():
         for item in items:
@@ -25,7 +27,11 @@ def handle_auto_save(args, *, cm, engine, session_id, **_):
                 if kw.lower() not in existing:
                     tags.append(kw)
                     existing.add(kw.lower())
-            result = repo.insert(item, tags, session_id, embedding, DEDUP_THRESHOLD, source="auto_save")
+            # 含项目路径的偏好降级为项目记忆
+            if contains_project_path(item):
+                result = project_repo.insert(item, tags, "project", session_id, embedding, DEDUP_THRESHOLD, source="auto_save")
+            else:
+                result = user_repo.insert(item, tags, session_id, embedding, DEDUP_THRESHOLD, source="auto_save")
             saved.append({"id": result["id"], "action": result["action"], "category": "preferences"})
 
     return fmt("auto_save", count=len(saved))
