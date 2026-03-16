@@ -46,7 +46,10 @@ def handle_status(args, *, cm, **_):
 
     if state_update:
         if isinstance(state_update, str):
-            state_update = json.loads(state_update)
+            try:
+                state_update = json.loads(state_update)
+            except json.JSONDecodeError:
+                raise ValueError(f"Invalid JSON for state: {state_update[:100]}")
         state_update.pop("progress", None)
         result = repo.upsert(**state_update)
         result["progress"] = _build_progress(cm.conn, cm.project_dir)

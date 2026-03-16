@@ -9,6 +9,17 @@ from aivectormemory.utils import validate_title
 _SPEC_DIRS = [".kiro/specs", ".cursor/specs", ".windsurf/specs", ".trae/specs", "docs/specs"]
 
 
+def _unify_id(row: dict) -> dict:
+    """输出层统一：id → task_id，children 递归处理"""
+    r = dict(row)
+    if "id" in r:
+        r["task_id"] = r.pop("id")
+    r.pop("parent_id", None)
+    if "children" in r:
+        r["children"] = [_unify_id(c) for c in r["children"]]
+    return r
+
+
 def _sync_tasks_md(project_dir: str, feature_id: str, title: str, completed: bool):
     root = Path(project_dir)
     old = "- [ ]" if completed else "- [x]"
@@ -80,7 +91,7 @@ def handle_task(args, *, cm, **_):
             raise ValueError("feature_id is required for list")
         status = args.get("status")
         tasks = repo.list_by_feature(feature_id=feature_id, status=status)
-        return to_json(success_response(tasks=tasks))
+        return to_json(success_response(tasks=[_unify_id(t) for t in tasks]))
 
     elif action == "archive":
         feature_id = args.get("feature_id", "").strip()

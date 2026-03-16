@@ -5,8 +5,8 @@ from aivectormemory.utils import normalize_tags
 
 
 def handle_forget(args, *, cm, **_):
-    mid = args.get("memory_id")
-    mids = args.get("memory_ids", [])
+    mid = args.get("memory_id") or args.get("id")
+    mids = args.get("memory_ids") or args.get("ids") or []
     tags = normalize_tags(args.get("tags"))
     scope = args.get("scope", "all")
 

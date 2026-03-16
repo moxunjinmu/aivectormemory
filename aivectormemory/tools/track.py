@@ -15,14 +15,28 @@ def _validate_date(d: str) -> str:
     return d
 
 
+def _unify_id(row: dict) -> dict:
+    """输出层统一：issue_number → issue_id，去掉内部 id"""
+    r = dict(row)
+    if "issue_number" in r:
+        r["issue_id"] = r.pop("issue_number")
+    r.pop("id", None)
+    return r
+
+
 def _resolve_issue(repo, val) -> dict:
     try:
         num = int(val)
     except (TypeError, ValueError):
         raise ValueError(f"issue_id must be an integer, got: {val}")
+    # 优先按 issue_number 查，兼容按数据库内部 id 查
     row = repo.get_by_number(num)
     if not row:
         row = repo.get_archived_by_number(num)
+    if not row:
+        row = repo.get_by_id(num)
+    if not row:
+        row = repo.get_archived_by_id(num)
     if not row:
         raise NotFoundError("Issue", f"#{num}")
     return row
@@ -49,7 +63,7 @@ def handle_track(args, *, cm, engine=None, **_):
     elif action == "update":
         row = _resolve_issue(repo, args.get("issue_id"))
         issue_id = row["id"]
-        fields = {k: args[k] for k in ("title", "status", "content", "memory_id",
+        fields = {k: args[k] for k in ("title", "status", "content", "tags", "memory_id",
                   "description", "investigation", "root_cause", "solution",
                   "files_changed", "test_result", "notes", "feature_id") if k in args}
         result = repo.update(issue_id, **fields)
@@ -86,7 +100,7 @@ def handle_track(args, *, cm, engine=None, **_):
         issue_id = args.get("issue_id")
         if issue_id is not None:
             row = _resolve_issue(repo, issue_id)
-            return to_json(success_response(issues=[row]))
+            return to_json(success_response(issues=[_unify_id(row)]))
 
         d = args.get("date")
         if d:
@@ -95,7 +109,7 @@ def handle_track(args, *, cm, engine=None, **_):
         brief = args.get("brief", True)
         limit = args.get("limit", 50)
         issues, total = repo.list_by_date(date=d, status=status, brief=brief, limit=limit)
-        return to_json(success_response(issues=issues, total=total))
+        return to_json(success_response(issues=[_unify_id(i) for i in issues], total=total))
 
     else:
         raise ValueError(f"Unknown action: {action}")

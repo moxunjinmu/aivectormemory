@@ -34,8 +34,10 @@ TOOL_DEFINITIONS = [
         "inputSchema": {
             "type": "object",
             "properties": {
-                "memory_id": {"type": "string", "description": "单个记忆 ID"},
-                "memory_ids": {"type": "array", "items": {"type": "string"}, "description": "多个记忆 ID"},
+                "memory_id": {"type": "string", "description": "单个记忆 ID（别名 id）"},
+                "id": {"type": "string", "description": "单个记忆 ID（memory_id 的别名）"},
+                "memory_ids": {"type": "array", "items": {"type": "string"}, "description": "多个记忆 ID（别名 ids）"},
+                "ids": {"type": "array", "items": {"type": "string"}, "description": "多个记忆 ID（memory_ids 的别名）"},
                 "tags": {"oneOf": [{"type": "array", "items": {"type": "string"}}, {"type": "string"}], "description": "按标签批量删除，删除所有匹配标签的记忆"},
                 "scope": {"type": "string", "enum": ["user", "project", "all"], "default": "all", "description": "配合 tags 使用，限定删除范围"}
             }
@@ -76,7 +78,7 @@ TOOL_DEFINITIONS = [
                 "action": {"type": "string", "enum": ["create", "update", "archive", "delete", "list"]},
                 "title": {"type": "string", "description": "问题标题（create）"},
                 "date": {"type": "string", "description": "日期 YYYY-MM-DD"},
-                "issue_id": {"type": "integer", "description": "list 时传入可查单条问题（活跃+归档都查），避免拉全量列表"},
+                "issue_id": {"type": "integer", "description": "问题编号（即 list 返回的 issue_id），update/archive/delete/list 单条查询时使用"},
                 "status": {"type": "string", "enum": ["pending", "in_progress", "completed"]},
                 "content": {"type": "string", "description": "问题描述（create 时必填，简述问题现象和背景）"},
                 "parent_id": {"type": "integer", "description": "父问题 ID（create，可选，默认 0）"},
@@ -88,7 +90,7 @@ TOOL_DEFINITIONS = [
                 "test_result": {"type": "string", "description": "自测结果"},
                 "notes": {"type": "string", "description": "注意事项"},
                 "feature_id": {"type": "string", "description": "关联功能标识"},
-                "brief": {"type": "boolean", "default": True, "description": "list 时是否只返回摘要（id/title/status/date），默认 true。需要详情用 issue_id 查单条"},
+                "brief": {"type": "boolean", "default": True, "description": "list 时是否只返回摘要（issue_id/title/status/date），默认 true。需要详情用 issue_id 查单条"},
                 "limit": {"type": "integer", "default": 50, "description": "list 时返回条数上限，默认 50"}
             },
             "required": ["action"]
@@ -101,7 +103,7 @@ TOOL_DEFINITIONS = [
             "type": "object",
             "properties": {
                 "action": {"type": "string", "enum": ["batch_create", "update", "list", "delete", "archive"]},
-                "feature_id": {"type": "string", "description": "关联的功能标识（list 时必填）"},
+                "feature_id": {"type": "string", "description": "关联的功能标识（list/archive 时必填）"},
                 "tasks": {
                     "type": "array",
                     "items": {
@@ -126,7 +128,7 @@ TOOL_DEFINITIONS = [
                     },
                     "description": "任务列表（batch_create）"
                 },
-                "task_id": {"type": "integer", "description": "任务 ID（update）"},
+                "task_id": {"type": "integer", "description": "任务 ID（update/delete 时使用，即 list 返回的 task_id）"},
                 "status": {"type": "string", "enum": ["pending", "in_progress", "completed", "skipped"], "description": "任务状态"},
                 "title": {"type": "string", "description": "任务标题（update 时可选修改）"}
             },

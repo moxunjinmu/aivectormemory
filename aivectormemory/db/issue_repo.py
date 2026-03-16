@@ -100,7 +100,7 @@ class IssueRepo(BaseRepo):
         self._commit()
         return {"issue_id": issue_id, "archived_at": now, "memory_id": r.get("memory_id", "")}
 
-    _BRIEF_COLS = "id, issue_number, date, title, status, feature_id, created_at"
+    _BRIEF_COLS = "issue_number, date, title, status, feature_id, created_at"
 
     def list_by_date(self, date: str | None = None, status: str | None = None,
                      brief: bool = True, limit: int = 50, offset: int = 0,
@@ -124,7 +124,7 @@ class IssueRepo(BaseRepo):
     def list_all(self, date: str | None = None, keyword: str | None = None,
                  limit: int = 50, offset: int = 0) -> tuple[list[dict], int]:
         """UNION issues + issues_archive, return all issues."""
-        cols = "id, issue_number, date, title, status, feature_id, created_at"
+        cols = "issue_number, date, title, status, feature_id, created_at"
         w1, w2, p = "WHERE project_dir=?", "WHERE project_dir=?", [self.project_dir]
         p2 = [self.project_dir]
         if date:
@@ -146,7 +146,7 @@ class IssueRepo(BaseRepo):
                 r["status"] = "archived"
         return rows, total
 
-    _BRIEF_COLS_ARCHIVE = "id, issue_number, date, title, status, feature_id, created_at, archived_at"
+    _BRIEF_COLS_ARCHIVE = "issue_number, date, title, status, feature_id, created_at, archived_at"
 
     def list_archived(self, date: str | None = None, brief: bool = True,
                       limit: int = 50, offset: int = 0,
