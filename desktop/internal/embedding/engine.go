@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strings"
 )
 
@@ -95,47 +96,123 @@ func (e *Engine) EncodeBatch(texts []string) ([][]float32, error) {
 	return results, nil
 }
 
-// DetectPython finds a Python interpreter with aivectormemory installed
+// DetectPython finds a Python interpreter with aivectormemory installed.
+// Priority: aivectormemory venv → system python → common paths.
 func DetectPython() string {
-	candidates := []string{}
-
-	// Check project venv first
-	home, _ := os.UserHomeDir()
-	venvPaths := []string{
-		filepath.Join(home, "item", "run-memory-mcp-server", ".venv", "bin", "python3"),
-		filepath.Join(home, "item", "run-memory-mcp-server", ".venv", "bin", "python"),
-	}
-	candidates = append(candidates, venvPaths...)
-
-	// System paths
-	systemPaths := []string{"python3", "python"}
-	candidates = append(candidates, systemPaths...)
-
-	// Common installation paths
-	commonPaths := []string{
-		"/usr/local/bin/python3",
-		"/usr/bin/python3",
-		"/opt/homebrew/bin/python3",
-	}
-	candidates = append(candidates, commonPaths...)
-
+	candidates := pythonCandidates(true)
 	for _, py := range candidates {
-		path := py
-		if !filepath.IsAbs(path) {
-			found, err := exec.LookPath(path)
-			if err != nil {
-				continue
-			}
-			path = found
-		}
-		if _, err := os.Stat(path); err != nil {
+		path := resolvePython(py)
+		if path == "" {
 			continue
 		}
-		// Verify aivectormemory is importable
 		out, err := exec.Command(path, "-c", "import aivectormemory; print('ok')").Output()
 		if err == nil && strings.TrimSpace(string(out)) == "ok" {
 			return path
 		}
 	}
 	return ""
+}
+
+// FindSystemPython finds any Python ≥ 3.9 for package installation.
+// Priority: system python → common paths → aivectormemory venv (reversed from DetectPython).
+func FindSystemPython() string {
+	candidates := pythonCandidates(false)
+	for _, py := range candidates {
+		path := resolvePython(py)
+		if path == "" {
+			continue
+		}
+		out, err := exec.Command(path, "-c", "import sys; v=sys.version_info; print(f'{v.major}.{v.minor}')").Output()
+		if err != nil {
+			continue
+		}
+		ver := strings.TrimSpace(string(out))
+		parts := strings.Split(ver, ".")
+		if len(parts) >= 2 {
+			major, minor := parts[0], parts[1]
+			if major == "3" && minor >= "9" || major > "3" {
+				return path
+			}
+		}
+	}
+	return ""
+}
+
+// pythonCandidates returns candidate paths. When venvFirst=true, aivectormemory
+// venv is checked before system paths (for runtime). When false, system paths
+// come first (for installation).
+func pythonCandidates(venvFirst bool) []string {
+	home, _ := os.UserHomeDir()
+
+	// aivectormemory standard venv
+	var venvPaths []string
+	avmDir := filepath.Join(home, ".aivectormemory", ".venv")
+	if runtime.GOOS == "windows" {
+		venvPaths = []string{
+			filepath.Join(avmDir, "Scripts", "python.exe"),
+		}
+	} else {
+		venvPaths = []string{
+			filepath.Join(avmDir, "bin", "python3"),
+			filepath.Join(avmDir, "bin", "python"),
+		}
+	}
+
+	// System-level paths (via PATH lookup)
+	var systemPaths []string
+	if runtime.GOOS == "windows" {
+		systemPaths = []string{"python", "python3", "py"}
+	} else {
+		systemPaths = []string{"python3", "python"}
+	}
+
+	// Well-known installation paths
+	var commonPaths []string
+	switch runtime.GOOS {
+	case "darwin":
+		commonPaths = []string{
+			"/opt/homebrew/bin/python3",
+			"/usr/local/bin/python3",
+			"/usr/bin/python3",
+		}
+	case "linux":
+		commonPaths = []string{
+			"/usr/bin/python3",
+			"/usr/local/bin/python3",
+		}
+	case "windows":
+		localAppData := os.Getenv("LOCALAPPDATA")
+		if localAppData != "" {
+			commonPaths = append(commonPaths,
+				filepath.Join(localAppData, "Programs", "Python", "Python312", "python.exe"),
+				filepath.Join(localAppData, "Programs", "Python", "Python311", "python.exe"),
+				filepath.Join(localAppData, "Programs", "Python", "Python310", "python.exe"),
+			)
+		}
+		commonPaths = append(commonPaths,
+			`C:\Python312\python.exe`,
+			`C:\Python311\python.exe`,
+			`C:\Python310\python.exe`,
+		)
+	}
+
+	if venvFirst {
+		return append(append(venvPaths, systemPaths...), commonPaths...)
+	}
+	return append(append(systemPaths, commonPaths...), venvPaths...)
+}
+
+// resolvePython resolves a candidate to an absolute path, returns "" if not found.
+func resolvePython(candidate string) string {
+	if filepath.IsAbs(candidate) {
+		if _, err := os.Stat(candidate); err == nil {
+			return candidate
+		}
+		return ""
+	}
+	found, err := exec.LookPath(candidate)
+	if err != nil {
+		return ""
+	}
+	return found
 }
