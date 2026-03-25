@@ -1,14 +1,14 @@
 """aivectormemory regenerate - 切换语言并重新生成所有已注册项目的规则文件"""
-import json
 import sqlite3
 from pathlib import Path
 
 from aivectormemory.settings import set_language, SUPPORTED_LANGS
 from aivectormemory.install import (
-    IDES, STEERING_MARKER, PER_MSG_INJECTION_IDES, SPECS_PATH_MAP, SPECS_PATH_DEFAULT,
+    IDES,
     _write_steering,
     _write_hooks, _write_claude_code_hooks, _write_cursor_hooks,
     _write_windsurf_hooks, _write_opencode_plugins,
+    _config_has_server, _should_include_workflow,
 )
 
 DB_PATH = Path.home() / ".aivectormemory" / "memory.db"
@@ -29,14 +29,8 @@ def _detect_installed_ides(root: Path) -> list[tuple]:
     installed = []
     for name, path_fn, fmt, is_global, steering_fn, steering_mode, hooks_fn in IDES:
         mcp_path = path_fn(root)
-        if mcp_path and mcp_path.exists():
-            try:
-                config = json.loads(mcp_path.read_text("utf-8"))
-                key = "mcp" if fmt == "opencode" else "mcpServers"
-                if "aivectormemory" in config.get(key, {}):
-                    installed.append((name, steering_fn, steering_mode, hooks_fn))
-            except (json.JSONDecodeError, OSError):
-                pass
+        if mcp_path and _config_has_server(mcp_path, fmt):
+            installed.append((name, steering_fn, steering_mode, hooks_fn))
     return installed
 
 
@@ -50,12 +44,13 @@ def regenerate_project(project_dir: str, lang: str) -> list[str]:
     installed = _detect_installed_ides(root)
     if not installed:
         return [f"⚠ 跳过（无已安装 IDE）: {project_dir}"]
+    installed_names = {name for name, *_ in installed}
 
     for ide_name, steering_fn, steering_mode, hooks_fn in installed:
         # 重新生成 Steering 规则
         if steering_fn and steering_mode:
             steering_path = steering_fn(root)
-            include_workflow = ide_name not in PER_MSG_INJECTION_IDES
+            include_workflow = _should_include_workflow(root, steering_path, installed_names)
             changed = _write_steering(steering_path, steering_mode, ide_name, include_workflow, lang=lang)
             status = "✓ 已更新" if changed else "- 无变更"
             results.append(f"  {status}  {ide_name} Steering → {steering_path.relative_to(root)}")

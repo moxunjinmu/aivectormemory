@@ -29,7 +29,7 @@
 | 🔗 **タスク駆動開発** | 問題追跡 → タスク分割 → ステータス同期 → 連動アーカイブ。AIが開発フロー全体を自動管理 |
 | 📊 **Webダッシュボード** | すべての記憶とタスクを視覚的に管理、3Dベクトルネットワークで知識の繋がりが一目瞭然 |
 | 🏠 **完全ローカル** | クラウド依存ゼロ。ONNXローカル推論、APIキー不要、データはマシンから出ない |
-| 🔌 **全IDE対応** | Cursor / Kiro / Claude Code / Windsurf / VSCode / OpenCode / Trae — ワンクリックインストール、すぐ使える |
+| 🔌 **全IDE対応** | Cursor / Kiro / Claude Code / Windsurf / VSCode / OpenCode / Trae / Codex — ワンクリックインストール、すぐ使える |
 | 📁 **マルチプロジェクト分離** | 1つのDBで全プロジェクト管理、自動分離で干渉なし、プロジェクト切り替えもシームレス |
 | 🔄 **スマート重複排除** | 類似度 > 0.95 で自動マージ更新、記憶ストアは常にクリーン — 使い続けても散らからない |
 
@@ -43,7 +43,7 @@
 ```
 ┌─────────────────────────────────────────────────┐
 │                   AI IDE                         │
-│  OpenCode / Claude Code / Cursor / Kiro / ...   │
+│  OpenCode / Codex / Claude Code / Cursor / ...  │
 └──────────────────────┬──────────────────────────┘
                        │ MCP Protocol (stdio)
 ┌──────────────────────▼──────────────────────────┐
@@ -128,8 +128,19 @@ uvx aivectormemory install
 | VSCode | `.vscode/mcp.json` |
 | Trae | `.trae/mcp.json` |
 | OpenCode | `opencode.json` |
+| Codex | `.codex/config.toml` |
 
 </details>
+
+Codex では JSON ではなく、プロジェクト単位の TOML 設定を使用します:
+
+```toml
+[mcp_servers.aivectormemory]
+command = "run"
+args = ["--project-dir", "/path/to/your/project"]
+```
+
+> Codex がプロジェクト単位の `.codex/config.toml` を読み込むのは、リポジトリを trusted project としてマークした後です。
 
 ## 🛠️ 8つのMCPツール
 
@@ -272,6 +283,7 @@ AIVectorMemoryはストレージ層です。Steeringルールを使ってAIに**
 | VSCode | `.github/copilot-instructions.md`（追記） | `.claude/settings.json` |
 | Trae | `.trae/rules/aivectormemory.md` | — |
 | OpenCode | `AGENTS.md`（追記） | `.opencode/plugins/*.js` |
+| Codex | `AGENTS.md`（追記） | — |
 
 <details>
 <summary>📋 Steeringルール例（自動生成）</summary>

@@ -1,6 +1,7 @@
 """aivectormemory install - 交互式为当前项目配置 MCP + Steering 规则"""
 import json
 import os
+import re
 import sys
 from pathlib import Path
 from aivectormemory.i18n import get_steering, get_workflow_prompt, get_compact_recovery_hints
@@ -29,6 +30,8 @@ IDES = [
     ("OpenCode",       lambda root: root / "opencode.json",            "opencode", False,
      lambda root: root / "AGENTS.md", "append",
      lambda root: root / ".opencode/plugins"),
+    ("Codex",          lambda root: root / ".codex/config.toml",       "codex", False,
+     lambda root: root / "AGENTS.md", "append", None),
 ]
 
 RUNNERS = [
@@ -38,6 +41,11 @@ RUNNERS = [
 
 
 STEERING_MARKER = "<!-- aivectormemory-steering -->"
+CODEX_MCP_START_MARKER = "# >>> aivectormemory mcp >>>"
+CODEX_MCP_END_MARKER = "# <<< aivectormemory mcp <<<"
+DEFAULT_SERVER_NAME = "aivectormemory"
+LEGACY_SERVER_NAMES = ("devmemory",)
+AUTO_APPROVE_TOOLS = ["remember", "recall", "forget", "status", "track", "task", "readme", "auto_save"]
 
 
 HOOKS_CONFIGS = [
@@ -299,6 +307,18 @@ def _write_claude_code_hooks(hooks_dir: Path, lang: str | None = None) -> list[s
         for k in hook_keys:
             config["hooks"][k] = new_hooks[k]
         config["hooks"].pop("Stop", None)
+    # 写入 permissions.allow（MCP 工具 + Bash 自动授权）
+    required_perms = [f"mcp__{DEFAULT_SERVER_NAME}__{t}" for t in AUTO_APPROVE_TOOLS] + ["Bash(*)", "Edit(*)", "Write(*)", "Read(*)"]
+    existing_perms = set(config.get("permissions", {}).get("allow", []))
+    missing = [p for p in required_perms if p not in existing_perms]
+    if missing:
+        config.setdefault("permissions", {}).setdefault("allow", [])
+        config["permissions"]["allow"].extend(missing)
+        changed = True
+        results.append(f"✓ 已写入  Permissions: {len(missing)} 条规则（MCP 工具 + Bash）")
+    else:
+        results.append("- 无变更  Permissions: 已全部授权")
+    if changed or has_old_stop:
         filepath.write_text(json.dumps(config, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
         results.append(f"✓ 已生成  Hook: .claude/settings.json ({' + '.join(hook_keys)})")
     else:
@@ -502,11 +522,16 @@ def _write_steering(filepath: Path, mode: str, ide_name: str = "", include_workf
     return False
 
 
-def _build_config(cmd: str, args: list[str], fmt: str) -> dict:
+def _build_env_block() -> dict:
     env_block = {}
     hf_endpoint = os.environ.get("HF_ENDPOINT", "")
     if hf_endpoint:
         env_block["HF_ENDPOINT"] = hf_endpoint
+    return env_block
+
+
+def _build_config(cmd: str, args: list[str], fmt: str) -> dict:
+    env_block = _build_env_block()
     if fmt == "opencode":
         cfg = {"type": "local", "command": [cmd] + args, "enabled": True}
         if env_block:
@@ -516,11 +541,92 @@ def _build_config(cmd: str, args: list[str], fmt: str) -> dict:
         "command": cmd,
         "args": args,
         "disabled": False,
-        "autoApprove": ["remember", "recall", "forget", "status", "track", "task", "readme", "auto_save"],
+        "autoApprove": AUTO_APPROVE_TOOLS,
     }
     if env_block:
         cfg["env"] = env_block
     return cfg
+
+
+def _build_codex_config_block(cmd: str, args: list[str], server_name: str = DEFAULT_SERVER_NAME) -> str:
+    lines = [
+        f"[mcp_servers.{server_name}]",
+        f"command = {json.dumps(cmd, ensure_ascii=False)}",
+        f"args = {json.dumps(args, ensure_ascii=False)}",
+    ]
+    env_block = _build_env_block()
+    if env_block:
+        lines.append("")
+        lines.append(f"[mcp_servers.{server_name}.env]")
+        for key, value in env_block.items():
+            lines.append(f"{key} = {json.dumps(value, ensure_ascii=False)}")
+    return "\n".join(lines)
+
+
+def _strip_codex_managed_block(content: str) -> str:
+    start = content.find(CODEX_MCP_START_MARKER)
+    if start == -1:
+        return content
+    end = content.find(CODEX_MCP_END_MARKER, start)
+    if end == -1:
+        return content[:start]
+    end += len(CODEX_MCP_END_MARKER)
+    if end < len(content) and content[end] == "\n":
+        end += 1
+    return content[:start] + content[end:]
+
+
+def _strip_codex_server_sections(content: str, server_names: tuple[str, ...]) -> str:
+    lines = content.splitlines(keepends=True)
+    section_prefixes = tuple(f"mcp_servers.{name}" for name in server_names)
+    kept = []
+    skipping = False
+    for line in lines:
+        stripped = line.strip()
+        if stripped.startswith("[") and stripped.endswith("]"):
+            section = stripped[1:-1].strip()
+            if any(section == prefix or section.startswith(f"{prefix}.") for prefix in section_prefixes):
+                skipping = True
+                continue
+            skipping = False
+        if not skipping:
+            kept.append(line)
+    return "".join(kept)
+
+
+def _normalize_toml_content(content: str) -> str:
+    stripped = content.strip()
+    if not stripped:
+        return ""
+    normalized_lines = []
+    previous_blank = False
+    for line in stripped.splitlines():
+        current = line.rstrip()
+        is_blank = current == ""
+        if is_blank and previous_blank:
+            continue
+        normalized_lines.append(current)
+        previous_blank = is_blank
+    return "\n".join(normalized_lines) + "\n"
+
+
+def _merge_codex_config(filepath: Path, server_name: str, server_block: str) -> bool:
+    existing = filepath.read_text("utf-8") if filepath.exists() else ""
+    all_server_names = (server_name,) + LEGACY_SERVER_NAMES
+    cleaned = _strip_codex_managed_block(existing)
+    cleaned = _strip_codex_server_sections(cleaned, all_server_names)
+    cleaned = _normalize_toml_content(cleaned)
+    managed_block = (
+        f"{CODEX_MCP_START_MARKER}\n"
+        f"{server_block}\n"
+        f"{CODEX_MCP_END_MARKER}\n"
+    )
+    updated = f"{cleaned}\n{managed_block}" if cleaned else managed_block
+    if existing.strip() == updated.strip():
+        return False
+    filepath.parent.mkdir(parents=True, exist_ok=True)
+    filepath.write_text(updated, encoding="utf-8")
+    return True
 
 
 def _merge_config(filepath: Path, key: str, server_name: str, server_config: dict) -> bool:
@@ -534,12 +640,53 @@ def _merge_config(filepath: Path, key: str, server_name: str, server_config: dic
     if server_name in config[key] and config[key][server_name] == server_config:
         return False
     config[key][server_name] = server_config
-    old_key = "devmemory"
-    if old_key in config[key] and old_key != server_name:
-        del config[key][old_key]
+    for old_key in LEGACY_SERVER_NAMES:
+        if old_key in config[key] and old_key != server_name:
+            del config[key][old_key]
     filepath.parent.mkdir(parents=True, exist_ok=True)
     filepath.write_text(json.dumps(config, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     return True
+
+
+def _config_has_server(filepath: Path, fmt: str, server_name: str = DEFAULT_SERVER_NAME) -> bool:
+    if not filepath.exists():
+        return False
+    server_names = (server_name,) + LEGACY_SERVER_NAMES
+    if fmt == "codex":
+        pattern = "|".join(re.escape(name) for name in server_names)
+        try:
+            content = filepath.read_text("utf-8")
+        except OSError:
+            return False
+        return bool(re.search(rf"(?m)^\s*\[mcp_servers\.({pattern})\]\s*$", content))
+    try:
+        config = json.loads(filepath.read_text("utf-8"))
+    except (json.JSONDecodeError, OSError):
+        return False
+    key = "mcp" if fmt == "opencode" else "mcpServers"
+    servers = config.get(key, {})
+    return any(name in servers for name in server_names)
+
+
+def _detect_installed_ide_names(root: Path) -> set[str]:
+    installed = set()
+    for name, path_fn, fmt, *_ in IDES:
+        filepath = path_fn(root)
+        if filepath and _config_has_server(filepath, fmt):
+            installed.add(name)
+    return installed
+
+
+def _should_include_workflow(root: Path, steering_path: Path, active_ide_names: set[str]) -> bool:
+    shared_ides = set()
+    for name, _, _, _, steering_fn, steering_mode, _ in IDES:
+        if name not in active_ide_names or not steering_fn or not steering_mode:
+            continue
+        if steering_fn(root) == steering_path:
+            shared_ides.add(name)
+    if not shared_ides:
+        return True
+    return any(name not in PER_MSG_INJECTION_IDES for name in shared_ides)
 
 
 def _choose(prompt: str, options: list[tuple], allow_all: bool = False) -> list | None:
@@ -606,21 +753,27 @@ def run_install(project_dir: str | None = None):
     # 3. 写入配置
     print()
     root = Path(pdir)
+    selected_ide_names = {valid_ides[idx][1] for idx in ide_indices}
+    active_ide_names = _detect_installed_ide_names(root) | selected_ide_names
     for idx in ide_indices:
         label, ide_name, path_fn, fmt, steering_fn, steering_mode, hooks_fn = valid_ides[idx]
         filepath = path_fn(root)
         if filepath is None:
             continue
-        server_config = _build_config(cmd, args, fmt)
-        key = "mcp" if fmt == "opencode" else "mcpServers"
-        changed = _merge_config(filepath, key, "aivectormemory", server_config)
+        if fmt == "codex":
+            server_block = _build_codex_config_block(cmd, args)
+            changed = _merge_codex_config(filepath, DEFAULT_SERVER_NAME, server_block)
+        else:
+            server_config = _build_config(cmd, args, fmt)
+            key = "mcp" if fmt == "opencode" else "mcpServers"
+            changed = _merge_config(filepath, key, DEFAULT_SERVER_NAME, server_config)
         status = "✓ 已更新" if changed else "- 无变更"
         print(f"  {status}  {label} MCP 配置")
 
         # 4. 写入 Steering 规则
         if steering_fn and steering_mode:
             steering_path = steering_fn(root)
-            include_workflow = ide_name not in PER_MSG_INJECTION_IDES
+            include_workflow = _should_include_workflow(root, steering_path, active_ide_names)
             s_changed = _write_steering(steering_path, steering_mode, ide_name, include_workflow, lang=selected_lang)
             s_status = "✓ 已生成" if s_changed else "- 无变更"
             print(f"  {s_status}  {label} Steering 规则 → {steering_path.relative_to(root)}")
@@ -641,6 +794,10 @@ def run_install(project_dir: str | None = None):
                 hook_results = _write_hooks(hooks_dir, lang=selected_lang)
             for r in hook_results:
                 print(f"  {r}")
+
+    if "Codex" in selected_ide_names:
+        print("\n提示：Codex 只有在项目被标记为 trusted project 后才会加载 .codex/config.toml。")
+        print("      AGENTS.md 会继续作为项目指令被发现；若机器上已存在同名全局 MCP，未信任前仍可能优先命中全局配置。")
 
     print("\n安装完成，重启 IDE 即可使用")
 

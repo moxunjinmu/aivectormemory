@@ -35,7 +35,7 @@
 | 🔗 **任务驱动开发** | 问题追踪 → 任务拆分 → 状态同步 → 联动归档，AI 全自动管理完整开发流程 |
 | 📊 **桌面端 + Web 看板** | 原生桌面应用（macOS/Windows/Linux）+ Web 看板，可视化管理记忆和任务，3D 向量网络一眼看清知识关联 |
 | 🏠 **完全本地** | 零依赖云服务，ONNX 本地推理，无需 API Key，数据不出你的电脑 |
-| 🔌 **全 IDE 通吃** | Cursor / Kiro / Claude Code / Windsurf / VSCode / OpenCode / Trae — 一键安装，开箱即用 |
+| 🔌 **全 IDE 通吃** | Cursor / Kiro / Claude Code / Windsurf / VSCode / OpenCode / Trae / Codex — 一键安装，开箱即用 |
 | 📁 **多项目隔离** | 一个 DB 管所有项目，自动隔离互不干扰，切换项目无感知 |
 | 🔄 **智能去重** | 相似度 > 0.95 自动合并更新，记忆库永远干净，不会越用越乱 |
 | 🌐 **7 语言支持** | 简体中文 / 繁體中文 / English / Español / Deutsch / Français / 日本語，看板 + Steering 全栈国际化 |
@@ -67,7 +67,7 @@
 ```
 ┌─────────────────────────────────────────────────┐
 │                   AI IDE                         │
-│  OpenCode / Claude Code / Cursor / Kiro / ...   │
+│  OpenCode / Codex / Claude Code / Cursor / ...  │
 └──────────────────────┬──────────────────────────┘
                        │ MCP Protocol (stdio)
 ┌──────────────────────▼──────────────────────────┐
@@ -153,8 +153,19 @@ uvx aivectormemory install
 | VSCode | `.vscode/mcp.json` |
 | Trae | `.trae/mcp.json` |
 | OpenCode | `opencode.json` |
+| Codex | `.codex/config.toml` |
 
 </details>
+
+Codex 使用项目级 TOML 配置，而不是 JSON：
+
+```toml
+[mcp_servers.aivectormemory]
+command = "run"
+args = ["--project-dir", "/path/to/your/project"]
+```
+
+> 只有把仓库标记为 trusted project 后，Codex 才会加载项目级 `.codex/config.toml`。
 
 ## 🛠️ 8 个 MCP 工具
 
@@ -279,6 +290,7 @@ AIVectorMemory 是存储层，通过 Steering 规则告诉 AI **何时、如何*
 | VSCode | `.github/copilot-instructions.md`（追加） | `.claude/settings.json` |
 | Trae | `.trae/rules/aivectormemory.md` | — |
 | OpenCode | `AGENTS.md`（追加） | `.opencode/plugins/*.js` |
+| Codex | `AGENTS.md`（追加） | — |
 
 <details>
 <summary>📋 Steering 规则范例（自动生成）</summary>

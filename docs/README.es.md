@@ -29,7 +29,7 @@
 | 🔗 **Dev Dirigido por Tareas** | Seguimiento de problemas → desglose de tareas → sincronización de estados → archivado vinculado. La IA gestiona todo el flujo de desarrollo |
 | 📊 **Panel Web** | Gestión visual de todas las memorias y tareas, red vectorial 3D para ver conexiones de conocimiento de un vistazo |
 | 🏠 **Completamente Local** | Cero dependencia de la nube. Inferencia local ONNX, sin API Key, los datos nunca salen de tu máquina |
-| 🔌 **Todos los IDEs** | Cursor / Kiro / Claude Code / Windsurf / VSCode / OpenCode / Trae — instalación con un clic, listo para usar |
+| 🔌 **Todos los IDEs** | Cursor / Kiro / Claude Code / Windsurf / VSCode / OpenCode / Trae / Codex — instalación con un clic, listo para usar |
 | 📁 **Aislamiento Multi-Proyecto** | Una sola BD para todos los proyectos, aislamiento automático sin interferencia, cambio de proyecto transparente |
 | 🔄 **Deduplicación Inteligente** | Similitud > 0.95 fusiona automáticamente, la base de memorias siempre limpia — nunca se desordena con el uso |
 
@@ -43,7 +43,7 @@
 ```
 ┌─────────────────────────────────────────────────┐
 │                   AI IDE                         │
-│  OpenCode / Claude Code / Cursor / Kiro / ...   │
+│  OpenCode / Codex / Claude Code / Cursor / ...  │
 └──────────────────────┬──────────────────────────┘
                        │ MCP Protocol (stdio)
 ┌──────────────────────▼──────────────────────────┐
@@ -128,8 +128,19 @@ uvx aivectormemory install
 | VSCode | `.vscode/mcp.json` |
 | Trae | `.trae/mcp.json` |
 | OpenCode | `opencode.json` |
+| Codex | `.codex/config.toml` |
 
 </details>
+
+Para Codex, usa TOML a nivel de proyecto en lugar de JSON:
+
+```toml
+[mcp_servers.aivectormemory]
+command = "run"
+args = ["--project-dir", "/path/to/your/project"]
+```
+
+> Codex solo carga `.codex/config.toml` a nivel de proyecto después de marcar el repositorio como trusted project.
 
 ## 🛠️ 8 Herramientas MCP
 
@@ -272,6 +283,7 @@ Ejecutar `run install` genera automáticamente las reglas Steering y la configur
 | VSCode | `.github/copilot-instructions.md` (añadido) | `.claude/settings.json` |
 | Trae | `.trae/rules/aivectormemory.md` | — |
 | OpenCode | `AGENTS.md` (añadido) | `.opencode/plugins/*.js` |
+| Codex | `AGENTS.md` (añadido) | — |
 
 <details>
 <summary>📋 Ejemplo de Reglas Steering (generado automáticamente)</summary>

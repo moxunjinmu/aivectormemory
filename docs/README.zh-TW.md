@@ -29,7 +29,7 @@
 | 🔗 **任務驅動開發** | 問題追蹤 → 任務拆分 → 狀態同步 → 聯動歸檔，AI 自動管理完整開發流程 |
 | 📊 **Web 看板** | 視覺化管理所有記憶和任務，3D 向量網路一眼看清知識關聯 |
 | 🏠 **完全本地** | 零依賴雲端服務，ONNX 本地推理，無需 API Key，資料不出你的電腦 |
-| 🔌 **全 IDE 通吃** | Cursor / Kiro / Claude Code / Windsurf / VSCode / OpenCode / Trae — 一鍵安裝，開箱即用 |
+| 🔌 **全 IDE 通吃** | Cursor / Kiro / Claude Code / Windsurf / VSCode / OpenCode / Trae / Codex — 一鍵安裝，開箱即用 |
 | 📁 **多專案隔離** | 一個 DB 管所有專案，自動隔離互不干擾，切換專案無感知 |
 | 🔄 **智慧去重** | 相似度 > 0.95 自動合併更新，記憶庫永遠乾淨，不會越用越亂 |
 
@@ -43,7 +43,7 @@
 ```
 ┌─────────────────────────────────────────────────┐
 │                   AI IDE                         │
-│  OpenCode / Claude Code / Cursor / Kiro / ...   │
+│  OpenCode / Codex / Claude Code / Cursor / ...  │
 └──────────────────────┬──────────────────────────┘
                        │ MCP Protocol (stdio)
 ┌──────────────────────▼──────────────────────────┐
@@ -128,8 +128,19 @@ uvx aivectormemory install
 | VSCode | `.vscode/mcp.json` |
 | Trae | `.trae/mcp.json` |
 | OpenCode | `opencode.json` |
+| Codex | `.codex/config.toml` |
 
 </details>
+
+Codex 使用專案級 TOML 設定，而不是 JSON：
+
+```toml
+[mcp_servers.aivectormemory]
+command = "run"
+args = ["--project-dir", "/path/to/your/project"]
+```
+
+> 只有把倉庫標記為 trusted project 後，Codex 才會載入專案級 `.codex/config.toml`。
 
 ## 🛠️ 8 個 MCP 工具
 
@@ -272,6 +283,7 @@ AIVectorMemory 是儲存層，透過 Steering 規則告訴 AI **何時、如何*
 | VSCode | `.github/copilot-instructions.md`（追加） | `.claude/settings.json` |
 | Trae | `.trae/rules/aivectormemory.md` | — |
 | OpenCode | `AGENTS.md`（追加） | `.opencode/plugins/*.js` |
+| Codex | `AGENTS.md`（追加） | — |
 
 <details>
 <summary>📋 Steering 規則範例（自動產生）</summary>

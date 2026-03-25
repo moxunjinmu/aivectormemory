@@ -29,7 +29,7 @@
 | 🔗 **Aufgabengesteuertes Dev** | Problem-Tracking → Aufgabenzerlegung → Status-Sync → verknüpfte Archivierung. KI verwaltet den gesamten Dev-Workflow |
 | 📊 **Web-Dashboard** | Visuelle Verwaltung aller Erinnerungen und Aufgaben, 3D-Vektornetzwerk zeigt Wissensverbindungen auf einen Blick |
 | 🏠 **Vollständig Lokal** | Null Cloud-Abhängigkeit. ONNX lokale Inferenz, kein API Key, Daten verlassen nie deinen Rechner |
-| 🔌 **Alle IDEs** | Cursor / Kiro / Claude Code / Windsurf / VSCode / OpenCode / Trae — Ein-Klick-Installation, sofort einsatzbereit |
+| 🔌 **Alle IDEs** | Cursor / Kiro / Claude Code / Windsurf / VSCode / OpenCode / Trae / Codex — Ein-Klick-Installation, sofort einsatzbereit |
 | 📁 **Multi-Projekt-Isolation** | Eine DB für alle Projekte, automatisch isoliert ohne Interferenz, nahtloser Projektwechsel |
 | 🔄 **Intelligente Deduplizierung** | Ähnlichkeit > 0.95 führt automatisch zusammen, Wissensspeicher bleibt sauber — wird nie unübersichtlich |
 
@@ -43,7 +43,7 @@
 ```
 ┌─────────────────────────────────────────────────┐
 │                   AI IDE                         │
-│  OpenCode / Claude Code / Cursor / Kiro / ...   │
+│  OpenCode / Codex / Claude Code / Cursor / ...  │
 └──────────────────────┬──────────────────────────┘
                        │ MCP Protocol (stdio)
 ┌──────────────────────▼──────────────────────────┐
@@ -128,8 +128,19 @@ uvx aivectormemory install
 | VSCode | `.vscode/mcp.json` |
 | Trae | `.trae/mcp.json` |
 | OpenCode | `opencode.json` |
+| Codex | `.codex/config.toml` |
 
 </details>
+
+Für Codex verwende projektbezogenes TOML statt JSON:
+
+```toml
+[mcp_servers.aivectormemory]
+command = "run"
+args = ["--project-dir", "/path/to/your/project"]
+```
+
+> Codex lädt die projektbezogene `.codex/config.toml` erst, nachdem das Repository als trusted project markiert wurde.
 
 ## 🛠️ 8 MCP-Werkzeuge
 
@@ -272,6 +283,7 @@ AIVectorMemory ist die Speicherschicht. Verwende Steering-Regeln, um der KI mitz
 | VSCode | `.github/copilot-instructions.md` (angehängt) | `.claude/settings.json` |
 | Trae | `.trae/rules/aivectormemory.md` | — |
 | OpenCode | `AGENTS.md` (angehängt) | `.opencode/plugins/*.js` |
+| Codex | `AGENTS.md` (angehängt) | — |
 
 <details>
 <summary>📋 Steering-Regeln Beispiel (automatisch generiert)</summary>
