@@ -32,6 +32,10 @@ IDES = [
      lambda root: root / ".opencode/plugins"),
     ("Codex",          lambda root: root / ".codex/config.toml",       "codex", False,
      lambda root: root / "AGENTS.md", "append", None),
+    ("Antigravity",    lambda root: Path.home() / ".gemini/antigravity/mcp_config.json", "standard", True,
+     lambda root: root / "GEMINI.md", "file", None),
+    ("Copilot",        lambda root: root / ".github/copilot/mcp.json",  "standard", False,
+     lambda root: root / ".github/copilot-instructions.md", "append", None),
 ]
 
 RUNNERS = [
@@ -114,17 +118,6 @@ CLAUDE_CODE_HOOKS_CONFIG = {
                     {
                         "type": "command",
                         "command": "",  # 占位，install 时动态填充 compact-recovery.sh 路径
-                    }
-                ]
-            }
-        ],
-        "TaskCompleted": [
-            {
-                "hooks": [
-                    {
-                        "type": "agent",
-                        "prompt": "你是自测检查员。检查当前会话中是否有文件被修改（Edit/Write工具调用），如果有，检查修改后是否执行了相关测试（Bash工具调用中包含 pytest、curl、go test、playwright、npm run 等测试命令）。如果有文件修改但未执行任何测试，返回 {\"ok\": false, \"reason\": \"有文件被修改但未执行自测，禁止标记任务完成。请先运行相关测试验证功能正确性。\"}。如果已执行测试或没有文件修改，返回 {\"ok\": true}。",
-                        "timeout": 60,
                     }
                 ]
             }
@@ -298,7 +291,7 @@ def _write_claude_code_hooks(hooks_dir: Path, lang: str | None = None) -> list[s
             config = {}
     existing = config.get("hooks", {})
     new_hooks = new_hooks_cfg["hooks"]
-    hook_keys = ["PreToolUse", "UserPromptSubmit", "SessionStart", "TaskCompleted"]
+    hook_keys = ["PreToolUse", "UserPromptSubmit", "SessionStart"]
     changed = any(existing.get(k) != new_hooks.get(k) for k in hook_keys)
     # 清理旧的 Stop hook
     has_old_stop = "Stop" in existing
@@ -307,6 +300,7 @@ def _write_claude_code_hooks(hooks_dir: Path, lang: str | None = None) -> list[s
         for k in hook_keys:
             config["hooks"][k] = new_hooks[k]
         config["hooks"].pop("Stop", None)
+        config["hooks"].pop("TaskCompleted", None)
     # 写入 permissions.allow（MCP 工具 + Bash 自动授权）
     required_perms = [f"mcp__{DEFAULT_SERVER_NAME}__{t}" for t in AUTO_APPROVE_TOOLS] + ["Bash(*)", "Edit(*)", "Write(*)", "Read(*)"]
     existing_perms = set(config.get("permissions", {}).get("allow", []))

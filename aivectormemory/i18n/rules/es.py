@@ -249,18 +249,9 @@ DEV_WORKFLOW_PROMPT = (
     "- **Sin** `lsof -ti:puerto` sin ignoreWarning (será bloqueado por verificación de seguridad)\n"
     "- **Enfoque correcto**: escribir SQL en archivo `.sql` y usar `< data/xxx.sql`; escribir scripts de verificación Python como archivos .py y ejecutar con `python3 xxx.py`; usar `lsof -ti:puerto` + ignoreWarning:true para verificación de puertos\n\n"
     "---\n\n"
-    "## ⚠️ Requisitos de Auto-prueba\n\n"
-    "**Nunca pedir al usuario que opere manualmente** — hacerlo uno mismo si es posible. Solo decir \"esperando verificación\" después de que la auto-prueba pase.\n\n"
-    "- **Backend puro / cambios no frontend**: usar pytest, solicitudes API o scripts para verificar la funcionalidad\n"
-    "- **MCP Server**: verificar vía mensajes JSON-RPC por stdio\n"
-    "- **Cambios que involucran datos visibles en el frontend** (modificaciones de base de datos, cambios en valores de retorno de API, modificaciones de código frontend): **debe usar Playwright para verificar los resultados de visualización de la página frontend**. Está prohibido verificar solo con consultas SQL, curl o scripts de python y afirmar \"aprobado\". Si el servicio no está en ejecución, debe iniciar el servicio primero antes de verificar. Está prohibido omitir Playwright con la excusa de \"servicio no en ejecución\"\n"
-    "- Solo decir \"esperando verificación\" después de que la auto-prueba pase\n\n"
-    "---\n\n"
-    "## ⚠️ Reglas de Desarrollo\n\n"
-    "> El desarrollo debe ir seguido de auto-pruebas.\n"
-    "> Sin promesas verbales — todo se valida con pruebas que pasen.\n"
-    "> Debe pensar rigurosamente antes de cualquier modificación de archivo.\n"
-    "> Al encontrar errores o excepciones, nunca testear a ciegas. Debe analizar la causa raíz."
+    "## ⚠️ Auto-test\n\n"
+    "Después de modificar archivos de código, **debe ejecutar pruebas antes de establecer el estado de bloqueo \"esperando verificación\"**. "
+    "No diga \"esperando verificación\" después de modificar código sin ejecutar pruebas. Solo archivos de documentación/configuración (.md/.json/.yaml/.toml/.sh etc.) no requieren auto-test."
 )
 
 COMPACT_RECOVERY_HINTS = (

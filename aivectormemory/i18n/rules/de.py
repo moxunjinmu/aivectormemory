@@ -249,18 +249,9 @@ DEV_WORKFLOW_PROMPT = (
     "- **Kein** `lsof -ti:Port` ohne ignoreWarning (wird von Sicherheitsprüfung blockiert)\n"
     "- **Korrekter Ansatz**: SQL in `.sql`-Datei schreiben und `< data/xxx.sql` verwenden; Python-Verifizierungsskripte als .py-Dateien schreiben und mit `python3 xxx.py` ausführen; `lsof -ti:Port` + ignoreWarning:true für Port-Prüfungen verwenden\n\n"
     "---\n\n"
-    "## ⚠️ Selbsttest-Anforderungen\n\n"
-    "**Niemals den Benutzer bitten manuell zu operieren** — selbst machen wenn möglich. Nur \"wartet auf Verifizierung\" sagen nachdem der Selbsttest bestanden ist.\n\n"
-    "- **Reines Backend / Nicht-Frontend-Änderungen**: pytest, API-Anfragen oder Skripte zur Überprüfung der Funktionalität verwenden\n"
-    "- **MCP Server**: über stdio JSON-RPC-Nachrichten zur Verifizierung senden\n"
-    "- **Änderungen an im Frontend sichtbaren Daten** (Datenbankänderungen, Änderungen der API-Rückgabewerte, Frontend-Code-Änderungen): **muss Playwright verwenden um die Frontend-Seitenanzeigeergebnisse zu verifizieren**. Es ist verboten, nur mit SQL-Abfragen, curl oder Python-Skripten zu verifizieren und \"bestanden\" zu behaupten. Wenn der Dienst nicht läuft, muss der Dienst zuerst gestartet werden. Es ist verboten, Playwright mit der Begründung \"Dienst läuft nicht\" zu überspringen\n"
-    "- Nur \"wartet auf Verifizierung\" sagen nachdem der Selbsttest bestanden ist\n\n"
-    "---\n\n"
-    "## ⚠️ Entwicklungsregeln\n\n"
-    "> Nach Abschluss der Entwicklung muss ein Selbsttest durchgeführt werden.\n"
-    "> Keine mündlichen Versprechen — alles wird durch bestandene Tests validiert.\n"
-    "> Muss rigoros nachdenken vor jeder Dateiänderung.\n"
-    "> Bei Fehlern oder Ausnahmen niemals blind testen. Muss die Grundursache analysieren."
+    "## ⚠️ Selbsttest\n\n"
+    "Nach Änderungen an Code-Dateien **müssen Sie Tests ausführen, bevor Sie den Blockierungsstatus \"Warten auf Überprüfung\" setzen**. "
+    "Sagen Sie nicht \"Warten auf Überprüfung\" nach Code-Änderungen ohne Tests. Nur Dokumentations-/Konfigurationsdateien (.md/.json/.yaml/.toml/.sh etc.) erfordern keinen Selbsttest."
 )
 
 COMPACT_RECOVERY_HINTS = (

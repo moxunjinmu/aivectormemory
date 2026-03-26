@@ -249,18 +249,9 @@ DEV_WORKFLOW_PROMPT = (
     "- **No** `lsof -ti:port` without ignoreWarning (will be blocked by security check)\n"
     "- **Correct approach**: write SQL to `.sql` file and use `< data/xxx.sql`; write Python verification scripts as .py files and run with `python3 xxx.py`; use `lsof -ti:port` + ignoreWarning:true for port checks\n\n"
     "---\n\n"
-    "## ⚠️ Self-testing Requirements\n\n"
-    "**Never ask the user to manually operate** — do it yourself if possible. Only say \"waiting for verification\" after self-test passes.\n\n"
-    "- **Pure backend / non-frontend changes**: use pytest, API requests, or scripts to verify functionality\n"
-    "- **MCP Server**: verify via stdio JSON-RPC messages\n"
-    "- **Changes involving frontend-visible data** (database modifications, API return value changes, frontend code changes): **must use Playwright to verify frontend page display results**. Using only SQL queries, curl, or python scripts to verify and claiming \"passed\" is prohibited. If the service is not running, must start the service first before verifying. Skipping Playwright with the excuse \"service not running\" is prohibited\n"
-    "- Only say \"waiting for verification\" after self-test passes\n\n"
-    "---\n\n"
-    "## ⚠️ Development Rules\n\n"
-    "> Development must be followed by self-testing.\n"
-    "> No verbal promises — everything is validated by passing tests.\n"
-    "> Must think rigorously before any file modification.\n"
-    "> When encountering errors or exceptions, never test blindly. Must analyze the root cause."
+    "## ⚠️ Self-test\n\n"
+    "After modifying code files, **you must run tests before setting blocked status \"awaiting verification\"**. "
+    "Do not say \"awaiting verification\" after modifying code without running tests. Only documentation/configuration files (.md/.json/.yaml/.toml/.sh etc.) do not require self-testing."
 )
 
 COMPACT_RECOVERY_HINTS = (

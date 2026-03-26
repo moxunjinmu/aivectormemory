@@ -249,18 +249,9 @@ DEV_WORKFLOW_PROMPT = (
     "- **Pas de** `lsof -ti:port` sans ignoreWarning (sera bloqué par la vérification de sécurité)\n"
     "- **Approche correcte** : écrire SQL dans un fichier `.sql` et utiliser `< data/xxx.sql` ; écrire les scripts de vérification Python comme fichiers .py et exécuter avec `python3 xxx.py` ; utiliser `lsof -ti:port` + ignoreWarning:true pour les vérifications de port\n\n"
     "---\n\n"
-    "## ⚠️ Exigences d'Auto-test\n\n"
-    "**Ne jamais demander à l'utilisateur d'opérer manuellement** — le faire soi-même si possible. Ne dire \"en attente de vérification\" qu'après que l'auto-test a réussi.\n\n"
-    "- **Backend pur / changements non-frontend** : utiliser pytest, requêtes API ou scripts pour vérifier la fonctionnalité\n"
-    "- **MCP Server** : vérifier via messages JSON-RPC par stdio\n"
-    "- **Changements impliquant des données visibles sur le frontend** (modifications de base de données, changements de valeurs de retour API, modifications du code frontend) : **doit utiliser Playwright pour vérifier les résultats d'affichage de la page frontend**. Il est interdit de vérifier uniquement avec des requêtes SQL, curl ou des scripts python et de prétendre \"réussi\". Si le service n'est pas en cours d'exécution, le service doit être démarré en premier avant de vérifier. Il est interdit de sauter Playwright avec l'excuse \"service non démarré\"\n"
-    "- Ne dire \"en attente de vérification\" qu'après que l'auto-test a réussi\n\n"
-    "---\n\n"
-    "## ⚠️ Règles de Développement\n\n"
-    "> Le développement doit être suivi d'auto-tests.\n"
-    "> Pas de promesses verbales — tout est validé par des tests qui passent.\n"
-    "> Doit réfléchir rigoureusement avant toute modification de fichier.\n"
-    "> Face à des erreurs ou exceptions, ne jamais tester aveuglément. Doit analyser la cause racine."
+    "## ⚠️ Auto-test\n\n"
+    "Après avoir modifié des fichiers de code, **vous devez exécuter des tests avant de définir le statut de blocage \"en attente de vérification\"**. "
+    "Ne dites pas \"en attente de vérification\" après avoir modifié le code sans exécuter de tests. Seuls les fichiers de documentation/configuration (.md/.json/.yaml/.toml/.sh etc.) ne nécessitent pas d'auto-test."
 )
 
 COMPACT_RECOVERY_HINTS = (
