@@ -193,7 +193,7 @@ STEERING_CONTENT = """# AIVectorMemory - Règles de Flux de Travail
 
 **Sécurité IDE** : pas de combinaisons `$(...)` + pipe, pas de scripts multiligne `python3 -c` (écrire des fichiers .py), `lsof -ti:port` doit ajouter ignoreWarning
 
-**Exigences d'auto-test** : ne jamais demander à l'utilisateur d'opérer manuellement, le faire soi-même si possible. Ne dire « en attente de vérification » qu'après que l'auto-test a réussi.
+**Exigences d'auto-test** : ne jamais demander à l'utilisateur d'opérer manuellement, le faire soi-même si possible. Ne dire « en attente de vérification » qu'après que l'auto-test a réussi. Playwright est un outil MCP (browser_navigate/browser_click/browser_type/browser_snapshot), **interdit d'écrire des scripts Python playwright.sync_api, interdit de créer des fichiers de test temporaires**. Ne pas appeler browser_close après les tests, garder le navigateur ouvert pour la vérification utilisateur.
 
 **Exécution des tâches** : exécuter dans l'ordre sans sauter, entièrement automatisé, ne jamais utiliser « itération future » pour sauter. Avant de commencer une tâche, doit vérifier tasks.md pour confirmer que tous les prérequis sont `[x]`, doit terminer les prérequis incomplets d'abord
 
@@ -251,7 +251,10 @@ DEV_WORKFLOW_PROMPT = (
     "---\n\n"
     "## ⚠️ Auto-test\n\n"
     "Après avoir modifié des fichiers de code, **vous devez exécuter des tests avant de définir le statut de blocage \"en attente de vérification\"**. "
-    "Ne dites pas \"en attente de vérification\" après avoir modifié le code sans exécuter de tests. Seuls les fichiers de documentation/configuration (.md/.json/.yaml/.toml/.sh etc.) ne nécessitent pas d'auto-test."
+    "Ne dites pas \"en attente de vérification\" après avoir modifié le code sans exécuter de tests. Seuls les fichiers de documentation/configuration (.md/.json/.yaml/.toml/.sh etc.) ne nécessitent pas d'auto-test.\n\n"
+    "**Règles Playwright** : Playwright est un outil MCP (browser_navigate/browser_click/browser_type/browser_snapshot), "
+    "**interdit d'écrire des scripts Python playwright.sync_api, interdit de créer des fichiers de test temporaires (.py/.sql)**. "
+    "Ne pas appeler browser_close après les tests, garder le navigateur ouvert pour la vérification utilisateur."
 )
 
 COMPACT_RECOVERY_HINTS = (

@@ -377,6 +377,46 @@ Or add env to MCP config:
 
 ## 📋 Changelog
 
+### v2.0.8
+
+**New: Playwright Browser Testing Built-in**
+- 🎭 `run install` now automatically configures Playwright browser testing — AI can open a real browser to verify frontend changes instead of guessing
+- 🎭 Uses a dedicated test browser (Chrome for Testing) that won't interfere with your personal browser tabs
+- 🔑 Simplified permission setup — no more manual permission popups for common tools
+- 📏 Updated AI rules across all 7 languages to enforce proper browser testing behavior
+
+### v2.0.7
+
+**Enhancement: More IDE Support**
+- 🖥️ Added support for Antigravity and GitHub Copilot IDEs
+- 🔑 `run install` now auto-configures tool permissions, reducing manual setup
+- 📏 Streamlined AI self-testing rules
+
+### v2.0.6
+
+**Enhancement: Faster Startup**
+- ⚡ Optimized memory loading on session start — loads faster with less context usage
+- 🔑 Auto-configures Claude Code permissions during installation
+- 🌐 All 7 languages synchronized
+
+### v2.0.5
+
+**Enhancement: Simpler Rules**
+- 📏 AI workflow rules restructured for clarity and reduced token usage
+- 💾 AI now automatically saves your preferences at the end of each session
+- 🌐 All 7 languages synchronized
+
+### v2.0.4
+
+**Fix: Tool Reliability**
+- 🔧 Comprehensive audit and fix of all MCP tool parameters — improved reliability across all IDEs
+
+### v2.0.3
+
+**Enhancement: Better Search & Safety**
+- 🔍 Memory search now combines semantic and keyword matching for more accurate recall
+- 🛡️ Added cross-project protection — AI won't accidentally modify files in other projects
+
 ### v2.0.2
 
 **Enhancement: Rule Generalization & Desktop Version Fix**

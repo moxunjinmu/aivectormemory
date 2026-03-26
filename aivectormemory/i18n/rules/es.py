@@ -193,7 +193,7 @@ STEERING_CONTENT = """# AIVectorMemory - Reglas de Flujo de Trabajo
 
 **Seguridad IDE**: sin combinaciones `$(...)` + pipe, sin scripts multilínea `python3 -c` (escribir archivos .py), `lsof -ti:puerto` debe agregar ignoreWarning
 
-**Requisitos de auto-prueba**: nunca pedir al usuario que opere manualmente, hacerlo uno mismo si es posible. Solo decir "esperando verificación" después de que la auto-prueba pase.
+**Requisitos de auto-prueba**: nunca pedir al usuario que opere manualmente, hacerlo uno mismo si es posible. Solo decir "esperando verificación" después de que la auto-prueba pase. Playwright es una herramienta MCP (browser_navigate/browser_click/browser_type/browser_snapshot), **prohibido escribir scripts Python playwright.sync_api, prohibido crear archivos de prueba temporales**. No llamar browser_close después de las pruebas, mantener el navegador abierto para verificación del usuario.
 
 **Ejecución de tareas**: ejecutar en orden sin saltar, completamente automatizado, nunca usar "iteración futura" para saltar. Antes de iniciar una tarea, debe verificar tasks.md para confirmar que todos los prerequisitos son `[x]`, debe completar prerequisitos incompletos primero
 
@@ -251,7 +251,10 @@ DEV_WORKFLOW_PROMPT = (
     "---\n\n"
     "## ⚠️ Auto-test\n\n"
     "Después de modificar archivos de código, **debe ejecutar pruebas antes de establecer el estado de bloqueo \"esperando verificación\"**. "
-    "No diga \"esperando verificación\" después de modificar código sin ejecutar pruebas. Solo archivos de documentación/configuración (.md/.json/.yaml/.toml/.sh etc.) no requieren auto-test."
+    "No diga \"esperando verificación\" después de modificar código sin ejecutar pruebas. Solo archivos de documentación/configuración (.md/.json/.yaml/.toml/.sh etc.) no requieren auto-test.\n\n"
+    "**Reglas de Playwright**: Playwright es una herramienta MCP (browser_navigate/browser_click/browser_type/browser_snapshot), "
+    "**prohibido escribir scripts Python playwright.sync_api, prohibido crear archivos de prueba temporales (.py/.sql)**. "
+    "No llamar browser_close después de las pruebas, mantener el navegador abierto para verificación del usuario."
 )
 
 COMPACT_RECOVERY_HINTS = (

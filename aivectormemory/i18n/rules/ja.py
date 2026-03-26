@@ -193,7 +193,7 @@ STEERING_CONTENT = """# AIVectorMemory - ワークフロールール
 
 **IDE 安全**：`$(...)` + パイプ禁止、`python3 -c` 複数行スクリプト禁止（.py ファイルに記述）、`lsof -ti:ポート` は ignoreWarning 必須
 
-**セルフテスト要件**：ユーザーに手動操作を依頼することは禁止、自分で実行できることはユーザーにやらせない。セルフテスト合格後のみ「検証待ち」と言える。
+**セルフテスト要件**：ユーザーに手動操作を依頼することは禁止、自分で実行できることはユーザーにやらせない。セルフテスト合格後のみ「検証待ち」と言える。Playwright は MCP ツール（browser_navigate/browser_click/browser_type/browser_snapshot）であり、**Python の playwright.sync_api でスクリプトを書くことは禁止、一時テストファイルの作成も禁止**。テスト完了後 browser_close を呼ばず、ブラウザを開いたままユーザーの検証を待つ。
 
 **タスク実行**：順番通りに実行しスキップ禁止、完全自動、「今後のイテレーション」でスキップ禁止。タスク開始前に tasks.md を確認、前提タスクがすべて `[x]` であることを確認、未完了の前提タスクは先に完了すること
 
@@ -251,7 +251,10 @@ DEV_WORKFLOW_PROMPT = (
     "---\n\n"
     "## ⚠️ 自己テスト\n\n"
     "コードファイルを修正した後、**テストを実行してから「検証待ち」のブロック状態を設定してください**。"
-    "コード修正後、テストを実行せずに「検証待ち」と言うことは禁止です。ドキュメント/設定ファイル（.md/.json/.yaml/.toml/.sh 等）のみの修正は自己テスト不要です。"
+    "コード修正後、テストを実行せずに「検証待ち」と言うことは禁止です。ドキュメント/設定ファイル（.md/.json/.yaml/.toml/.sh 等）のみの修正は自己テスト不要です。\n\n"
+    "**Playwright 規範**：Playwright は MCP ツール（browser_navigate/browser_click/browser_type/browser_snapshot）であり、"
+    "**Python の playwright.sync_api でスクリプトを書くことは禁止、一時テストファイル（.py/.sql）の作成も禁止**。"
+    "テスト完了後 browser_close を呼ばず、ブラウザを開いたままユーザーの検証を待つ。"
 )
 
 COMPACT_RECOVERY_HINTS = (

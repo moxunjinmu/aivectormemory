@@ -371,6 +371,46 @@ Ou ajouter env dans la configuration MCP :
 
 ## 📋 Journal des Modifications
 
+### v2.0.8
+
+**Nouveau : Tests Navigateur Playwright Intégrés**
+- 🎭 `run install` configure maintenant automatiquement les tests navigateur Playwright — l'IA peut ouvrir un vrai navigateur pour vérifier les changements frontend
+- 🎭 Utilise un navigateur de test dédié (Chrome for Testing) qui n'interfère pas avec vos onglets personnels
+- 🔑 Configuration des permissions simplifiée — plus de popups de permissions pour les outils courants
+- 📏 Règles IA mises à jour dans les 7 langues pour imposer le bon comportement de test navigateur
+
+### v2.0.7
+
+**Amélioration : Plus de Support IDEs**
+- 🖥️ Support ajouté pour Antigravity et GitHub Copilot IDEs
+- 🔑 `run install` configure automatiquement les permissions des outils
+- 📏 Règles d'auto-test IA simplifiées
+
+### v2.0.6
+
+**Amélioration : Démarrage Plus Rapide**
+- ⚡ Chargement mémoire optimisé au démarrage de session — démarrage plus rapide avec moins d'utilisation de contexte
+- 🔑 Configuration automatique des permissions Claude Code lors de l'installation
+- 🌐 7 langues synchronisées
+
+### v2.0.5
+
+**Amélioration : Règles Simplifiées**
+- 📏 Règles de workflow IA restructurées pour plus de clarté et réduction de l'utilisation de tokens
+- 💾 L'IA sauvegarde maintenant automatiquement vos préférences à la fin de chaque session
+- 🌐 7 langues synchronisées
+
+### v2.0.4
+
+**Correction : Fiabilité des Outils**
+- 🔧 Audit et correction complets de tous les paramètres des outils MCP
+
+### v2.0.3
+
+**Amélioration : Meilleure Recherche & Sécurité**
+- 🔍 La recherche mémoire combine maintenant correspondance sémantique et par mots-clés pour plus de précision
+- 🛡️ Protection contre les opérations inter-projets ajoutée
+
 ### v2.0.2
 
 **Amélioration : Généralisation des Règles & Correction Version Bureau**

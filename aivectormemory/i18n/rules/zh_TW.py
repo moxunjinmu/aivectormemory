@@ -193,7 +193,7 @@ STEERING_CONTENT = """# AIVectorMemory - 工作規則
 
 **IDE 安全**：禁止 `$(...)` + 管道、禁止 `python3 -c` 多行腳本（寫 .py 檔案）、`lsof -ti:埠號` 必須加 ignoreWarning
 
-**自測要求**：禁止讓使用者手動操作，能自己執行的不要讓使用者做。自測通過後才能說「等待驗證」。
+**自測要求**：禁止讓使用者手動操作，能自己執行的不要讓使用者做。自測通過後才能說「等待驗證」。Playwright 是 MCP 工具（browser_navigate/browser_click/browser_type/browser_snapshot），**禁止用 Python playwright.sync_api 寫腳本，禁止建立臨時測試檔案**。測試完成後不呼叫 browser_close，保持瀏覽器開啟讓使用者驗證。
 
 **任務執行**：按順序執行禁止跳過，全自動，禁止用「後續迭代」跳過。開始任務前必須先檢查 tasks.md，確認前置任務全部 `[x]`，有未完成的前置任務必須先完成
 
@@ -251,7 +251,10 @@ DEV_WORKFLOW_PROMPT = (
     "---\n\n"
     "## ⚠️ 自測檢查\n\n"
     "修改了程式碼檔案後，**必須先執行測試驗證再設定阻塞「等待驗證」**。"
-    "禁止修改程式碼後直接說「等待驗證」而不執行測試。僅修改文件/設定檔（.md/.json/.yaml/.toml/.sh 等非程式碼檔案）時不要求自測。"
+    "禁止修改程式碼後直接說「等待驗證」而不執行測試。僅修改文件/設定檔（.md/.json/.yaml/.toml/.sh 等非程式碼檔案）時不要求自測。\n\n"
+    "**Playwright 規範**：Playwright 是 MCP 工具（browser_navigate/browser_click/browser_type/browser_snapshot），"
+    "**禁止用 Python playwright.sync_api 寫腳本，禁止建立臨時測試檔案（.py/.sql）**。"
+    "測試完成後不呼叫 browser_close，保持瀏覽器開啟讓使用者驗證。"
 )
 
 COMPACT_RECOVERY_HINTS = (

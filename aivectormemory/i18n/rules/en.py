@@ -193,7 +193,7 @@ STEERING_CONTENT = """# AIVectorMemory - Workflow Rules
 
 **IDE safety**: no `$(...)` + pipe combinations, no `python3 -c` multi-line scripts (write .py files), `lsof -ti:port` must add ignoreWarning
 
-**Self-testing**: never ask user to manually operate, do it yourself if possible. Only say "waiting for verification" after self-test passes.
+**Self-testing**: never ask user to manually operate, do it yourself if possible. Only say "waiting for verification" after self-test passes. Playwright is an MCP tool (browser_navigate/browser_click/browser_type/browser_snapshot), **never write Python playwright.sync_api scripts, never create temporary test files**. Do not call browser_close after testing, keep the browser open for user verification.
 
 **Task execution**: execute in order, never skip, fully automated, never use "future iteration" to skip. Before starting a task, must check tasks.md to confirm all prerequisites are `[x]`, must complete unfinished prerequisites first
 
@@ -251,7 +251,10 @@ DEV_WORKFLOW_PROMPT = (
     "---\n\n"
     "## ⚠️ Self-test\n\n"
     "After modifying code files, **you must run tests before setting blocked status \"awaiting verification\"**. "
-    "Do not say \"awaiting verification\" after modifying code without running tests. Only documentation/configuration files (.md/.json/.yaml/.toml/.sh etc.) do not require self-testing."
+    "Do not say \"awaiting verification\" after modifying code without running tests. Only documentation/configuration files (.md/.json/.yaml/.toml/.sh etc.) do not require self-testing.\n\n"
+    "**Playwright rules**: Playwright is an MCP tool (browser_navigate/browser_click/browser_type/browser_snapshot), "
+    "**never write Python playwright.sync_api scripts, never create temporary test files (.py/.sql)**. "
+    "Do not call browser_close after testing, keep the browser open for user verification."
 )
 
 COMPACT_RECOVERY_HINTS = (

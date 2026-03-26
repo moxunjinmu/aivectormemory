@@ -371,6 +371,46 @@ Oder env in der MCP-Konfiguration hinzufügen:
 
 ## 📋 Änderungsprotokoll
 
+### v2.0.8
+
+**Neu: Integrierter Playwright Browser-Test**
+- 🎭 `run install` konfiguriert jetzt automatisch Playwright Browser-Tests — KI kann einen echten Browser öffnen um Frontend-Änderungen zu überprüfen
+- 🎭 Verwendet einen dedizierten Testbrowser (Chrome for Testing), der Ihre persönlichen Browser-Tabs nicht beeinträchtigt
+- 🔑 Vereinfachte Berechtigungskonfiguration — keine Berechtigungs-Popups mehr für gängige Tools
+- 📏 KI-Regeln in allen 7 Sprachen aktualisiert um korrektes Browser-Testverhalten durchzusetzen
+
+### v2.0.7
+
+**Verbesserung: Mehr IDE-Unterstützung**
+- 🖥️ Unterstützung für Antigravity und GitHub Copilot IDEs hinzugefügt
+- 🔑 `run install` konfiguriert Tool-Berechtigungen automatisch
+- 📏 KI-Selbsttest-Regeln vereinfacht
+
+### v2.0.6
+
+**Verbesserung: Schnellerer Start**
+- ⚡ Optimierte Speicherladung beim Sitzungsstart — schnellerer Start mit geringerem Kontextverbrauch
+- 🔑 Automatische Konfiguration der Claude Code Berechtigungen bei Installation
+- 🌐 7 Sprachen synchronisiert
+
+### v2.0.5
+
+**Verbesserung: Vereinfachte Regeln**
+- 📏 KI-Workflow-Regeln für Klarheit umstrukturiert und Token-Verbrauch reduziert
+- 💾 KI speichert jetzt automatisch Ihre Präferenzen am Ende jeder Sitzung
+- 🌐 7 Sprachen synchronisiert
+
+### v2.0.4
+
+**Fix: Tool-Zuverlässigkeit**
+- 🔧 Umfassende Überprüfung und Korrektur aller MCP-Tool-Parameter
+
+### v2.0.3
+
+**Verbesserung: Bessere Suche & Sicherheit**
+- 🔍 Speichersuche kombiniert jetzt semantische und Schlüsselwort-Übereinstimmung für genauere Ergebnisse
+- 🛡️ Projektübergreifender Operationsschutz hinzugefügt
+
 ### v2.0.2
 
 **Verbesserung: Regelverallgemeinerung & Desktop-Versionsanzeige-Fix**

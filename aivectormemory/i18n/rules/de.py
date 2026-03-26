@@ -193,7 +193,7 @@ STEERING_CONTENT = """# AIVectorMemory - Workflow-Regeln
 
 **IDE-Sicherheit**: keine `$(...)` + Pipe-Kombinationen, keine mehrzeiligen `python3 -c`-Skripte (.py-Dateien schreiben), `lsof -ti:Port` muss ignoreWarning hinzufügen
 
-**Selbsttest-Anforderungen**: Benutzer niemals bitten manuell zu operieren, selbst machen wenn möglich. Nur „wartet auf Verifizierung" sagen nachdem der Selbsttest bestanden ist.
+**Selbsttest-Anforderungen**: Benutzer niemals bitten manuell zu operieren, selbst machen wenn möglich. Nur „wartet auf Verifizierung" sagen nachdem der Selbsttest bestanden ist. Playwright ist ein MCP-Tool (browser_navigate/browser_click/browser_type/browser_snapshot), **Python playwright.sync_api Skripte sind verboten, temporäre Testdateien erstellen ist verboten**. Nach dem Test browser_close nicht aufrufen, Browser offen lassen für Benutzerverifizierung.
 
 **Aufgabenausführung**: in Reihenfolge ausführen, niemals überspringen, vollautomatisch, niemals „zukünftige Iteration" zum Überspringen verwenden. Vor dem Start einer Aufgabe muss tasks.md geprüft werden um zu bestätigen dass alle Voraussetzungen `[x]` sind, unvollständige Voraussetzungen müssen zuerst abgeschlossen werden
 
@@ -251,7 +251,10 @@ DEV_WORKFLOW_PROMPT = (
     "---\n\n"
     "## ⚠️ Selbsttest\n\n"
     "Nach Änderungen an Code-Dateien **müssen Sie Tests ausführen, bevor Sie den Blockierungsstatus \"Warten auf Überprüfung\" setzen**. "
-    "Sagen Sie nicht \"Warten auf Überprüfung\" nach Code-Änderungen ohne Tests. Nur Dokumentations-/Konfigurationsdateien (.md/.json/.yaml/.toml/.sh etc.) erfordern keinen Selbsttest."
+    "Sagen Sie nicht \"Warten auf Überprüfung\" nach Code-Änderungen ohne Tests. Nur Dokumentations-/Konfigurationsdateien (.md/.json/.yaml/.toml/.sh etc.) erfordern keinen Selbsttest.\n\n"
+    "**Playwright-Regeln**: Playwright ist ein MCP-Tool (browser_navigate/browser_click/browser_type/browser_snapshot), "
+    "**Python playwright.sync_api Skripte sind verboten, temporäre Testdateien (.py/.sql) erstellen ist verboten**. "
+    "Nach dem Test browser_close nicht aufrufen, Browser offen lassen für Benutzerverifizierung."
 )
 
 COMPACT_RECOVERY_HINTS = (

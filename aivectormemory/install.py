@@ -51,6 +51,14 @@ DEFAULT_SERVER_NAME = "aivectormemory"
 LEGACY_SERVER_NAMES = ("devmemory",)
 AUTO_APPROVE_TOOLS = ["remember", "recall", "forget", "status", "track", "task", "readme", "auto_save"]
 
+PLAYWRIGHT_SERVER_NAME = "playwright"
+PLAYWRIGHT_MCP_VERSION = "0.0.68"
+PLAYWRIGHT_CONFIG = {
+    "command": "npx",
+    "args": ["-y", f"@playwright/mcp@{PLAYWRIGHT_MCP_VERSION}", "--browser", "chromium"],
+    "disabled": False,
+}
+
 
 HOOKS_CONFIGS = [
     {
@@ -301,8 +309,12 @@ def _write_claude_code_hooks(hooks_dir: Path, lang: str | None = None) -> list[s
             config["hooks"][k] = new_hooks[k]
         config["hooks"].pop("Stop", None)
         config["hooks"].pop("TaskCompleted", None)
-    # 写入 permissions.allow（MCP 工具 + Bash 自动授权）
-    required_perms = [f"mcp__{DEFAULT_SERVER_NAME}__{t}" for t in AUTO_APPROVE_TOOLS] + ["Bash(*)", "Edit(*)", "Write(*)", "Read(*)"]
+    # 写入 permissions.allow（MCP 工具通配符 + 基础工具自动授权）
+    required_perms = [f"mcp__{DEFAULT_SERVER_NAME}__*", f"mcp__{PLAYWRIGHT_SERVER_NAME}__*", "Bash(*)", "Edit(*)", "Write(*)", "Read(*)", "Glob(*)", "Grep(*)"]
+    # 清理旧的逐条 MCP 权限（被通配符覆盖）
+    old_mcp_prefixes = (f"mcp__{DEFAULT_SERVER_NAME}__", f"mcp__{PLAYWRIGHT_SERVER_NAME}__")
+    if "permissions" in config and "allow" in config["permissions"]:
+        config["permissions"]["allow"] = [p for p in config["permissions"]["allow"] if not any(p.startswith(prefix) and not p.endswith("*") for prefix in old_mcp_prefixes)]
     existing_perms = set(config.get("permissions", {}).get("allow", []))
     missing = [p for p in required_perms if p not in existing_perms]
     if missing:
@@ -761,6 +773,9 @@ def run_install(project_dir: str | None = None):
             server_config = _build_config(cmd, args, fmt)
             key = "mcp" if fmt == "opencode" else "mcpServers"
             changed = _merge_config(filepath, key, DEFAULT_SERVER_NAME, server_config)
+            # 同时写入 Playwright MCP 配置
+            pw_changed = _merge_config(filepath, key, PLAYWRIGHT_SERVER_NAME, PLAYWRIGHT_CONFIG)
+            changed = changed or pw_changed
         status = "✓ 已更新" if changed else "- 无变更"
         print(f"  {status}  {label} MCP 配置")
 
@@ -792,6 +807,21 @@ def run_install(project_dir: str | None = None):
     if "Codex" in selected_ide_names:
         print("\n提示：Codex 只有在项目被标记为 trusted project 后才会加载 .codex/config.toml。")
         print("      AGENTS.md 会继续作为项目指令被发现；若机器上已存在同名全局 MCP，未信任前仍可能优先命中全局配置。")
+
+    # Playwright 浏览器安装
+    print("\nPlaywright 浏览器测试支持：")
+    pw_choice = input("是否安装 Playwright Chromium 浏览器？[Y/n]: ").strip().lower()
+    if pw_choice != "n":
+        import subprocess
+        try:
+            subprocess.run(["npx", "-y", f"@playwright/mcp@{PLAYWRIGHT_MCP_VERSION}", "--help"], capture_output=True, timeout=30)
+            subprocess.run(["npx", "playwright", "install", "chromium"], timeout=120)
+            print("  ✓ Chromium 浏览器安装完成")
+        except Exception as e:
+            print(f"  ⚠️  安装失败: {e}")
+            print(f"  手动安装: npx playwright install chromium")
+    else:
+        print("  - 跳过（可稍后运行: npx playwright install chromium）")
 
     print("\n安装完成，重启 IDE 即可使用")
 
