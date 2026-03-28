@@ -146,28 +146,59 @@ class TaskRepo(BaseRepo):
         self._commit()
 
     def archive_by_feature(self, feature_id: str) -> dict:
+        from aivectormemory.db.connection import _in_transaction as _outer_txn
+        import aivectormemory.db.connection as _conn_mod
         now = self._now()
         rows = self.conn.execute(
             "SELECT * FROM tasks WHERE project_dir=? AND feature_id=?",
             (self.project_dir, feature_id)
         ).fetchall()
-        count = 0
-        for r in rows:
+        if _outer_txn:
+            # 已在外部事务中，直接执行
+            count = 0
+            for r in rows:
+                self.conn.execute(
+                    """INSERT INTO tasks_archive
+                       (project_dir, feature_id, title, status, sort_order, parent_id,
+                        task_type, metadata, original_task_id, archived_at, created_at, updated_at)
+                       VALUES (?,?,?,?,?,?,?,?,?,?,?,?)""",
+                    (r["project_dir"], r["feature_id"], r["title"], r["status"],
+                     r["sort_order"], r["parent_id"], r["task_type"], r["metadata"],
+                     r["id"], now, r["created_at"], r["updated_at"])
+                )
+                count += 1
             self.conn.execute(
-                """INSERT INTO tasks_archive
-                   (project_dir, feature_id, title, status, sort_order, parent_id,
-                    task_type, metadata, original_task_id, archived_at, created_at, updated_at)
-                   VALUES (?,?,?,?,?,?,?,?,?,?,?,?)""",
-                (r["project_dir"], r["feature_id"], r["title"], r["status"],
-                 r["sort_order"], r["parent_id"], r["task_type"], r["metadata"],
-                 r["id"], now, r["created_at"], r["updated_at"])
+                "DELETE FROM tasks WHERE project_dir=? AND feature_id=?",
+                (self.project_dir, feature_id)
             )
-            count += 1
-        self.conn.execute(
-            "DELETE FROM tasks WHERE project_dir=? AND feature_id=?",
-            (self.project_dir, feature_id)
-        )
-        self._commit()
+            self._commit()
+            return {"archived": count, "feature_id": feature_id}
+        # 自行管理事务
+        self.conn.execute("BEGIN IMMEDIATE")
+        _conn_mod._in_transaction = True
+        try:
+            count = 0
+            for r in rows:
+                self.conn.execute(
+                    """INSERT INTO tasks_archive
+                       (project_dir, feature_id, title, status, sort_order, parent_id,
+                        task_type, metadata, original_task_id, archived_at, created_at, updated_at)
+                       VALUES (?,?,?,?,?,?,?,?,?,?,?,?)""",
+                    (r["project_dir"], r["feature_id"], r["title"], r["status"],
+                     r["sort_order"], r["parent_id"], r["task_type"], r["metadata"],
+                     r["id"], now, r["created_at"], r["updated_at"])
+                )
+                count += 1
+            self.conn.execute(
+                "DELETE FROM tasks WHERE project_dir=? AND feature_id=?",
+                (self.project_dir, feature_id)
+            )
+            self.conn.commit()
+        except Exception:
+            self.conn.rollback()
+            raise
+        finally:
+            _conn_mod._in_transaction = False
         return {"archived": count, "feature_id": feature_id}
 
     def list_archived(self, feature_id: str | None = None) -> list[dict]:

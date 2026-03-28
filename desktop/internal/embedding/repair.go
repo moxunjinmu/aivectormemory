@@ -38,6 +38,12 @@ func BatchRepair(ctx context.Context, d *db.DB, engine *Engine, batchSize int) e
 	}
 
 	for i, id := range allIDs {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		default:
+		}
+
 		content, table, err := d.GetMemoryContent(id)
 		if err != nil {
 			continue
@@ -105,6 +111,12 @@ func RebuildAllEmbeddings(ctx context.Context, d *db.DB, engine *Engine) {
 
 		total := len(allIDs)
 		for i, item := range allIDs {
+			select {
+			case <-ctx.Done():
+				return
+			default:
+			}
+
 			content, _, err := d.GetMemoryContent(item.ID)
 			if err != nil {
 				continue

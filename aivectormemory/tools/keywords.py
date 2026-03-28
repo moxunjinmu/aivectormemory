@@ -3,7 +3,7 @@ import re
 import jieba
 
 # 中文停用词
-_CN_STOP = frozenset(
+_CN_STOP = set(
     "的 是 在 了 不 要 有 这 那 用 做 被 把 和 与 或 但 如果 因为 所以 "
     "可以 需要 已经 一个 也 都 还 就 会 能 到 说 让 给 从 对 于 很 更 最 "
     "比较 可能 应该 然后 什么 怎么 为什么 这个 那个 哪个 所有 没有 不是 "
@@ -11,9 +11,10 @@ _CN_STOP = frozenset(
     "修改 更新 创建 上 下 中 大 小 多 少 好 坏 高 低 长 短 新 旧 "
     "时 后 前 里 内 外 间 以上 以下 之间 建议 合理 导致 方式".split()
 )
+_CN_STOP |= {"修改", "任务", "问题", "追踪", "记录", "描述", "功能", "更新"}
 
 # 英文停用词
-_EN_STOP = frozenset(
+_EN_STOP = set(
     "the a an is are was were be been being have has had do does did "
     "will would shall should may might can could not no nor and or but "
     "if then else when where how what which who whom this that these those "
@@ -23,6 +24,9 @@ _EN_STOP = frozenset(
     "also just only very much more most some any all each every both few "
     "many such than too so up out off down back away again still already".split()
 )
+_EN_STOP |= {"modification", "todo", "decision", "issue", "task", "track",
+             "feature", "problem", "bug", "question", "tracking", "description",
+             "update", "change", "pitfall", "information"}
 
 _RE_CN = re.compile(r"[\u4e00-\u9fff]")
 _RE_EN = re.compile(r"[a-zA-Z_][a-zA-Z0-9_]{2,}")

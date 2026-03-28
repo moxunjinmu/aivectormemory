@@ -22,7 +22,7 @@ STEERING_CONTENT = """# AIVectorMemory - Règles de Flux de Travail
 
 **Étape B : Déterminer le type de message**
 - Discussion informelle / vérification de progrès / discussion de règles / confirmation simple → répondre directement, flux terminé
-- Utilisateur corrigeant un mauvais comportement / rappel d'erreurs répétées → immédiatement `remember` (tags: ["piège", "correction de comportement", ...extraire mots-clés du contenu], scope: "project", inclure : mauvais comportement, points clés des paroles de l'utilisateur, approche correcte), puis continuer à l'Étape C
+- Utilisateur corrigeant un mauvais comportement / rappel d'erreurs répétées → mettre à jour la zone de règles personnalisées du fichier steering du projet (bloc `<!-- custom-rules -->`), enregistrer : mauvais comportement, points clés des paroles de l'utilisateur, approche correcte, puis continuer à l'Étape C
 - Utilisateur exprimant des préférences techniques / habitudes de travail → `auto_save` pour stocker les préférences
 - Autre (problèmes de code, bugs, demandes de fonctionnalités) → continuer à l'Étape C
 - Indiquer le résultat du jugement dans la réponse, ex. : « C'est une question » / « C'est un problème qui doit être enregistré »
@@ -67,7 +67,6 @@ STEERING_CONTENT = """# AIVectorMemory - Règles de Flux de Travail
 **Étape I : L'utilisateur confirme l'approbation**
 - `track archive` pour archiver
 - `status` effacer le blocage (is_blocked: false)
-- Si valeur de piège → `remember` (tags: ["piège", ...extraire mots-clés du contenu du problème], scope: "project", inclure symptômes d'erreur, cause racine, approche correcte. Exemple : échec de démarrage du dashboard → tags: ["piège", "dashboard", "démarrage"])
 - **Vérification de reflux** : si le track actuel est un bug trouvé pendant l'exécution de task (a un feature_id associé ou exécute une tâche spec), après archivage doit retourner à la Section 6 pour continuer la sous-tâche suivante, appeler `task update` pour mettre à jour l'état de la tâche actuelle et synchroniser tasks.md
 - Avant la fin de session → `auto_save` pour extraire automatiquement les préférences
 
@@ -152,11 +151,10 @@ STEERING_CONTENT = """# AIVectorMemory - Règles de Flux de Travail
 
 ## 7. Exigences de Qualité de Mémoire
 
-- Convention de tags : doit inclure un tag de catégorie (piège / connaissance du projet / correction de comportement) + tags de mots-clés extraits du contenu (nom de module, nom de fonction, termes techniques), ne jamais utiliser un seul tag de catégorie
+- Convention de tags : doit inclure un tag de catégorie (piège / connaissance du projet) + tags de mots-clés extraits du contenu (nom de module, nom de fonction, termes techniques), ne jamais utiliser un seul tag de catégorie
 - Type commande : commande exécutable complète, pas d'abréviations d'alias
 - Type processus : étapes spécifiques, pas seulement des conclusions
 - Type piège : symptômes d'erreur + cause racine + approche correcte
-- Type correction de comportement : mauvais comportement + points clés des paroles de l'utilisateur + approche correcte
 
 ---
 
@@ -193,7 +191,7 @@ STEERING_CONTENT = """# AIVectorMemory - Règles de Flux de Travail
 
 **Sécurité IDE** : pas de combinaisons `$(...)` + pipe, pas de scripts multiligne `python3 -c` (écrire des fichiers .py), `lsof -ti:port` doit ajouter ignoreWarning
 
-**Exigences d'auto-test** : ne jamais demander à l'utilisateur d'opérer manuellement, le faire soi-même si possible. Ne dire « en attente de vérification » qu'après que l'auto-test a réussi. Playwright est un outil MCP (browser_navigate/browser_click/browser_type/browser_snapshot), **interdit d'écrire des scripts Python playwright.sync_api, interdit de créer des fichiers de test temporaires**. Ne pas appeler browser_close après les tests, garder le navigateur ouvert pour la vérification utilisateur.
+**Exigences d'auto-test** : ne jamais demander à l'utilisateur d'opérer manuellement, auto-test doit réussir avant de dire « en attente de vérification ». Backend : pytest/curl. **Changements visibles frontend : UNIQUEMENT les outils Playwright MCP** (browser_navigate → interaction → browser_snapshot), toute autre méthode est une violation. Ne pas appeler browser_close après les tests.
 
 **Exécution des tâches** : exécuter dans l'ordre sans sauter, entièrement automatisé, ne jamais utiliser « itération future » pour sauter. Avant de commencer une tâche, doit vérifier tasks.md pour confirmer que tous les prérequis sont `[x]`, doit terminer les prérequis incomplets d'abord
 
@@ -252,9 +250,7 @@ DEV_WORKFLOW_PROMPT = (
     "## ⚠️ Auto-test\n\n"
     "Après avoir modifié des fichiers de code, **vous devez exécuter des tests avant de définir le statut de blocage \"en attente de vérification\"**. "
     "Ne dites pas \"en attente de vérification\" après avoir modifié le code sans exécuter de tests. Seuls les fichiers de documentation/configuration (.md/.json/.yaml/.toml/.sh etc.) ne nécessitent pas d'auto-test.\n\n"
-    "**Règles Playwright** : Playwright est un outil MCP (browser_navigate/browser_click/browser_type/browser_snapshot), "
-    "**interdit d'écrire des scripts Python playwright.sync_api, interdit de créer des fichiers de test temporaires (.py/.sql)**. "
-    "Ne pas appeler browser_close après les tests, garder le navigateur ouvert pour la vérification utilisateur."
+    "**Changements visibles frontend : UNIQUEMENT les outils Playwright MCP** (browser_navigate → interaction → browser_snapshot), toute autre méthode (curl, scripts, node -e, captures d'écran) est une violation. Ne pas appeler browser_close après les tests."
 )
 
 COMPACT_RECOVERY_HINTS = (

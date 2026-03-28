@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"log"
 	"strings"
 	"time"
 )
@@ -70,7 +71,9 @@ func (d *DB) GetIssues(projectDir, status, date, keyword string, limit, offset i
 	whereClause := strings.Join(where, " AND ")
 
 	var total int
-	d.QueryRow(fmt.Sprintf("SELECT COUNT(*) FROM issues WHERE %s", whereClause), args...).Scan(&total)
+	if err := d.QueryRow(fmt.Sprintf("SELECT COUNT(*) FROM issues WHERE %s", whereClause), args...).Scan(&total); err != nil {
+		log.Printf("scan error: %v", err)
+	}
 
 	args = append(args, limit, offset)
 	rows, err := d.Query(fmt.Sprintf("SELECT * FROM issues WHERE %s ORDER BY created_at DESC LIMIT ? OFFSET ?", whereClause), args...)
@@ -102,7 +105,9 @@ func (d *DB) getArchivedIssues(projectDir, date, keyword string, limit, offset i
 	whereClause := strings.Join(where, " AND ")
 
 	var total int
-	d.QueryRow(fmt.Sprintf("SELECT COUNT(*) FROM issues_archive WHERE %s", whereClause), args...).Scan(&total)
+	if err := d.QueryRow(fmt.Sprintf("SELECT COUNT(*) FROM issues_archive WHERE %s", whereClause), args...).Scan(&total); err != nil {
+		log.Printf("scan error: %v", err)
+	}
 
 	args = append(args, limit, offset)
 	rows, err := d.Query(fmt.Sprintf("SELECT id, project_dir, issue_number, date, title, content, description, investigation, root_cause, solution, files_changed, test_result, notes, feature_id, parent_id, status, created_at, archived_at as updated_at FROM issues_archive WHERE %s ORDER BY archived_at DESC LIMIT ? OFFSET ?", whereClause), args...)
@@ -137,7 +142,9 @@ func (d *DB) getAllIssues(projectDir, date, keyword string, limit, offset int) (
 	allParams := append(append([]interface{}{}, p1...), p2...)
 
 	var total int
-	d.QueryRow(fmt.Sprintf("SELECT COUNT(*) FROM (SELECT id FROM issues %s UNION ALL SELECT id FROM issues_archive %s)", w1, w2), allParams...).Scan(&total)
+	if err := d.QueryRow(fmt.Sprintf("SELECT COUNT(*) FROM (SELECT id FROM issues %s UNION ALL SELECT id FROM issues_archive %s)", w1, w2), allParams...).Scan(&total); err != nil {
+		log.Printf("scan error: %v", err)
+	}
 
 	cols := "id, project_dir, issue_number, date, title, content, description, investigation, root_cause, solution, files_changed, test_result, notes, feature_id, parent_id, created_at"
 	sql := fmt.Sprintf(
@@ -190,14 +197,18 @@ func (d *DB) CreateIssue(projectDir, title, content, status string, tags []strin
 
 	// Dedup check
 	var dupCount int
-	d.QueryRow("SELECT COUNT(*) FROM issues WHERE project_dir=? AND title=? AND status IN ('pending','in_progress')", projectDir, title).Scan(&dupCount)
+	if err := d.QueryRow("SELECT COUNT(*) FROM issues WHERE project_dir=? AND title=? AND status IN ('pending','in_progress')", projectDir, title).Scan(&dupCount); err != nil {
+		log.Printf("scan error: %v", err)
+	}
 	if dupCount > 0 {
 		return nil, true, nil
 	}
 
 	// Get next issue_number
 	var maxNum int
-	d.QueryRow("SELECT COALESCE(MAX(issue_number),0) FROM issues WHERE project_dir=?", projectDir).Scan(&maxNum)
+	if err := d.QueryRow("SELECT COALESCE(MAX(issue_number),0) FROM issues WHERE project_dir=?", projectDir).Scan(&maxNum); err != nil {
+		log.Printf("scan error: %v", err)
+	}
 
 	tagsJSON := "[]"
 	if len(tags) > 0 {
@@ -314,8 +325,12 @@ func (d *DB) attachTaskProgress(projectDir string, issues []Issue) {
 	progressMap := map[string]map[string]int{}
 	for fid := range fids {
 		var total, done int
-		d.QueryRow("SELECT COUNT(*) FROM tasks WHERE project_dir=? AND feature_id=?", projectDir, fid).Scan(&total)
-		d.QueryRow("SELECT COUNT(*) FROM tasks WHERE project_dir=? AND feature_id=? AND status='completed'", projectDir, fid).Scan(&done)
+		if err := d.QueryRow("SELECT COUNT(*) FROM tasks WHERE project_dir=? AND feature_id=?", projectDir, fid).Scan(&total); err != nil {
+			log.Printf("scan error: %v", err)
+		}
+		if err := d.QueryRow("SELECT COUNT(*) FROM tasks WHERE project_dir=? AND feature_id=? AND status='completed'", projectDir, fid).Scan(&done); err != nil {
+			log.Printf("scan error: %v", err)
+		}
 		progressMap[fid] = map[string]int{"total": total, "done": done}
 	}
 

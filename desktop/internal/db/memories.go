@@ -3,6 +3,7 @@ package db
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"math"
 	"strings"
 	"time"
@@ -355,17 +356,29 @@ func (d *DB) ImportMemories(items []map[string]interface{}, projectDir string) (
 		}
 
 		if scope == "user" {
-			tx.Exec("INSERT INTO user_memories (id,content,tags,source,session_id,created_at,updated_at) VALUES (?,?,?,?,?,?,?)",
-				id, content, tagsJSON, source, sessionID, createdAt, now)
-			tx.Exec("INSERT INTO vec_user_memories (id,embedding) VALUES (?,?)", id, embeddingJSON)
+			if _, err := tx.Exec("INSERT INTO user_memories (id,content,tags,source,session_id,created_at,updated_at) VALUES (?,?,?,?,?,?,?)",
+				id, content, tagsJSON, source, sessionID, createdAt, now); err != nil {
+				tx.Rollback()
+				return imported, skipped, fmt.Errorf("insert user_memories failed: %w", err)
+			}
+			if _, err := tx.Exec("INSERT INTO vec_user_memories (id,embedding) VALUES (?,?)", id, embeddingJSON); err != nil {
+				tx.Rollback()
+				return imported, skipped, fmt.Errorf("insert vec_user_memories failed: %w", err)
+			}
 		} else {
 			pd, _ := item["project_dir"].(string)
 			if pd == "" {
 				pd = projectDir
 			}
-			tx.Exec("INSERT INTO memories (id,content,tags,scope,source,project_dir,session_id,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?)",
-				id, content, tagsJSON, scope, source, pd, sessionID, createdAt, now)
-			tx.Exec("INSERT INTO vec_memories (id,embedding) VALUES (?,?)", id, embeddingJSON)
+			if _, err := tx.Exec("INSERT INTO memories (id,content,tags,scope,source,project_dir,session_id,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?)",
+				id, content, tagsJSON, scope, source, pd, sessionID, createdAt, now); err != nil {
+				tx.Rollback()
+				return imported, skipped, fmt.Errorf("insert memories failed: %w", err)
+			}
+			if _, err := tx.Exec("INSERT INTO vec_memories (id,embedding) VALUES (?,?)", id, embeddingJSON); err != nil {
+				tx.Rollback()
+				return imported, skipped, fmt.Errorf("insert vec_memories failed: %w", err)
+			}
 		}
 		imported++
 	}
@@ -521,16 +534,22 @@ func scanMemoryWithDistance(rows interface{ Scan(...interface{}) error }) (Memor
 func (d *DB) countTable(table, where string) int {
 	var count int
 	if where != "" {
-		d.QueryRow(fmt.Sprintf("SELECT COUNT(*) FROM %s WHERE %s", table, where)).Scan(&count)
+		if err := d.QueryRow(fmt.Sprintf("SELECT COUNT(*) FROM %s WHERE %s", table, where)).Scan(&count); err != nil {
+			log.Printf("scan error: %v", err)
+		}
 	} else {
-		d.QueryRow(fmt.Sprintf("SELECT COUNT(*) FROM %s", table)).Scan(&count)
+		if err := d.QueryRow(fmt.Sprintf("SELECT COUNT(*) FROM %s", table)).Scan(&count); err != nil {
+			log.Printf("scan error: %v", err)
+		}
 	}
 	return count
 }
 
 func (d *DB) countTableWhere(table, where string, args ...interface{}) int {
 	var count int
-	d.QueryRow(fmt.Sprintf("SELECT COUNT(*) FROM %s WHERE %s", table, where), args...).Scan(&count)
+	if err := d.QueryRow(fmt.Sprintf("SELECT COUNT(*) FROM %s WHERE %s", table, where), args...).Scan(&count); err != nil {
+		log.Printf("scan error: %v", err)
+	}
 	return count
 }
 

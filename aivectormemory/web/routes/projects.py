@@ -122,6 +122,10 @@ def browse_directory(params):
     if not path:
         path = os.path.expanduser("~")
     path = os.path.expanduser(path)
+    path = os.path.realpath(path)
+    home = os.path.expanduser("~")
+    if not path.startswith(home + os.sep) and path != home:
+        return {"error": "access denied", "path": path}
     if not os.path.isdir(path):
         return {"error": "not a directory", "path": path}
     dirs = []

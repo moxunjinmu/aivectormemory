@@ -222,8 +222,12 @@ func (d *DB) Exec(query string, args ...interface{}) (sql.Result, error) {
 }
 
 func (d *DB) Begin() (*sql.Tx, error) {
+	tx, err := d.conn.Begin()
+	if err != nil {
+		return nil, err // 未持有锁，安全返回
+	}
 	d.mu.Lock()
-	return d.conn.Begin()
+	return tx, nil
 }
 
 func (d *DB) UnlockAfterTx() {

@@ -22,7 +22,7 @@ STEERING_CONTENT = """# AIVectorMemory - Workflow-Regeln
 
 **Schritt B: Nachrichtentyp bestimmen**
 - Smalltalk / Fortschritt / Regeldiskussion / einfache Bestätigung → direkt antworten, Ablauf endet
-- Benutzer korrigiert falsches Verhalten / Erinnerung an wiederholte Fehler → sofort `remember` (tags: ["Stolperfalle", "Verhaltenskorrektur", ...Schlüsselwörter aus Inhalt extrahieren], scope: "project", einschließlich: falsches Verhalten, Kernpunkte der Benutzeraussage, korrekter Ansatz), dann weiter zu Schritt C
+- Benutzer korrigiert falsches Verhalten / Erinnerung an wiederholte Fehler → den benutzerdefinierten Regelbereich der Projekt-Steering-Datei aktualisieren (`<!-- custom-rules -->` Block), aufzeichnen: falsches Verhalten, Kernpunkte der Benutzeraussage, korrekter Ansatz, dann weiter zu Schritt C
 - Benutzer drückt technische Präferenzen / Arbeitsgewohnheiten aus → `auto_save` zum Speichern von Einstellungen
 - Sonstiges (Code-Probleme, Bugs, Feature-Anfragen) → weiter zu Schritt C
 - Beurteilungsergebnis in der Antwort angeben, z.B.: „Das ist eine Frage" / „Das ist ein Problem, das aufgezeichnet werden muss"
@@ -67,7 +67,6 @@ STEERING_CONTENT = """# AIVectorMemory - Workflow-Regeln
 **Schritt I: Benutzer bestätigt Freigabe**
 - `track archive` zum Archivieren
 - `status` Blockierung aufheben (is_blocked: false)
-- Wenn Stolperfallen-Wert vorhanden → `remember` (tags: ["Stolperfalle", ...Schlüsselwörter aus Probleminhalt extrahieren], scope: "project", einschließlich Fehlersymptome, Grundursache, korrekter Ansatz. Beispiel: Dashboard-Startfehler → tags: ["Stolperfalle", "Dashboard", "Start"])
 - **Rückfluss-Prüfung**: wenn aktueller track ein Bug ist, der während der task-Ausführung gefunden wurde (hat zugehörige feature_id oder führt spec-Aufgabe aus), nach der Archivierung muss zu Abschnitt 6 zurückgekehrt werden um die nächste Teilaufgabe fortzusetzen, `task update` aufrufen um aktuellen Aufgabenstatus zu aktualisieren und tasks.md zu synchronisieren
 - Vor Sitzungsende → `auto_save` zum automatischen Extrahieren von Einstellungen
 
@@ -152,11 +151,10 @@ STEERING_CONTENT = """# AIVectorMemory - Workflow-Regeln
 
 ## 7. Anforderungen an Gedächtnisqualität
 
-- tags-Konvention: muss Kategorie-Tag (Stolperfalle / Projektwissen / Verhaltenskorrektur) + aus Inhalt extrahierte Schlüsselwort-Tags (Modulname, Funktionsname, Fachbegriffe) enthalten, niemals nur ein Kategorie-Tag verwenden
+- tags-Konvention: muss Kategorie-Tag (Stolperfalle / Projektwissen) + aus Inhalt extrahierte Schlüsselwort-Tags (Modulname, Funktionsname, Fachbegriffe) enthalten, niemals nur ein Kategorie-Tag verwenden
 - Befehlstyp: vollständig ausführbarer Befehl, keine Alias-Abkürzungen
 - Prozesstyp: konkrete Schritte, nicht nur Schlussfolgerungen
 - Stolperfallentyp: Fehlersymptome + Grundursache + korrekter Ansatz
-- Verhaltenskorrekturtyp: falsches Verhalten + Kernpunkte der Benutzeraussage + korrekter Ansatz
 
 ---
 
@@ -193,7 +191,7 @@ STEERING_CONTENT = """# AIVectorMemory - Workflow-Regeln
 
 **IDE-Sicherheit**: keine `$(...)` + Pipe-Kombinationen, keine mehrzeiligen `python3 -c`-Skripte (.py-Dateien schreiben), `lsof -ti:Port` muss ignoreWarning hinzufügen
 
-**Selbsttest-Anforderungen**: Benutzer niemals bitten manuell zu operieren, selbst machen wenn möglich. Nur „wartet auf Verifizierung" sagen nachdem der Selbsttest bestanden ist. Playwright ist ein MCP-Tool (browser_navigate/browser_click/browser_type/browser_snapshot), **Python playwright.sync_api Skripte sind verboten, temporäre Testdateien erstellen ist verboten**. Nach dem Test browser_close nicht aufrufen, Browser offen lassen für Benutzerverifizierung.
+**Selbsttest-Anforderungen**: Benutzer niemals bitten manuell zu operieren, Selbsttest muss bestehen bevor „wartet auf Verifizierung" gesagt wird. Backend: pytest/curl. **Frontend-sichtbare Änderungen: NUR Playwright MCP-Tools verwenden** (browser_navigate → Interaktion → browser_snapshot), alle anderen Methoden sind Verstöße. Nach dem Test browser_close nicht aufrufen.
 
 **Aufgabenausführung**: in Reihenfolge ausführen, niemals überspringen, vollautomatisch, niemals „zukünftige Iteration" zum Überspringen verwenden. Vor dem Start einer Aufgabe muss tasks.md geprüft werden um zu bestätigen dass alle Voraussetzungen `[x]` sind, unvollständige Voraussetzungen müssen zuerst abgeschlossen werden
 
@@ -252,9 +250,7 @@ DEV_WORKFLOW_PROMPT = (
     "## ⚠️ Selbsttest\n\n"
     "Nach Änderungen an Code-Dateien **müssen Sie Tests ausführen, bevor Sie den Blockierungsstatus \"Warten auf Überprüfung\" setzen**. "
     "Sagen Sie nicht \"Warten auf Überprüfung\" nach Code-Änderungen ohne Tests. Nur Dokumentations-/Konfigurationsdateien (.md/.json/.yaml/.toml/.sh etc.) erfordern keinen Selbsttest.\n\n"
-    "**Playwright-Regeln**: Playwright ist ein MCP-Tool (browser_navigate/browser_click/browser_type/browser_snapshot), "
-    "**Python playwright.sync_api Skripte sind verboten, temporäre Testdateien (.py/.sql) erstellen ist verboten**. "
-    "Nach dem Test browser_close nicht aufrufen, Browser offen lassen für Benutzerverifizierung."
+    "**Frontend-sichtbare Änderungen: NUR Playwright MCP-Tools verwenden** (browser_navigate → Interaktion → browser_snapshot), alle anderen Methoden (curl, Skripte, node -e, Screenshots) sind Verstöße. Nach dem Test browser_close nicht aufrufen."
 )
 
 COMPACT_RECOVERY_HINTS = (

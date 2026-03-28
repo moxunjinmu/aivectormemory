@@ -25,19 +25,28 @@ def post_tasks(handler, cm, pdir):
 
 def put_task(handler, cm, tid, pdir):
     from aivectormemory.web.api import _read_body
+    from aivectormemory.tools.task import _sync_after_update
     body = _read_body(handler)
     repo = TaskRepo(cm.conn, pdir)
     fields = {k: body[k] for k in ("status", "title") if k in body}
     result = repo.update(tid, **fields)
     if not result:
         return {"error": "not found"}
+    if "status" in fields:
+        _sync_after_update(cm.conn, pdir, result.get("feature_id", ""), result["title"], fields["status"])
     return {"task": result}
 
 
 def delete_task(cm, tid, pdir):
+    from aivectormemory.tools.task import _sync_after_update
     repo = TaskRepo(cm.conn, pdir)
     result = repo.delete(tid)
-    return result if result else {"error": "not found"}
+    if not result:
+        return {"error": "not found"}
+    feature_id = result.get("feature_id", "")
+    if feature_id:
+        _sync_after_update(cm.conn, pdir, feature_id, result.get("title", ""), "deleted")
+    return result
 
 
 def delete_tasks_by_feature(handler, cm, pdir, params):

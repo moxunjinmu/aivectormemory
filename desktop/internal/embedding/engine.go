@@ -8,10 +8,13 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"sync"
+	"time"
 )
 
 type Engine struct {
 	PythonPath string
+	mu         sync.Mutex
 }
 
 func NewEngine(pythonPath string) *Engine {
@@ -22,14 +25,17 @@ func NewEngine(pythonPath string) *Engine {
 }
 
 func (e *Engine) Encode(text string) ([]float32, error) {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+
 	if e.PythonPath == "" {
 		return nil, fmt.Errorf("python not found")
 	}
 
-	// Write input to temp file
+	// Write input to temp file (use unique names to avoid residual conflicts)
 	tmpDir := os.TempDir()
-	inputFile := filepath.Join(tmpDir, "avm_embed_input.json")
-	outputFile := filepath.Join(tmpDir, "avm_embed_output.json")
+	inputFile := filepath.Join(tmpDir, fmt.Sprintf("avm_embed_input_%d.json", time.Now().UnixNano()))
+	outputFile := filepath.Join(tmpDir, fmt.Sprintf("avm_embed_output_%d.json", time.Now().UnixNano()))
 
 	inputData, _ := json.Marshal(map[string]string{"text": text})
 	if err := os.WriteFile(inputFile, inputData, 0644); err != nil {

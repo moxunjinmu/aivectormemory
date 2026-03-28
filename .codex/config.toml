@@ -1,5 +1,0 @@
-# >>> aivectormemory mcp >>>
-[mcp_servers.aivectormemory]
-command = "/opt/homebrew/opt/python@3.12/bin/python3.12"
-args = ["-m", "aivectormemory", "--project-dir", "/Users/macos/item/run-memory-mcp-server"]
-# <<< aivectormemory mcp <<<

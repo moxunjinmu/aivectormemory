@@ -22,7 +22,7 @@ STEERING_CONTENT = """# AIVectorMemory - 工作規則
 
 **步驟 B：判斷訊息類型**
 - 閒聊/進度/討論規則/簡單確認 → 直接回答，流程結束
-- 使用者糾正錯誤行為/連續犯錯提醒 → 立即 `remember`（tags: ["踩坑", "行為糾正", ...從內容提取關鍵詞], scope: "project"，含：錯誤行為、使用者原話要點、正確做法），然後繼續步驟 C
+- 使用者糾正錯誤行為/連續犯錯提醒 → 更新專案 steering 檔案的自訂規則區域（`<!-- custom-rules -->` 區塊），記錄：錯誤行為、使用者原話要點、正確做法，然後繼續步驟 C
 - 使用者表達技術偏好/工作習慣 → `auto_save` 儲存偏好
 - 其他（程式碼問題、bug、功能需求）→ 繼續步驟 C
 - 回覆時說明判斷結果，如：「這是個詢問」/「這是個問題，需要記錄」
@@ -67,7 +67,6 @@ STEERING_CONTENT = """# AIVectorMemory - 工作規則
 **步驟 I：使用者確認通過**
 - `track archive` 歸檔
 - `status` 清除阻塞（is_blocked: false）
-- 有踩坑價值 → `remember`（tags: ["踩坑", ...從問題內容提取關鍵詞], scope: "project"，含錯誤現象、根因、正確做法。範例：看板啟動失敗 → tags: ["踩坑", "看板", "啟動", "dashboard"]）
 - **回流檢查**：如果當前 track 是在執行 task 過程中發現的 bug（有關聯 feature_id 或正在執行 spec 任務），歸檔後必須回到第6節繼續執行下一個子任務，呼叫 `task update` 更新當前任務狀態並同步 tasks.md
 - 會話結束前 → `auto_save` 自動提取偏好
 
@@ -152,11 +151,10 @@ STEERING_CONTENT = """# AIVectorMemory - 工作規則
 
 ## 7. 記憶品質要求
 
-- tags 規範：必須包含分類標籤（踩坑/專案知識/行為糾正）+ 從內容提取的關鍵詞標籤（模組名、功能名、技術詞），禁止只打一個分類標籤
+- tags 規範：必須包含分類標籤（踩坑/專案知識）+ 從內容提取的關鍵詞標籤（模組名、功能名、技術詞），禁止只打一個分類標籤
 - 命令類：完整可執行命令，禁止別名縮寫
 - 流程類：具體步驟，不能只寫結論
 - 踩坑類：錯誤現象 + 根因 + 正確做法
-- 行為糾正類：錯誤行為 + 使用者原話要點 + 正確做法
 
 ---
 
@@ -193,7 +191,7 @@ STEERING_CONTENT = """# AIVectorMemory - 工作規則
 
 **IDE 安全**：禁止 `$(...)` + 管道、禁止 `python3 -c` 多行腳本（寫 .py 檔案）、`lsof -ti:埠號` 必須加 ignoreWarning
 
-**自測要求**：禁止讓使用者手動操作，能自己執行的不要讓使用者做。自測通過後才能說「等待驗證」。Playwright 是 MCP 工具（browser_navigate/browser_click/browser_type/browser_snapshot），**禁止用 Python playwright.sync_api 寫腳本，禁止建立臨時測試檔案**。測試完成後不呼叫 browser_close，保持瀏覽器開啟讓使用者驗證。
+**自測要求**：禁止讓使用者手動操作，自測通過後才能說「等待驗證」。後端變更用 pytest/curl，**前端可見變更：只能用 Playwright MCP 工具**（browser_navigate → 交互 → browser_snapshot），其他一切方式均為違規。測試後不呼叫 browser_close。
 
 **任務執行**：按順序執行禁止跳過，全自動，禁止用「後續迭代」跳過。開始任務前必須先檢查 tasks.md，確認前置任務全部 `[x]`，有未完成的前置任務必須先完成
 
@@ -252,9 +250,7 @@ DEV_WORKFLOW_PROMPT = (
     "## ⚠️ 自測檢查\n\n"
     "修改了程式碼檔案後，**必須先執行測試驗證再設定阻塞「等待驗證」**。"
     "禁止修改程式碼後直接說「等待驗證」而不執行測試。僅修改文件/設定檔（.md/.json/.yaml/.toml/.sh 等非程式碼檔案）時不要求自測。\n\n"
-    "**Playwright 規範**：Playwright 是 MCP 工具（browser_navigate/browser_click/browser_type/browser_snapshot），"
-    "**禁止用 Python playwright.sync_api 寫腳本，禁止建立臨時測試檔案（.py/.sql）**。"
-    "測試完成後不呼叫 browser_close，保持瀏覽器開啟讓使用者驗證。"
+    "**前端可見變更：只能用 Playwright MCP 工具**（browser_navigate → 交互 → browser_snapshot），其他一切方式（curl、腳本、node -e、截圖）均為違規。測試後不呼叫 browser_close。"
 )
 
 COMPACT_RECOVERY_HINTS = (

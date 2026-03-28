@@ -11,8 +11,16 @@ def get_memories(cm, params, pdir):
     tag = params.get("tag", [None])[0]
     source = params.get("source", [None])[0]
     exclude_tags_raw = params.get("exclude_tags", [None])[0]
-    limit = int(params.get("limit", [100])[0])
-    offset = int(params.get("offset", [0])[0])
+    try:
+        limit = int(params.get("limit", [100])[0])
+    except (ValueError, TypeError):
+        limit = 100
+    try:
+        offset = int(params.get("offset", [0])[0])
+    except (ValueError, TypeError):
+        offset = 0
+    limit = max(1, min(limit, 500))
+    offset = max(0, min(offset, 100000))
 
     repo = MemoryRepo(cm.conn, pdir)
     user_repo = UserMemoryRepo(cm.conn)
@@ -229,7 +237,10 @@ def search_memories(handler, cm, pdir):
     query = body.get("query", "").strip()
     if not query:
         return {"error": "query required"}
-    top_k = body.get("top_k", 20)
+    try:
+        top_k = max(1, min(int(body.get("top_k", 20)), 100))
+    except (ValueError, TypeError):
+        top_k = 20
     scope = body.get("scope", "all")
     tags = body.get("tags", [])
 

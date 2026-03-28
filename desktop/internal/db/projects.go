@@ -3,6 +3,7 @@ package db
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"strings"
 	"time"
 )
@@ -107,7 +108,9 @@ func (d *DB) GetProjects() ([]Project, error) {
 
 	// User memory count & tags
 	var userCount int
-	d.QueryRow("SELECT COUNT(*) FROM user_memories").Scan(&userCount)
+	if err := d.QueryRow("SELECT COUNT(*) FROM user_memories").Scan(&userCount); err != nil {
+		log.Printf("scan error: %v", err)
+	}
 
 	userTags := map[string]bool{}
 	uTagRows, err := d.Query("SELECT tags FROM user_memories")

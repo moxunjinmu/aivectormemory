@@ -22,7 +22,7 @@ STEERING_CONTENT = """# AIVectorMemory - Workflow Rules
 
 **Step B: Determine message type**
 - Casual chat / progress check / rule discussion / simple confirmation → reply directly, flow ends
-- User correcting wrong behavior / repeated mistake reminder → immediately `remember` (tags: ["pitfall", "behavior correction", ...extract keywords from content], scope: "project", include: wrong behavior, key points from user's words, correct approach), then continue to Step C
+- User correcting wrong behavior / repeated mistake reminder → update the project steering file's custom rules area (`<!-- custom-rules -->` block), recording: wrong behavior, key points from user's words, correct approach, then continue to Step C
 - User expressing technical preferences / work habits → `auto_save` to store preferences
 - Other (code issues, bugs, feature requests) → continue to Step C
 - State your judgment in reply, e.g.: "This is a question" / "This is an issue that needs to be recorded"
@@ -67,7 +67,6 @@ STEERING_CONTENT = """# AIVectorMemory - Workflow Rules
 **Step I: User confirms pass**
 - `track archive` to archive
 - `status` clear block (is_blocked: false)
-- If pitfall value → `remember` (tags: ["pitfall", ...extract keywords from issue content], scope: "project", include error symptoms, root cause, correct approach. Example: dashboard startup failure → tags: ["pitfall", "dashboard", "startup"])
 - **Backflow check**: if current track is a bug found during task execution (has associated feature_id or executing spec task), after archiving must return to Section 6 to continue next subtask, call `task update` to update current task status and sync tasks.md
 - Before session ends → `auto_save` to automatically extract preferences
 
@@ -152,11 +151,10 @@ STEERING_CONTENT = """# AIVectorMemory - Workflow Rules
 
 ## 7. Memory Quality Requirements
 
-- tags convention: must include category tag (pitfall / project knowledge / behavior correction) + keyword tags extracted from content (module name, feature name, technical terms), never use only one category tag
+- tags convention: must include category tag (pitfall / project knowledge) + keyword tags extracted from content (module name, feature name, technical terms), never use only one category tag
 - Command type: complete executable command, no alias abbreviations
 - Process type: specific steps, not just conclusions
 - Pitfall type: error symptoms + root cause + correct approach
-- Behavior correction type: wrong behavior + key points from user's words + correct approach
 
 ---
 
@@ -193,7 +191,7 @@ STEERING_CONTENT = """# AIVectorMemory - Workflow Rules
 
 **IDE safety**: no `$(...)` + pipe combinations, no `python3 -c` multi-line scripts (write .py files), `lsof -ti:port` must add ignoreWarning
 
-**Self-testing**: never ask user to manually operate, do it yourself if possible. Only say "waiting for verification" after self-test passes. Playwright is an MCP tool (browser_navigate/browser_click/browser_type/browser_snapshot), **never write Python playwright.sync_api scripts, never create temporary test files**. Do not call browser_close after testing, keep the browser open for user verification.
+**Self-testing**: never ask user to manually operate, self-test must pass before saying "awaiting verification". Backend: pytest/curl. **Frontend-visible changes: ONLY use Playwright MCP tools** (browser_navigate → interact → browser_snapshot), all other methods (curl, scripts, node -e, screenshots) are violations. Do not call browser_close after testing.
 
 **Task execution**: execute in order, never skip, fully automated, never use "future iteration" to skip. Before starting a task, must check tasks.md to confirm all prerequisites are `[x]`, must complete unfinished prerequisites first
 
@@ -252,9 +250,7 @@ DEV_WORKFLOW_PROMPT = (
     "## ⚠️ Self-test\n\n"
     "After modifying code files, **you must run tests before setting blocked status \"awaiting verification\"**. "
     "Do not say \"awaiting verification\" after modifying code without running tests. Only documentation/configuration files (.md/.json/.yaml/.toml/.sh etc.) do not require self-testing.\n\n"
-    "**Playwright rules**: Playwright is an MCP tool (browser_navigate/browser_click/browser_type/browser_snapshot), "
-    "**never write Python playwright.sync_api scripts, never create temporary test files (.py/.sql)**. "
-    "Do not call browser_close after testing, keep the browser open for user verification."
+    "**Frontend-visible changes: ONLY use Playwright MCP tools** (browser_navigate → interact → browser_snapshot), all other methods (curl, scripts, node -e, screenshots) are violations. Do not call browser_close after testing."
 )
 
 COMPACT_RECOVERY_HINTS = (

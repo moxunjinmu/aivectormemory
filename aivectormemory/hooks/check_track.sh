@@ -13,15 +13,16 @@ fi
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_DIR="${PROJECT_DIR:-$(cd "$SCRIPT_DIR/../.." && pwd)}"
 
-# 定义 SQL 执行函数：优先 sqlite3 命令，fallback 到 Python 内置 sqlite3 模块
-if command -v sqlite3 &>/dev/null; then
-  run_sql() { sqlite3 "$DB_PATH" "$1" 2>/dev/null; }
-else
-  run_sql() { python3 -c "import sqlite3,sys;c=sqlite3.connect(sys.argv[1]);r=c.execute(sys.argv[2]).fetchone();print(r[0] if r else '');c.close()" "$DB_PATH" "$1" 2>/dev/null; }
-fi
+# 定义 SQL 执行函数：统一使用 python3 参数化查询防止 SQL 注入
+# 用法：run_sql "SELECT ... WHERE col=?" "param1" "param2" ...
+run_sql() {
+  local sql="$1"
+  shift
+  python3 -c "import sqlite3,sys;c=sqlite3.connect(sys.argv[1]);r=c.execute(sys.argv[2],tuple(sys.argv[3:])).fetchone();print(r[0] if r else '');c.close()" "$DB_PATH" "$sql" "$@" 2>/dev/null
+}
 
 # === 检查1：是否有活跃的 track issue ===
-COUNT=$(run_sql "SELECT COUNT(*) FROM issues WHERE project_dir='$PROJECT_DIR' AND status IN ('pending','in_progress');")
+COUNT=$(run_sql "SELECT COUNT(*) FROM issues WHERE project_dir=? AND status IN ('pending','in_progress');" "$PROJECT_DIR")
 
 if [ $? -ne 0 ] || [ -z "$COUNT" ]; then
   exit 0
@@ -34,13 +35,13 @@ fi
 
 # === 检查2：spec 任务 in_progress 检查 ===
 # 仅当活跃 issue 有 feature_id 且该 feature 有 pending 子任务时生效
-FEATURE_ID=$(run_sql "SELECT feature_id FROM issues WHERE project_dir='$PROJECT_DIR' AND status IN ('pending','in_progress') AND feature_id != '' AND feature_id IS NOT NULL LIMIT 1;")
+FEATURE_ID=$(run_sql "SELECT feature_id FROM issues WHERE project_dir=? AND status IN ('pending','in_progress') AND feature_id != '' AND feature_id IS NOT NULL LIMIT 1;" "$PROJECT_DIR")
 
 if [ -n "$FEATURE_ID" ]; then
-  PENDING_TASKS=$(run_sql "SELECT COUNT(*) FROM tasks WHERE project_dir='$PROJECT_DIR' AND feature_id='$FEATURE_ID' AND status='pending' AND parent_id!=0;")
+  PENDING_TASKS=$(run_sql "SELECT COUNT(*) FROM tasks WHERE project_dir=? AND feature_id=? AND status='pending' AND parent_id!=0;" "$PROJECT_DIR" "$FEATURE_ID")
 
   if [ "$PENDING_TASKS" -gt 0 ] 2>/dev/null; then
-    IN_PROGRESS=$(run_sql "SELECT COUNT(*) FROM tasks WHERE project_dir='$PROJECT_DIR' AND feature_id='$FEATURE_ID' AND status='in_progress' AND parent_id!=0;")
+    IN_PROGRESS=$(run_sql "SELECT COUNT(*) FROM tasks WHERE project_dir=? AND feature_id=? AND status='in_progress' AND parent_id!=0;" "$PROJECT_DIR" "$FEATURE_ID")
 
     if [ "$IN_PROGRESS" -eq 0 ] 2>/dev/null; then
       echo "⚠️ spec 任务 [$FEATURE_ID] 有待执行的子任务但没有 in_progress 的子任务。请先调用 task(action: update, task_id: X, status: in_progress) 标记当前正在执行的子任务后再修改代码。" >&2

@@ -43,13 +43,18 @@ class IssueRepo(BaseRepo):
         if existing:
             return {"id": existing["id"], "issue_number": existing["issue_number"], "date": existing["date"], "deduplicated": True}
         now = self._now()
-        num = self._next_number()
         tags_json = json.dumps(tags or [], ensure_ascii=False)
-        cur = self.conn.execute(
-            "INSERT INTO issues (project_dir, issue_number, date, title, status, content, tags, memory_id, parent_id, created_at, updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?)",
-            (self.project_dir, num, date, title, "pending", content, tags_json, memory_id, parent_id, now, now)
-        )
-        self._commit()
+        try:
+            self.conn.execute("BEGIN IMMEDIATE")
+            num = self._next_number()
+            cur = self.conn.execute(
+                "INSERT INTO issues (project_dir, issue_number, date, title, status, content, tags, memory_id, parent_id, created_at, updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?)",
+                (self.project_dir, num, date, title, "pending", content, tags_json, memory_id, parent_id, now, now)
+            )
+            self.conn.commit()
+        except Exception:
+            self.conn.rollback()
+            raise
         return {"id": cur.lastrowid, "issue_number": num, "date": date}
 
     def update(self, issue_id: int, **fields) -> dict | None:
@@ -76,28 +81,33 @@ class IssueRepo(BaseRepo):
             return None
         now = self._now()
         r = dict(row)
-        cur = self.conn.execute(
-            """INSERT INTO issues_archive (project_dir, issue_number, date, title, content, tags, memory_id,
-               description, investigation, root_cause, solution, files_changed, test_result, notes,
-               feature_id, parent_id, status, original_issue_id, archived_at, created_at)
-               VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
-            (r["project_dir"], r["issue_number"], r["date"], r["title"], r["content"],
-             r.get("tags", "[]"), r.get("memory_id", ""),
-             r.get("description", ""), r.get("investigation", ""), r.get("root_cause", ""),
-             r.get("solution", ""), r.get("files_changed", "[]"), r.get("test_result", ""),
-             r.get("notes", ""), r.get("feature_id", ""), r.get("parent_id", 0),
-             r.get("status", ""), issue_id, now, r["created_at"])
-        )
-        archive_id = cur.lastrowid
-        if self.engine:
-            text = f"{r['title']} {r.get('description','')} {r.get('root_cause','')} {r.get('solution','')}"
-            emb = self.engine.encode(text)
-            self.conn.execute(
-                "INSERT INTO vec_issues_archive (id, embedding) VALUES (?,?)",
-                (archive_id, json.dumps(emb))
+        try:
+            self.conn.execute("BEGIN IMMEDIATE")
+            cur = self.conn.execute(
+                """INSERT INTO issues_archive (project_dir, issue_number, date, title, content, tags, memory_id,
+                   description, investigation, root_cause, solution, files_changed, test_result, notes,
+                   feature_id, parent_id, status, original_issue_id, archived_at, created_at)
+                   VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+                (r["project_dir"], r["issue_number"], r["date"], r["title"], r["content"],
+                 r.get("tags", "[]"), r.get("memory_id", ""),
+                 r.get("description", ""), r.get("investigation", ""), r.get("root_cause", ""),
+                 r.get("solution", ""), r.get("files_changed", "[]"), r.get("test_result", ""),
+                 r.get("notes", ""), r.get("feature_id", ""), r.get("parent_id", 0),
+                 r.get("status", ""), issue_id, now, r["created_at"])
             )
-        self.conn.execute("DELETE FROM issues WHERE id=?", (issue_id,))
-        self._commit()
+            archive_id = cur.lastrowid
+            if self.engine:
+                text = f"{r['title']} {r.get('description','')} {r.get('root_cause','')} {r.get('solution','')}"
+                emb = self.engine.encode(text)
+                self.conn.execute(
+                    "INSERT INTO vec_issues_archive (id, embedding) VALUES (?,?)",
+                    (archive_id, json.dumps(emb))
+                )
+            self.conn.execute("DELETE FROM issues WHERE id=?", (issue_id,))
+            self.conn.commit()
+        except Exception:
+            self.conn.rollback()
+            raise
         return {"issue_id": issue_id, "archived_at": now, "memory_id": r.get("memory_id", "")}
 
     _BRIEF_COLS = "issue_number, date, title, status, feature_id, created_at"

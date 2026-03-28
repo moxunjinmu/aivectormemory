@@ -15,11 +15,11 @@ def _to_brief(rows):
     return [{k: r[k] for k in BRIEF_KEYS if k in r} for r in rows]
 
 
-def _add_similarity(rows, has_tags=False):
+def _add_similarity(rows):
     results = []
     for r in rows:
         distance = r.pop("distance", 0)
-        r["similarity"] = round(1 - distance, 4) if has_tags else round(1 - (distance ** 2) / 2, 4)
+        r["similarity"] = round(1 - (distance ** 2) / 2, 4)
         results.append(r)
     results.sort(key=lambda x: x["similarity"], reverse=True)
     return results
@@ -41,7 +41,7 @@ def _merge_hybrid(vec_results, kw_results, top_k):
     for r in kw_results:
         if r["id"] not in seen:
             kw_score = r.pop("_kw_score", 0)
-            r["similarity"] = round(0.5 + 0.3 * kw_score, 4)
+            r["similarity"] = round(0.3 + 0.2 * kw_score, 4)
             merged.append(r)
             seen.add(r["id"])
     merged.sort(key=lambda x: x.get("similarity", 0), reverse=True)
@@ -57,7 +57,7 @@ def handle_recall(args, *, cm, engine, **_):
     scope = args.get("scope", "all")
     query = args.get("query")
     tags = normalize_tags(args.get("tags"))
-    top_k = args.get("top_k", DEFAULT_TOP_K)
+    top_k = min(max(int(args.get("top_k", DEFAULT_TOP_K)), 1), 100)
     brief = args.get("brief", False)
     tags_mode = args.get("tags_mode", "any" if query and tags else "all")
 
@@ -82,7 +82,7 @@ def _query_user(cm, engine, query, tags, top_k, source, tags_mode="all"):
         return rows
     embedding = engine.encode(query)
     if tags:
-        vec = _add_similarity(repo.search_by_vector_with_tags(embedding, tags, top_k=top_k * 2), has_tags=True)
+        vec = _add_similarity(repo.search_by_vector_with_tags(embedding, tags, top_k=top_k * 2))
     else:
         vec = _add_similarity(repo.search_by_vector(embedding, top_k=top_k * 2))
     kw = repo.keyword_search(query, top_k=top_k, source=source)
@@ -101,7 +101,7 @@ def _query_project(cm, engine, query, tags, top_k, source, tags_mode="all"):
         return rows
     embedding = engine.encode(query)
     if tags:
-        vec = _add_similarity(repo.search_by_vector_with_tags(embedding, tags, top_k=top_k * 2, **filters), has_tags=True)
+        vec = _add_similarity(repo.search_by_vector_with_tags(embedding, tags, top_k=top_k * 2, **filters))
     else:
         vec = _add_similarity(repo.search_by_vector(embedding, top_k=top_k * 2, **filters))
     kw = repo.keyword_search(query, top_k=top_k, **filters)
@@ -120,7 +120,7 @@ def _recall_experience(args, *, cm, engine):
     query = args.get("query")
     if not query:
         raise ValueError("query is required for source=experience")
-    top_k = args.get("top_k", DEFAULT_TOP_K)
+    top_k = min(max(int(args.get("top_k", DEFAULT_TOP_K)), 1), 100)
     brief = args.get("brief", False)
 
     embedding = engine.encode(query)

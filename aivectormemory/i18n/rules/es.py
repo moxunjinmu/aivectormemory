@@ -22,7 +22,7 @@ STEERING_CONTENT = """# AIVectorMemory - Reglas de Flujo de Trabajo
 
 **Paso B: Determinar tipo de mensaje**
 - Charla casual / consulta de progreso / discusión de reglas / confirmación simple → responder directamente, flujo termina
-- Usuario corrigiendo comportamiento erróneo / recordatorio de errores repetidos → inmediatamente `remember` (tags: ["trampa", "corrección de comportamiento", ...extraer palabras clave del contenido], scope: "project", incluir: comportamiento erróneo, puntos clave de las palabras del usuario, enfoque correcto), luego continuar al Paso C
+- Usuario corrigiendo comportamiento erróneo / recordatorio de errores repetidos → actualizar el área de reglas personalizadas del archivo steering del proyecto (bloque `<!-- custom-rules -->`), registrar: comportamiento erróneo, puntos clave de las palabras del usuario, enfoque correcto, luego continuar al Paso C
 - Usuario expresando preferencias técnicas / hábitos de trabajo → `auto_save` para almacenar preferencias
 - Otros (problemas de código, bugs, solicitudes de funciones) → continuar al Paso C
 - Indicar el resultado del juicio en la respuesta, ej.: "Esto es una pregunta" / "Esto es un problema que necesita ser registrado"
@@ -67,7 +67,6 @@ STEERING_CONTENT = """# AIVectorMemory - Reglas de Flujo de Trabajo
 **Paso I: Usuario confirma aprobación**
 - `track archive` para archivar
 - `status` limpiar bloqueo (is_blocked: false)
-- Si tiene valor como trampa → `remember` (tags: ["trampa", ...extraer palabras clave del contenido del problema], scope: "project", incluir síntomas de error, causa raíz, enfoque correcto. Ejemplo: fallo de inicio del dashboard → tags: ["trampa", "dashboard", "inicio"])
 - **Verificación de retorno**: si el track actual es un bug encontrado durante la ejecución de task (tiene feature_id asociado o está ejecutando tarea spec), después de archivar debe volver a la Sección 6 para continuar con el siguiente subtarea, llamar `task update` para actualizar estado de tarea actual y sincronizar tasks.md
 - Antes de terminar sesión → `auto_save` para extraer preferencias automáticamente
 
@@ -152,11 +151,10 @@ STEERING_CONTENT = """# AIVectorMemory - Reglas de Flujo de Trabajo
 
 ## 7. Requisitos de Calidad de Memoria
 
-- Convención de tags: debe incluir etiqueta de categoría (trampa / conocimiento del proyecto / corrección de comportamiento) + etiquetas de palabras clave extraídas del contenido (nombre de módulo, nombre de función, términos técnicos), nunca usar solo una etiqueta de categoría
+- Convención de tags: debe incluir etiqueta de categoría (trampa / conocimiento del proyecto) + etiquetas de palabras clave extraídas del contenido (nombre de módulo, nombre de función, términos técnicos), nunca usar solo una etiqueta de categoría
 - Tipo comando: comando ejecutable completo, sin abreviaturas de alias
 - Tipo proceso: pasos específicos, no solo conclusiones
 - Tipo trampa: síntomas de error + causa raíz + enfoque correcto
-- Tipo corrección de comportamiento: comportamiento erróneo + puntos clave de las palabras del usuario + enfoque correcto
 
 ---
 
@@ -193,7 +191,7 @@ STEERING_CONTENT = """# AIVectorMemory - Reglas de Flujo de Trabajo
 
 **Seguridad IDE**: sin combinaciones `$(...)` + pipe, sin scripts multilínea `python3 -c` (escribir archivos .py), `lsof -ti:puerto` debe agregar ignoreWarning
 
-**Requisitos de auto-prueba**: nunca pedir al usuario que opere manualmente, hacerlo uno mismo si es posible. Solo decir "esperando verificación" después de que la auto-prueba pase. Playwright es una herramienta MCP (browser_navigate/browser_click/browser_type/browser_snapshot), **prohibido escribir scripts Python playwright.sync_api, prohibido crear archivos de prueba temporales**. No llamar browser_close después de las pruebas, mantener el navegador abierto para verificación del usuario.
+**Requisitos de auto-prueba**: nunca pedir al usuario que opere manualmente, auto-prueba debe pasar antes de decir "esperando verificación". Backend: pytest/curl. **Cambios visibles en frontend: SOLO usar herramientas Playwright MCP** (browser_navigate → interacción → browser_snapshot), cualquier otro método es una violación. No llamar browser_close después de las pruebas.
 
 **Ejecución de tareas**: ejecutar en orden sin saltar, completamente automatizado, nunca usar "iteración futura" para saltar. Antes de iniciar una tarea, debe verificar tasks.md para confirmar que todos los prerequisitos son `[x]`, debe completar prerequisitos incompletos primero
 
@@ -252,9 +250,7 @@ DEV_WORKFLOW_PROMPT = (
     "## ⚠️ Auto-test\n\n"
     "Después de modificar archivos de código, **debe ejecutar pruebas antes de establecer el estado de bloqueo \"esperando verificación\"**. "
     "No diga \"esperando verificación\" después de modificar código sin ejecutar pruebas. Solo archivos de documentación/configuración (.md/.json/.yaml/.toml/.sh etc.) no requieren auto-test.\n\n"
-    "**Reglas de Playwright**: Playwright es una herramienta MCP (browser_navigate/browser_click/browser_type/browser_snapshot), "
-    "**prohibido escribir scripts Python playwright.sync_api, prohibido crear archivos de prueba temporales (.py/.sql)**. "
-    "No llamar browser_close después de las pruebas, mantener el navegador abierto para verificación del usuario."
+    "**Cambios visibles en frontend: SOLO usar herramientas Playwright MCP** (browser_navigate → interacción → browser_snapshot), cualquier otro método (curl, scripts, node -e, capturas de pantalla) es una violación. No llamar browser_close después de las pruebas."
 )
 
 COMPACT_RECOVERY_HINTS = (

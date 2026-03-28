@@ -38,18 +38,34 @@ class BaseMemoryRepo(BaseRepo):
     def insert(self, content: str, tags: list[str], session_id: int,
                embedding: list[float], dedup_threshold: float = 0.95,
                source: str = "manual", **extra) -> dict:
-        dup = self._find_duplicate(embedding, dedup_threshold)
-        if dup:
-            return self._update_existing(dup["id"], content, tags, session_id, embedding)
-        now = self._now()
-        mid = uuid.uuid4().hex[:12]
-        cols, vals = self._build_insert(mid, content, tags, source, session_id, now, extra)
-        placeholders = ",".join("?" * len(vals))
-        self.conn.execute(f"INSERT INTO {self.TABLE} ({cols}) VALUES ({placeholders})", vals)
-        self.conn.execute(f"INSERT INTO {self.VEC_TABLE} (id, embedding) VALUES (?,?)", (mid, json.dumps(embedding)))
-        self._sync_tags(mid, tags)
-        self._commit()
-        return {"id": mid, "action": "created"}
+        import aivectormemory.db.connection as _conn_mod
+        was_in_transaction = _conn_mod._in_transaction
+        if not was_in_transaction:
+            self.conn.execute("BEGIN IMMEDIATE")
+            _conn_mod._in_transaction = True
+        try:
+            dup = self._find_duplicate(embedding, dedup_threshold)
+            if dup:
+                result = self._update_existing(dup["id"], content, tags, session_id, embedding)
+            else:
+                now = self._now()
+                mid = uuid.uuid4().hex[:12]
+                cols, vals = self._build_insert(mid, content, tags, source, session_id, now, extra)
+                placeholders = ",".join("?" * len(vals))
+                self.conn.execute(f"INSERT INTO {self.TABLE} ({cols}) VALUES ({placeholders})", vals)
+                self.conn.execute(f"INSERT INTO {self.VEC_TABLE} (id, embedding) VALUES (?,?)", (mid, json.dumps(embedding)))
+                self._sync_tags(mid, tags)
+                result = {"id": mid, "action": "created"}
+            if not was_in_transaction:
+                self.conn.commit()
+            return result
+        except Exception:
+            if not was_in_transaction:
+                self.conn.rollback()
+            raise
+        finally:
+            if not was_in_transaction:
+                _conn_mod._in_transaction = False
 
     def _build_insert(self, mid: str, content: str, tags: list[str], source: str,
                        session_id: int, now: str, extra: dict[str, Any]) -> tuple[str, list]:
@@ -58,15 +74,29 @@ class BaseMemoryRepo(BaseRepo):
 
     def _update_existing(self, mid: str, content: str, tags: list[str],
                          session_id: int, embedding: list[float]) -> dict:
-        now = self._now()
-        self.conn.execute(
-            f"UPDATE {self.TABLE} SET content=?, tags=?, session_id=?, updated_at=? WHERE id=?",
-            (content, json.dumps(tags, ensure_ascii=False), session_id, now, mid))
-        self.conn.execute(f"DELETE FROM {self.VEC_TABLE} WHERE id=?", (mid,))
-        self.conn.execute(f"INSERT INTO {self.VEC_TABLE} (id, embedding) VALUES (?,?)", (mid, json.dumps(embedding)))
-        self._sync_tags(mid, tags)
-        self._commit()
-        return {"id": mid, "action": "updated"}
+        import aivectormemory.db.connection as _conn_mod
+        was_in_transaction = _conn_mod._in_transaction
+        if not was_in_transaction:
+            self.conn.execute("BEGIN IMMEDIATE")
+            _conn_mod._in_transaction = True
+        try:
+            now = self._now()
+            self.conn.execute(
+                f"UPDATE {self.TABLE} SET content=?, tags=?, session_id=?, updated_at=? WHERE id=?",
+                (content, json.dumps(tags, ensure_ascii=False), session_id, now, mid))
+            self.conn.execute(f"DELETE FROM {self.VEC_TABLE} WHERE id=?", (mid,))
+            self.conn.execute(f"INSERT INTO {self.VEC_TABLE} (id, embedding) VALUES (?,?)", (mid, json.dumps(embedding)))
+            self._sync_tags(mid, tags)
+            if not was_in_transaction:
+                self.conn.commit()
+            return {"id": mid, "action": "updated"}
+        except Exception:
+            if not was_in_transaction:
+                self.conn.rollback()
+            raise
+        finally:
+            if not was_in_transaction:
+                _conn_mod._in_transaction = False
 
     def _find_duplicate(self, embedding: list[float], threshold: float) -> dict | None:
         rows = self.conn.execute(
@@ -132,7 +162,7 @@ class BaseMemoryRepo(BaseRepo):
             vec = np.frombuffer(raw, dtype=np.float32) if isinstance(raw, (bytes, memoryview)) else np.array(json.loads(raw), dtype=np.float32)
             cos_sim = float(np.dot(query_vec, vec) / (np.linalg.norm(query_vec) * np.linalg.norm(vec) + 1e-9))
             d = dict(mem)
-            d["distance"] = 1 - cos_sim
+            d["distance"] = float(np.sqrt(2 * (1 - cos_sim)))
             final.append(d)
         final.sort(key=lambda x: x["distance"])
         return final[:top_k]

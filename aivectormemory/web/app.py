@@ -77,6 +77,9 @@ class WebHandler(SimpleHTTPRequestHandler):
     def _serve_static(self):
         path = self.path.split("?")[0].lstrip("/") or "index.html"
         file_path = STATIC_DIR / path
+        if not file_path.resolve().is_relative_to(STATIC_DIR.resolve()):
+            self.send_error(403)
+            return
         if not file_path.exists() or not file_path.is_file():
             file_path = STATIC_DIR / "index.html"
         if not file_path.exists():

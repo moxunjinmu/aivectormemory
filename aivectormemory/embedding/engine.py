@@ -49,6 +49,8 @@ class EmbeddingEngine:
             raise
 
     def _download_model(self, hf_hub_download) -> Path:
+        import os
+        os.environ.setdefault("HF_HUB_TIMEOUT", "30")
         from huggingface_hub import snapshot_download
         model_dir = Path(snapshot_download(
             MODEL_NAME,
@@ -81,9 +83,15 @@ class EmbeddingEngine:
             return fp32_path
 
     def encode(self, text: str) -> list[float]:
-        if not self.ready:
-            self.load()
-        return list(self._encode_cached(text))
+        if not text or not text.strip():
+            return [0.0] * MODEL_DIMENSION
+        try:
+            if not self.ready:
+                self.load()
+            return list(self._encode_cached(text))
+        except Exception as e:
+            log.warning("Embedding encode failed: %s, returning zero vector", e)
+            return [0.0] * MODEL_DIMENSION
 
     def _encode_impl(self, text: str) -> tuple[float, ...]:
         prefixed = f"query: {text}"

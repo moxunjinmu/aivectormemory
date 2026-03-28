@@ -20,6 +20,17 @@ def _unify_id(row: dict) -> dict:
     return r
 
 
+def _sync_after_update(conn, project_dir: str, feature_id: str, title: str, status: str):
+    """tasks.md 同步 + Feature 聚合状态 + issue 级联更新"""
+    if feature_id:
+        _sync_tasks_md(project_dir, feature_id, title, status == "completed")
+        new_status = TaskRepo(conn, project_dir).get_feature_status(feature_id)
+        issue_repo = IssueRepo(conn, project_dir)
+        for issue in issue_repo.list_by_feature_id(feature_id):
+            if issue["status"] != new_status:
+                issue_repo.update(issue["id"], status=new_status)
+
+
 def _sync_tasks_md(project_dir: str, feature_id: str, title: str, completed: bool):
     root = Path(project_dir)
     old = "- [ ]" if completed else "- [x]"
@@ -75,14 +86,7 @@ def handle_task(args, *, cm, **_):
         if not result:
             raise NotFoundError("Task", task_id)
         if "status" in fields:
-            _sync_tasks_md(cm.project_dir, result["feature_id"], result["title"], fields["status"] == "completed")
-        feature_id = result.get("feature_id", "")
-        if feature_id and "status" in fields:
-            new_status = repo.get_feature_status(feature_id)
-            issue_repo = IssueRepo(cm.conn, cm.project_dir)
-            for issue in issue_repo.list_by_feature_id(feature_id):
-                if issue["status"] != new_status:
-                    issue_repo.update(issue["id"], status=new_status)
+            _sync_after_update(cm.conn, cm.project_dir, result.get("feature_id", ""), result["title"], fields["status"])
         return fmt("task.update", title=result["title"], status=result.get("status", ""))
 
     elif action == "list":

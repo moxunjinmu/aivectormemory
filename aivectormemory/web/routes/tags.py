@@ -5,6 +5,15 @@ from aivectormemory.db.memory_repo import MemoryRepo
 from aivectormemory.db.user_memory_repo import UserMemoryRepo
 
 
+def _safe_parse_tags(raw):
+    if isinstance(raw, list):
+        return raw
+    try:
+        return json.loads(raw) if isinstance(raw, str) else []
+    except (json.JSONDecodeError, TypeError):
+        return []
+
+
 def _merged_ids_with_tag(mem_repo, user_repo, tag, pdir):
     proj = mem_repo.get_ids_with_tag(tag, project_dir=pdir)
     user = user_repo.get_ids_with_tag(tag)
@@ -38,7 +47,7 @@ def rename_tag(handler, cm, pdir):
     user_repo = UserMemoryRepo(cm.conn)
     updated = 0
     for m in _merged_ids_with_tag(repo, user_repo, old_name, pdir):
-        tags = json.loads(m["tags"]) if isinstance(m.get("tags"), str) else m.get("tags", [])
+        tags = _safe_parse_tags(m.get("tags", "[]"))
         tags = [new_name if t == old_name else t for t in tags]
         tags = list(dict.fromkeys(tags))
         table = "user_memories" if user_repo.get_by_id(m["id"]) else "memories"
@@ -65,7 +74,7 @@ def merge_tags(handler, cm, pdir):
             if m["id"] in seen:
                 continue
             seen.add(m["id"])
-            tags = json.loads(m["tags"]) if isinstance(m.get("tags"), str) else m.get("tags", [])
+            tags = _safe_parse_tags(m.get("tags", "[]"))
             tags = [target_name if t in source_tags else t for t in tags]
             tags = list(dict.fromkeys(tags))
             table = "user_memories" if user_repo.get_by_id(m["id"]) else "memories"
@@ -91,7 +100,7 @@ def delete_tags(handler, cm, pdir):
             if m["id"] in seen:
                 continue
             seen.add(m["id"])
-            tags = json.loads(m["tags"]) if isinstance(m.get("tags"), str) else m.get("tags", [])
+            tags = _safe_parse_tags(m.get("tags", "[]"))
             new_tags = [t for t in tags if t not in tag_names]
             if len(new_tags) != len(tags):
                 table = "user_memories" if user_repo.get_by_id(m["id"]) else "memories"

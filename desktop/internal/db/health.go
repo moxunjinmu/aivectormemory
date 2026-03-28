@@ -2,6 +2,7 @@ package db
 
 import (
 	"fmt"
+	"log"
 	"os"
 )
 
@@ -29,23 +30,35 @@ type DBStats struct {
 func (d *DB) HealthCheck() (*HealthReport, error) {
 	r := &HealthReport{}
 
-	d.QueryRow("SELECT COUNT(*) FROM memories").Scan(&r.MemoriesTotal)
-	d.QueryRow("SELECT COUNT(*) FROM user_memories").Scan(&r.UserMemoriesTotal)
+	if err := d.QueryRow("SELECT COUNT(*) FROM memories").Scan(&r.MemoriesTotal); err != nil {
+		log.Printf("scan error: %v", err)
+	}
+	if err := d.QueryRow("SELECT COUNT(*) FROM user_memories").Scan(&r.UserMemoriesTotal); err != nil {
+		log.Printf("scan error: %v", err)
+	}
 
 	// vec tables require sqlite-vec extension; skip comparison if unavailable
 	vecOK := d.QueryRow("SELECT COUNT(*) FROM vec_memories").Scan(&r.VecMemoriesTotal) == nil
 	userVecOK := d.QueryRow("SELECT COUNT(*) FROM vec_user_memories").Scan(&r.VecUserMemTotal) == nil
 
 	if vecOK {
-		d.QueryRow("SELECT COUNT(*) FROM memories WHERE id NOT IN (SELECT id FROM vec_memories)").Scan(&r.MemoriesMissing)
-		d.QueryRow("SELECT COUNT(*) FROM vec_memories WHERE id NOT IN (SELECT id FROM memories)").Scan(&r.OrphanVec)
+		if err := d.QueryRow("SELECT COUNT(*) FROM memories WHERE id NOT IN (SELECT id FROM vec_memories)").Scan(&r.MemoriesMissing); err != nil {
+			log.Printf("scan error: %v", err)
+		}
+		if err := d.QueryRow("SELECT COUNT(*) FROM vec_memories WHERE id NOT IN (SELECT id FROM memories)").Scan(&r.OrphanVec); err != nil {
+			log.Printf("scan error: %v", err)
+		}
 	} else {
 		r.VecMemoriesTotal = r.MemoriesTotal
 	}
 
 	if userVecOK {
-		d.QueryRow("SELECT COUNT(*) FROM user_memories WHERE id NOT IN (SELECT id FROM vec_user_memories)").Scan(&r.UserMemoriesMissing)
-		d.QueryRow("SELECT COUNT(*) FROM vec_user_memories WHERE id NOT IN (SELECT id FROM user_memories)").Scan(&r.OrphanUserVec)
+		if err := d.QueryRow("SELECT COUNT(*) FROM user_memories WHERE id NOT IN (SELECT id FROM vec_user_memories)").Scan(&r.UserMemoriesMissing); err != nil {
+			log.Printf("scan error: %v", err)
+		}
+		if err := d.QueryRow("SELECT COUNT(*) FROM vec_user_memories WHERE id NOT IN (SELECT id FROM user_memories)").Scan(&r.OrphanUserVec); err != nil {
+			log.Printf("scan error: %v", err)
+		}
 	} else {
 		r.VecUserMemTotal = r.UserMemoriesTotal
 	}
@@ -72,7 +85,9 @@ func (d *DB) GetDBStats(dbPath string) (*DBStats, error) {
 		"issues", "issues_archive", "tasks", "tasks_archive", "session_state"}
 	for _, t := range tables {
 		var count int
-		d.QueryRow(fmt.Sprintf("SELECT COUNT(*) FROM %s", t)).Scan(&count)
+		if err := d.QueryRow(fmt.Sprintf("SELECT COUNT(*) FROM %s", t)).Scan(&count); err != nil {
+			log.Printf("scan error: %v", err)
+		}
 		stats.TableCounts[t] = count
 	}
 
@@ -110,7 +125,9 @@ func (d *DB) GetDBStats(dbPath string) (*DBStats, error) {
 	}
 	// Add user memories count
 	var userCount int
-	d.QueryRow("SELECT COUNT(*) FROM user_memories").Scan(&userCount)
+	if err := d.QueryRow("SELECT COUNT(*) FROM user_memories").Scan(&userCount); err != nil {
+		log.Printf("scan error: %v", err)
+	}
 	if userCount > 0 {
 		stats.ScopeDistrib["user"] = userCount
 	}

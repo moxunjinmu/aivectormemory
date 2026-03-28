@@ -2,6 +2,8 @@
 import json
 from pathlib import Path
 
+from aivectormemory.i18n.responses import to_json
+
 
 SUPPORTED_LANGS = {
     "en": "docs/README.en.md",
@@ -150,7 +152,7 @@ def handle_readme(args, *, cm, **_):
     if action == "generate":
         sections = args.get("sections")
         content = _generate_content(lang, sections)
-        return {"content": content, "lang": lang, "supported_langs": list(SUPPORTED_LANGS.keys())}
+        return to_json({"content": content, "lang": lang, "supported_langs": list(SUPPORTED_LANGS.keys())})
     elif action == "diff":
-        return _diff_content(lang)
-    return {"error": f"Unknown action: {action}", "valid_actions": ["generate", "diff"]}
+        return to_json(_diff_content(lang))
+    return to_json({"error": f"Unknown action: {action}", "valid_actions": ["generate", "diff"]})

@@ -5,13 +5,16 @@ import (
 	"net"
 	"os/exec"
 	"runtime"
+	"sync"
 	"time"
 )
 
 type Launcher struct {
 	PythonPath string
 	Port       int
+	mu         sync.Mutex
 	cmd        *exec.Cmd
+	waitDone   chan struct{}
 }
 
 func NewLauncher(pythonPath string, port int) *Launcher {
@@ -32,10 +35,19 @@ func (l *Launcher) Start() error {
 		return fmt.Errorf("start web dashboard: %w", err)
 	}
 
+	l.mu.Lock()
 	l.cmd = cmd
+	l.waitDone = make(chan struct{})
+	l.mu.Unlock()
 
-	// Don't wait for process - let it run detached
-	go cmd.Wait()
+	// Wait for process exit via channel instead of bare goroutine
+	go func() {
+		cmd.Wait()
+		l.mu.Lock()
+		l.cmd = nil
+		l.mu.Unlock()
+		close(l.waitDone)
+	}()
 
 	// Wait for port to be ready
 	go l.waitAndOpenBrowser()
@@ -44,9 +56,15 @@ func (l *Launcher) Start() error {
 }
 
 func (l *Launcher) Stop() error {
-	if l.cmd != nil && l.cmd.Process != nil {
-		killProcess(l.cmd)
+	l.mu.Lock()
+	cmd := l.cmd
+	l.mu.Unlock()
+
+	if cmd != nil && cmd.Process != nil {
+		killProcess(cmd)
+		l.mu.Lock()
 		l.cmd = nil
+		l.mu.Unlock()
 	}
 	return nil
 }
@@ -87,12 +105,16 @@ func openBrowser(url string) {
 
 // Detach ensures the web dashboard process survives app shutdown
 func (l *Launcher) Detach() {
+	l.mu.Lock()
+	defer l.mu.Unlock()
 	// Process is already detached via Setpgid
 	l.cmd = nil
 }
 
 // GetPID returns the PID of the running web dashboard, if any
 func (l *Launcher) GetPID() int {
+	l.mu.Lock()
+	defer l.mu.Unlock()
 	if l.cmd != nil && l.cmd.Process != nil {
 		return l.cmd.Process.Pid
 	}

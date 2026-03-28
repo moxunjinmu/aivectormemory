@@ -1,4 +1,4 @@
-import json
+import json, os
 from urllib.parse import urlparse, parse_qs, unquote
 
 from aivectormemory.db.state_repo import StateRepo
@@ -9,7 +9,9 @@ from aivectormemory.web.routes import memories, issues, tasks, tags, projects, a
 def _resolve_project(cm, params):
     """如果 URL 带 ?project=xxx 则覆盖 cm.project_dir，返回临时 project_dir"""
     override = params.get("project", [None])[0]
-    return override if override is not None else cm.project_dir
+    if override is not None and os.path.isabs(override) and ".." not in override and os.path.isdir(override):
+        return override
+    return cm.project_dir
 
 
 def handle_api_request(handler, cm):
@@ -46,7 +48,10 @@ def handle_api_request(handler, cm):
         return _json_response(handler, projects.delete_project(cm, proj_dir))
 
     if path.startswith("/api/issues/") and len(path.split("/")) == 4:
-        inum = int(path.split("/")[3])
+        try:
+            inum = int(path.split("/")[3])
+        except (ValueError, TypeError):
+            return _json_response(handler, {"error": "invalid ID"}, 400)
         repo = IssueRepo(cm.conn, pdir)
         row = repo.get_by_number(inum)
         is_archived = row is None
@@ -66,7 +71,10 @@ def handle_api_request(handler, cm):
         seg = path.split("/")[3]
         if seg == "archived" and method == "GET":
             return _json_response(handler, tasks.get_archived_tasks(cm, params, pdir))
-        tid = int(seg)
+        try:
+            tid = int(seg)
+        except (ValueError, TypeError):
+            return _json_response(handler, {"error": "invalid ID"}, 400)
         if method == "PUT":
             return _json_response(handler, tasks.put_task(handler, cm, tid, pdir))
         elif method == "DELETE":

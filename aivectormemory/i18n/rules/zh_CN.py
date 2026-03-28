@@ -22,7 +22,7 @@ STEERING_CONTENT = """# AIVectorMemory - 工作规则
 
 **步骤 B：判断消息类型**
 - 闲聊/进度/讨论规则/简单确认 → 直接回答，流程结束
-- 用户纠正错误行为/连续犯错提醒 → 立即 `remember`（tags: ["踩坑", "行为纠正", ...从内容提取关键词], scope: "project"，含：错误行为、用户原话要点、正确做法），然后继续步骤 C
+- 用户纠正错误行为/连续犯错提醒 → 更新项目 steering 文件的自定义规则区域（`<!-- custom-rules -->` 块），记录：错误行为、用户原话要点、正确做法，然后继续步骤 C
 - 用户表达技术偏好/工作习惯 → `auto_save` 存储偏好
 - 其他（代码问题、bug、功能需求）→ 继续步骤 C
 - 回复时说明判断结果，如："这是个询问"/"这是个问题，需要记录"
@@ -67,7 +67,6 @@ STEERING_CONTENT = """# AIVectorMemory - 工作规则
 **步骤 I：用户确认通过**
 - `track archive` 归档
 - `status` 清除阻塞（is_blocked: false）
-- 有踩坑价值 → `remember`（tags: ["踩坑", ...从问题内容提取关键词], scope: "project"，含错误现象、根因、正确做法。示例：看板启动失败 → tags: ["踩坑", "看板", "启动", "dashboard"]）
 - **回流检查**：如果当前 track 是在执行 task 过程中发现的 bug（有关联 feature_id 或正在执行 spec 任务），归档后必须回到第6节继续执行下一个子任务，调用 `task update` 更新当前任务状态并同步 tasks.md
 - 会话结束前 → `auto_save` 自动提取偏好
 
@@ -160,11 +159,10 @@ STEERING_CONTENT = """# AIVectorMemory - 工作规则
 
 ## 7. 记忆质量要求
 
-- tags 规范：必须包含分类标签（踩坑/项目知识/行为纠正）+ 从内容提取的关键词标签（模块名、功能名、技术词），禁止只打一个分类标签
+- tags 规范：必须包含分类标签（踩坑/项目知识）+ 从内容提取的关键词标签（模块名、功能名、技术词），禁止只打一个分类标签
 - 命令类：完整可执行命令，禁止别名缩写
 - 流程类：具体步骤，不能只写结论
 - 踩坑类：错误现象 + 根因 + 正确做法
-- 行为纠正类：错误行为 + 用户原话要点 + 正确做法
 
 ---
 
@@ -201,7 +199,7 @@ STEERING_CONTENT = """# AIVectorMemory - 工作规则
 
 **IDE 安全**：禁止 `$(...)` + 管道、禁止 `python3 -c` 多行脚本（写 .py 文件）、`lsof -ti:端口` 必须加 ignoreWarning
 
-**自测要求**：禁止让用户手动操作，能自己执行的不要让用户做。自测通过后才能说"等待验证"。Playwright 是 MCP 工具（browser_navigate/browser_click/browser_type/browser_snapshot），**禁止用 Python playwright.sync_api 写脚本，禁止创建临时测试文件**。测试完成后不调用 browser_close，保持浏览器打开让用户验证。
+**自测要求**：禁止让用户手动操作，自测通过后才能说"等待验证"。后端变更用 pytest/curl，**前端可见变更：只能用 Playwright MCP 工具**（browser_navigate → 交互 → browser_snapshot），其他一切方式均为违规。测试后不调用 browser_close。
 
 **任务执行**：按顺序执行禁止跳过，全自动，禁止用"后续迭代"跳过。开始任务前必须先检查 tasks.md，确认前置任务全部 `[x]`，有未完成的前置任务必须先完成
 
@@ -260,9 +258,7 @@ DEV_WORKFLOW_PROMPT = (
     "## ⚠️ 自测检查\n\n"
     "修改了代码文件后，**必须先运行测试验证再设阻塞\"等待验证\"**。"
     "禁止修改代码后直接说\"等待验证\"而不跑测试。仅修改文档/配置文件（.md/.json/.yaml/.toml/.sh 等非代码文件）时不要求自测。\n\n"
-    "**Playwright 规范**：Playwright 是 MCP 工具（browser_navigate/browser_click/browser_type/browser_snapshot），"
-    "**禁止用 Python playwright.sync_api 写脚本，禁止创建临时测试文件（.py/.sql）**。"
-    "测试完成后不调用 browser_close，保持浏览器打开让用户验证。"
+    "**前端可见变更：只能用 Playwright MCP 工具**（browser_navigate → 交互 → browser_snapshot），其他一切方式（curl、脚本、node -e、截图）均为违规。测试后不调用 browser_close。"
 )
 
 COMPACT_RECOVERY_HINTS = (

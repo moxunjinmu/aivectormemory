@@ -19,10 +19,10 @@ IDES = [
     ("Claude Code",    lambda root: root / ".mcp.json",                "standard", False,
      lambda root: root / "CLAUDE.md", "append",
      lambda root: root / ".claude"),
-    ("Windsurf",       lambda root: root / ".windsurf/mcp.json",       "standard", False,
+    ("Windsurf",       lambda root: root / ".windsurf/mcp.json",       "windsurf", False,
      lambda root: root / ".windsurf/rules/aivectormemory.md", "file",
      lambda root: root / ".windsurf"),
-    ("VSCode",         lambda root: root / ".vscode/mcp.json",         "standard", False,
+    ("VSCode",         lambda root: root / ".vscode/mcp.json",         "vscode", False,
      lambda root: root / ".github/copilot-instructions.md", "append",
      lambda root: root / ".claude"),
     ("Trae",           lambda root: root / ".trae/mcp.json",           "standard", False,
@@ -32,9 +32,9 @@ IDES = [
      lambda root: root / ".opencode/plugins"),
     ("Codex",          lambda root: root / ".codex/config.toml",       "codex", False,
      lambda root: root / "AGENTS.md", "append", None),
-    ("Antigravity",    lambda root: Path.home() / ".gemini/antigravity/mcp_config.json", "standard", True,
+    ("Antigravity",    lambda root: Path.home() / ".gemini/antigravity/mcp_config.json", "basic", True,
      lambda root: root / "GEMINI.md", "file", None),
-    ("Copilot",        lambda root: root / ".github/copilot/mcp.json",  "standard", False,
+    ("Copilot",        lambda root: root / ".github/copilot/mcp.json",  "basic", False,
      lambda root: root / ".github/copilot-instructions.md", "append", None),
 ]
 
@@ -53,11 +53,18 @@ AUTO_APPROVE_TOOLS = ["remember", "recall", "forget", "status", "track", "task",
 
 PLAYWRIGHT_SERVER_NAME = "playwright"
 PLAYWRIGHT_MCP_VERSION = "0.0.68"
-PLAYWRIGHT_CONFIG = {
-    "command": "npx",
-    "args": ["-y", f"@playwright/mcp@{PLAYWRIGHT_MCP_VERSION}", "--browser", "chromium"],
-    "disabled": False,
-}
+PLAYWRIGHT_ARGS = ["-y", f"@playwright/mcp@{PLAYWRIGHT_MCP_VERSION}", "--browser", "chromium"]
+
+
+def _build_playwright_config(fmt: str) -> dict:
+    if fmt == "vscode":
+        return {"type": "stdio", "command": "npx", "args": PLAYWRIGHT_ARGS}
+    if fmt == "windsurf":
+        return {"command": "npx", "args": PLAYWRIGHT_ARGS, "disabled": False}
+    if fmt == "standard":
+        return {"command": "npx", "args": PLAYWRIGHT_ARGS, "disabled": False}
+    # basic, opencode, etc.
+    return {"command": "npx", "args": PLAYWRIGHT_ARGS}
 
 
 HOOKS_CONFIGS = [
@@ -162,7 +169,7 @@ OPENCODE_PLUGIN_TEMPLATE = """\
 // AIVectorMemory plugin for OpenCode (@opencode-ai/plugin)
 // - experimental.chat.system.transform: 注入开发规则到 system prompt
 // - tool.execute.before: 检查 Edit/Write 前是否有活跃 track issue
-import { execSync } from "child_process";
+import { execFileSync } from "child_process";
 import { homedir } from "os";
 import { existsSync } from "fs";
 import { join } from "path";
@@ -175,10 +182,12 @@ __DEV_WORKFLOW_RULES__</ADDITIONAL_INSTRUCTIONS>`;
 function hasActiveIssues(projectDir) {
   if (!existsSync(DB_PATH)) return true;
   try {
-    const result = execSync(
-      `sqlite3 "${DB_PATH}" "SELECT COUNT(*) FROM issues WHERE project_dir='${projectDir}' AND status IN ('pending','in_progress');"`,
-      { encoding: "utf-8", timeout: 5000 }
-    ).trim();
+    const result = execFileSync("python3", [
+      "-c",
+      "import sqlite3,sys;c=sqlite3.connect(sys.argv[1]);print(c.execute('SELECT COUNT(*) FROM issues WHERE project_dir=? AND status IN (?,?)',(sys.argv[2],'pending','in_progress')).fetchone()[0]);c.close()",
+      DB_PATH,
+      projectDir,
+    ], { encoding: "utf-8", timeout: 5000 }).trim();
     return parseInt(result, 10) > 0;
   } catch {
     return true;
@@ -340,7 +349,7 @@ def _build_cursor_hooks(script_path: str) -> dict:
     return cfg
 
 
-def _write_cursor_hooks(hooks_dir: Path) -> list[str]:
+def _write_cursor_hooks(hooks_dir: Path, lang: str | None = None) -> list[str]:
     """写入 Cursor hooks 到 .cursor/hooks.json"""
     results = []
     hooks_dir.mkdir(parents=True, exist_ok=True)
@@ -382,7 +391,7 @@ def _build_windsurf_hooks(script_path: str) -> dict:
     return cfg
 
 
-def _write_windsurf_hooks(hooks_dir: Path) -> list[str]:
+def _write_windsurf_hooks(hooks_dir: Path, lang: str | None = None) -> list[str]:
     """写入 Windsurf hooks 到 .windsurf/hooks.json"""
     results = []
     hooks_dir.mkdir(parents=True, exist_ok=True)
@@ -501,11 +510,22 @@ def _write_steering(filepath: Path, mode: str, ide_name: str = "", include_workf
             workflow = get_workflow_prompt(lang).strip()
             content = content[:idx] + f"---\n\n{workflow}\n\n---\n\n## 1." + content[idx + len(anchor):]
     if mode == "file":
-        final = content + "\n"
-        if filepath.exists() and filepath.read_text("utf-8").strip() == content:
-            return False
+        START = STEERING_MARKER
+        END = "<!-- /aivectormemory-steering -->"
+        block = f"{START}\n{content}\n{END}"
+        if filepath.exists():
+            existing = filepath.read_text("utf-8")
+            if START in existing and END in existing:
+                start_idx = existing.index(START)
+                end_idx = existing.index(END) + len(END)
+                old_block = existing[start_idx:end_idx]
+                if old_block.strip() == block.strip():
+                    return False
+                updated = existing[:start_idx] + block + existing[end_idx:]
+                filepath.write_text(updated, encoding="utf-8")
+                return True
         filepath.parent.mkdir(parents=True, exist_ok=True)
-        filepath.write_text(final, encoding="utf-8")
+        filepath.write_text(block + "\n", encoding="utf-8")
         return True
     if mode == "append":
         existing = filepath.read_text("utf-8") if filepath.exists() else ""
@@ -536,19 +556,22 @@ def _build_env_block() -> dict:
     return env_block
 
 
+def _root_key(fmt: str) -> str:
+    return {"opencode": "mcp", "vscode": "servers"}.get(fmt, "mcpServers")
+
+
 def _build_config(cmd: str, args: list[str], fmt: str) -> dict:
     env_block = _build_env_block()
     if fmt == "opencode":
         cfg = {"type": "local", "command": [cmd] + args, "enabled": True}
-        if env_block:
-            cfg["env"] = env_block
-        return cfg
-    cfg = {
-        "command": cmd,
-        "args": args,
-        "disabled": False,
-        "autoApprove": AUTO_APPROVE_TOOLS,
-    }
+    elif fmt == "vscode":
+        cfg = {"type": "stdio", "command": cmd, "args": args}
+    elif fmt == "windsurf":
+        cfg = {"command": cmd, "args": args, "disabled": False, "alwaysAllow": AUTO_APPROVE_TOOLS}
+    elif fmt == "basic":
+        cfg = {"command": cmd, "args": args}
+    else:  # standard (Claude Code, Kiro)
+        cfg = {"command": cmd, "args": args, "disabled": False, "autoApprove": AUTO_APPROVE_TOOLS}
     if env_block:
         cfg["env"] = env_block
     return cfg
@@ -669,7 +692,7 @@ def _config_has_server(filepath: Path, fmt: str, server_name: str = DEFAULT_SERV
         config = json.loads(filepath.read_text("utf-8"))
     except (json.JSONDecodeError, OSError):
         return False
-    key = "mcp" if fmt == "opencode" else "mcpServers"
+    key = _root_key(fmt)
     servers = config.get(key, {})
     return any(name in servers for name in server_names)
 
@@ -771,10 +794,10 @@ def run_install(project_dir: str | None = None):
             changed = _merge_codex_config(filepath, DEFAULT_SERVER_NAME, server_block)
         else:
             server_config = _build_config(cmd, args, fmt)
-            key = "mcp" if fmt == "opencode" else "mcpServers"
+            key = _root_key(fmt)
             changed = _merge_config(filepath, key, DEFAULT_SERVER_NAME, server_config)
             # 同时写入 Playwright MCP 配置
-            pw_changed = _merge_config(filepath, key, PLAYWRIGHT_SERVER_NAME, PLAYWRIGHT_CONFIG)
+            pw_changed = _merge_config(filepath, key, PLAYWRIGHT_SERVER_NAME, _build_playwright_config(fmt))
             changed = changed or pw_changed
         status = "✓ 已更新" if changed else "- 无变更"
         print(f"  {status}  {label} MCP 配置")
@@ -794,11 +817,11 @@ def run_install(project_dir: str | None = None):
             if hooks_dir_str.endswith(".opencode/plugins"):
                 hook_results = _write_opencode_plugins(hooks_dir, lang=selected_lang)
             elif hooks_dir_str.endswith(".claude"):
-                hook_results = _write_claude_code_hooks(hooks_dir)
+                hook_results = _write_claude_code_hooks(hooks_dir, lang=selected_lang)
             elif hooks_dir_str.endswith(".cursor"):
-                hook_results = _write_cursor_hooks(hooks_dir)
+                hook_results = _write_cursor_hooks(hooks_dir, lang=selected_lang)
             elif hooks_dir_str.endswith(".windsurf"):
-                hook_results = _write_windsurf_hooks(hooks_dir)
+                hook_results = _write_windsurf_hooks(hooks_dir, lang=selected_lang)
             else:
                 hook_results = _write_hooks(hooks_dir, lang=selected_lang)
             for r in hook_results:

@@ -56,7 +56,7 @@ def handle_track(args, *, cm, engine=None, **_):
         if content:
             validate_content(content)
         d = _validate_date(args.get("date", today))
-        result = repo.create(d, title, content, args.get("memory_id", ""), args.get("parent_id", 0))
+        result = repo.create(d, title, content, args.get("memory_id", ""), args.get("parent_id", 0), tags=args.get("tags"))
         key = "track.create.dedup" if result.get("deduplicated") else "track.create"
         return fmt(key, issue_number=result["issue_number"], date=result["date"])
 
@@ -75,17 +75,18 @@ def handle_track(args, *, cm, engine=None, **_):
         row = _resolve_issue(repo, args.get("issue_id"))
         issue_id = row["id"]
         content = args.get("content")
-        if content:
-            repo.update(issue_id, content=content)
-        result = repo.archive(issue_id)
-        if not result:
-            raise ValueError(f"Issue #{row['issue_number']} not found")
-        feature_id = row.get("feature_id", "")
-        if feature_id:
-            remaining = repo.count_active_by_feature(feature_id)
-            if remaining == 0:
-                task_repo = TaskRepo(cm.conn, cm.project_dir)
-                task_repo.archive_by_feature(feature_id)
+        with cm.transaction():
+            if content:
+                repo.update(issue_id, content=content)
+            result = repo.archive(issue_id)
+            if not result:
+                raise ValueError(f"Issue #{row['issue_number']} not found")
+            feature_id = row.get("feature_id", "")
+            if feature_id:
+                remaining = repo.count_active_by_feature(feature_id)
+                if remaining == 0:
+                    task_repo = TaskRepo(cm.conn, cm.project_dir)
+                    task_repo.archive_by_feature(feature_id)
         return fmt("track.archive", archived_at=result.get("archived_at", ""))
 
     elif action == "delete":
