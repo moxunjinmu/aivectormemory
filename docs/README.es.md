@@ -371,6 +371,16 @@ O agregar env en la configuración MCP:
 
 ## 📋 Registro de Cambios
 
+### v2.0.9
+
+**Mejora: Seguridad y Optimización de Reglas**
+- 🔒 Corregidas vulnerabilidades de inyección SQL, inyección de comandos y recorrido de directorios
+- 🛡️ Protección de transacciones añadida para integridad de datos (operaciones de archivo, inserción, actualización)
+- 🧠 Fórmula de similitud unificada en todas las rutas de búsqueda
+- 📏 Reglas de flujo de trabajo AI comprimidas un 38% (219→136 líneas) sin eliminar procesos
+- 🧹 Migración v12 limpia automáticamente memorias basura heredadas
+- 🌐 Los 7 idiomas sincronizados
+
 ### v2.0.8
 
 **Nuevo: Pruebas de Navegador Playwright Integradas**

@@ -6,155 +6,106 @@ STEERING_CONTENT = """# AIVectorMemory - Règles de Flux de Travail
 
 ## 1. Démarrage de Nouvelle Session (exécuter dans l'ordre obligatoire)
 
-1. `recall` (tags: ["connaissance du projet"], scope: "project", top_k: 1) charger les connaissances du projet
-2. `recall` (tags: ["preference"], scope: "user", top_k: 10) charger les préférences utilisateur
+1. `recall` (tags: ["connaissance du projet"], scope: "project", top_k: 1)
+2. `recall` (tags: ["preference"], scope: "user", top_k: 10)
 3. `status` (sans paramètre state) lire l'état de session
-4. Si bloqué (is_blocked=true) → signaler l'état de blocage, attendre le retour de l'utilisateur, **aucune action autorisée**
-5. Si non bloqué → passer au « Flux de Traitement des Messages »
+4. Bloqué → signaler et attendre ; non bloqué → traiter le message
 
 ---
 
 ## 2. Flux de Traitement des Messages
 
-**Étape A : Appeler `status` pour lire l'état**
-- Bloqué → signaler et attendre, aucune action autorisée
-- Non bloqué → continuer
+**A. `status` vérifier le blocage** — bloqué → signaler et attendre, aucune action autorisée
 
-**Étape B : Déterminer le type de message**
-- Discussion informelle / vérification de progrès / discussion de règles / confirmation simple → répondre directement, flux terminé
-- Utilisateur corrigeant un mauvais comportement / rappel d'erreurs répétées → mettre à jour la zone de règles personnalisées du fichier steering du projet (bloc `<!-- custom-rules -->`), enregistrer : mauvais comportement, points clés des paroles de l'utilisateur, approche correcte, puis continuer à l'Étape C
-- Utilisateur exprimant des préférences techniques / habitudes de travail → `auto_save` pour stocker les préférences
-- Autre (problèmes de code, bugs, demandes de fonctionnalités) → continuer à l'Étape C
-- Indiquer le résultat du jugement dans la réponse, ex. : « C'est une question » / « C'est un problème qui doit être enregistré »
+**B. Déterminer le type de message** (indiquer le résultat du jugement dans la réponse)
+- Discussion informelle / progrès / discussion de règles / confirmation simple → répondre directement, flux terminé
+- Correction de mauvais comportement → mettre à jour le bloc steering `<!-- custom-rules -->` (enregistrer : mauvais comportement, paroles de l'utilisateur, approche correcte), continuer C
+- Préférences techniques / habitudes de travail → `auto_save` pour stocker les préférences
+- Autre (problèmes de code, bugs, demandes de fonctionnalités) → continuer C
 
-**Étape C : `track create` pour enregistrer le problème**
-- Enregistrer immédiatement quelle que soit la taille, ne jamais corriger avant d'enregistrer
-- `content` est obligatoire : décrire brièvement le problème et le contexte, ne jamais passer uniquement title avec content vide
-- `status` mettre à jour en pending
+**C. `track create`** — enregistrer dès découverte (interdit de corriger avant d'enregistrer), `content` obligatoire : symptômes et contexte
 
-**Étape D : Investigation**
-- `recall` (query: mots-clés pertinents, tags: ["piège", ...extraire mots-clés du problème]) pour consulter les entrées de pièges
-- Doit examiner le code d'implémentation existant (ne jamais supposer de mémoire)
-- Confirmer le flux de données lorsque le stockage est impliqué
-- Tests aveugles interdits, doit trouver la cause racine
-- Architecture / conventions / implémentations clés du projet découvertes → `remember` (tags: ["connaissance du projet", ...extraire mots-clés module/fonction du contenu], scope: "project")
-- `track update` pour enregistrer la cause racine et la solution : `investigation` (processus d'investigation), `root_cause` (cause racine) doivent être remplis
+**D. Investigation** — vérifications Section 5, puis examiner le code (interdit de supposer de mémoire), confirmer le flux de données, trouver la cause racine. Architecture/conventions découvertes → `remember`. `track update` remplir investigation + root_cause
 
-**Étape E : Présenter la solution à l'utilisateur, déterminer la branche du flux**
-- Après l'investigation, présenter la solution selon la complexité :
-  - Correction simple (fichier unique, bug, configuration) → continuer à l'Étape F (flux de correction track)
-  - Exigence multi-étapes (nouvelle fonctionnalité, refactoring, mise à niveau) → après confirmation de l'utilisateur, passer au flux spec/task (voir Section 6)
-- Quelle que soit la branche, doit attendre la confirmation de l'utilisateur avant d'exécuter
-- Immédiatement `status({ is_blocked: true, block_reason: "Solution en attente de confirmation utilisateur" })`
-- Ne jamais simplement dire verbalement « en attente de confirmation » sans établir le blocage, sinon une nouvelle session après transfert jugera incorrectement comme confirmé
-- Attendre la confirmation de l'utilisateur
+**E. Présenter la solution** — correction simple→F, multi-étapes→Section 6. **Doit d'abord `status` établir le blocage avant d'attendre confirmation**
 
-**Étape F : Modifier le code après confirmation de l'utilisateur**
-- Avant modification, `recall` (query: module/fonction concerné, tags: ["piège", ...extraire mots-clés du module/fonction]) pour vérifier les entrées de pièges
-- Doit examiner le code et réfléchir soigneusement avant modification
-- Corriger un problème à la fois
-- Nouveau problème trouvé pendant la correction → `track create` pour enregistrer, puis continuer le problème actuel
-- L'utilisateur interrompt avec un nouveau problème → `track create` pour enregistrer, puis décider de la priorité
+**F. Modifier le code** — vérifications Section 5, puis modifier, un problème à la fois. Nouveau problème découvert → `track create`
 
-**Étape G : Exécuter les tests pour vérification**
-- Exécuter les tests pertinents, pas de promesses verbales
-- `track update` pour enregistrer les résultats : `solution` (solution), `files_changed` (fichiers modifiés), `test_result` (résultats de test) doivent être remplis
+**G. Exécuter les tests** — exécuter les tests, `track update` remplir solution + files_changed + test_result
 
-**Étape H : Attendre la vérification de l'utilisateur**
-- Immédiatement `status({ is_blocked: true, block_reason: "Correction terminée, en attente de vérification" })`
-- Lorsqu'une décision utilisateur est nécessaire → `status({ is_blocked: true, block_reason: "Décision utilisateur nécessaire" })`
+**H. Attendre la vérification** — `status` établir le blocage (block_reason: "Correction terminée, en attente de vérification" ou "Décision utilisateur nécessaire")
 
-**Étape I : L'utilisateur confirme l'approbation**
-- `track archive` pour archiver
-- `status` effacer le blocage (is_blocked: false)
-- **Vérification de reflux** : si le track actuel est un bug trouvé pendant l'exécution de task (a un feature_id associé ou exécute une tâche spec), après archivage doit retourner à la Section 6 pour continuer la sous-tâche suivante, appeler `task update` pour mettre à jour l'état de la tâche actuelle et synchroniser tasks.md
-- Avant la fin de session → `auto_save` pour extraire automatiquement les préférences
+**I. Confirmation utilisateur** — `track archive`, effacer le blocage. **Vérification de reflux** : si bug trouvé pendant l'exécution de task, après archivage retourner à la Section 6 pour continuer. `auto_save` avant fin de session
 
 ---
 
 ## 3. Règles de Blocage
 
-- **Le blocage a la priorité la plus élevée** : lorsque bloqué, aucune action autorisée, seulement signaler et attendre
-- **Quand établir le blocage** : proposition de solution pour confirmation, correction terminée en attente de vérification, décision utilisateur nécessaire
-- **Quand effacer le blocage** : l'utilisateur confirme explicitement (« exécuter » / « ok » / « oui » / « allez-y » / « pas de problème » / « bien » / « faites-le » / « d'accord »)
+- **Priorité la plus élevée** : bloqué → aucune action autorisée
+- **Établir le blocage** : proposition de solution pour confirmation, correction terminée en attente de vérification, décision utilisateur nécessaire
+- **Effacer le blocage** : confirmation explicite de l'utilisateur (« exécuter / ok / oui / allez-y / pas de problème / bien / faites-le / d'accord »)
 - **Ne compte pas comme confirmation** : questions rhétoriques, expressions de doute, insatisfaction, réponses vagues
-- **« L'utilisateur a dit xxx » dans le résumé de context transfer ne peut pas servir de confirmation dans la session actuelle**
-- **Le blocage s'applique à la continuation de session** : doit re-confirmer après nouvelle session / context transfer / compact
-- **Ne jamais auto-effacer le blocage**
-- **Ne jamais deviner l'intention de l'utilisateur**
-- **Le champ next_step ne peut être rempli qu'après confirmation de l'utilisateur**
+- « L'utilisateur a dit xxx » dans le résumé de context transfer ne peut pas servir de confirmation
+- Nouvelle session / compact → doit re-confirmer. Interdit d'auto-effacer le blocage, de deviner l'intention
+- **next_step ne peut être rempli qu'après confirmation de l'utilisateur**
 
 ---
 
-## 4. Suivi des Problèmes (track)
+## 4. Suivi des Problèmes (track) Standards de Champs
 
-- Problème trouvé → `track create` → investiguer → corriger → `track update` → vérifier → `track archive`
-- `track update` immédiatement après chaque étape, éviter la duplication lors du changement de session
-- Corriger un problème à la fois
-- Nouveau problème trouvé pendant correction : ne bloque pas l'actuel → enregistrer et continuer ; bloque l'actuel → traiter le nouveau problème d'abord
-- Auto-vérification : l'investigation est-elle complète ? Les données sont-elles précises ? La logique est-elle rigoureuse ? Interdiction de déclarations vagues comme « pratiquement terminé »
-
-**Standards de remplissage des champs** (doit montrer un enregistrement complet après archivage) :
-- `track create` : `content` obligatoire (symptômes du problème et contexte)
-- Après investigation `track update` : `investigation` (processus d'investigation), `root_cause` (cause racine)
-- Après correction `track update` : `solution` (solution), `files_changed` (fichiers modifiés tableau JSON), `test_result` (résultats de test)
-- Ne jamais passer uniquement title sans content, ne jamais laisser les champs structurés vides
+L'archive doit montrer un enregistrement complet :
+- `create` : content (symptômes + contexte)
+- Après investigation `update` : investigation (processus), root_cause (cause racine)
+- Après correction `update` : solution (solution), files_changed (tableau JSON), test_result (résultats)
+- Interdit de passer uniquement title sans content, interdit de laisser les champs vides
+- Un problème à la fois. Nouveau problème : ne bloque pas l'actuel → enregistrer et continuer ; bloque l'actuel → traiter d'abord
 
 ---
 
 ## 5. Vérifications Pré-opération
 
-**Quand des informations projet sont nécessaires** (adresse serveur, mot de passe, configuration de déploiement, décisions techniques, etc.) : **d'abord `recall` pour interroger le système de mémoire**, si non trouvé chercher dans le code/fichiers de configuration, ne demander à l'utilisateur qu'en dernier recours. Interdit de sauter recall et demander directement à l'utilisateur
-**Avant modification du code** : `recall` pour vérifier les entrées de pièges + examiner l'implémentation existante + confirmer le flux de données
-**Après modification du code** : exécuter les tests pour vérifier + confirmer qu'il n'y a pas d'impact sur d'autres fonctions
-**Avant d'exécuter des opérations** : `recall` (query: mots-clés liés à l'opération, tags: ["piège"]) pour vérifier s'il y a des entrées de pièges associées. Si trouvées, suivre l'approche correcte de la mémoire pour éviter de répéter les erreurs
+- **Informations projet nécessaires** : d'abord `recall` → chercher dans le code/configuration → demander à l'utilisateur (interdit de sauter recall)
+- **Avant modification du code** : `recall` (query: mots-clés, tags: ["piège"]) vérifier les pièges + examiner l'implémentation existante + confirmer le flux de données
+- **Après modification du code** : exécuter les tests + confirmer l'absence d'impact sur d'autres fonctions
+- **Quand l'utilisateur demande de lire un fichier** : interdit de sauter en prétextant « déjà lu », doit relire le contenu le plus récent
 
 ---
 
 ## 6. Spec et Gestion des Tâches (task)
 
-**Condition de déclenchement** : l'utilisateur propose une nouvelle fonctionnalité, un refactoring, une mise à niveau ou d'autres exigences multi-étapes
+**Déclencheur** : nouvelles fonctionnalités, refactoring, mises à niveau multi-étapes
 
-**Flux** :
-1. Créer le répertoire spec : `{specs_path}`
-2. Écrire `requirements.md` : document d'exigences, clarifier la portée et les critères d'acceptation
-3. Après confirmation des exigences par l'utilisateur, écrire `design.md` : document de conception, solution technique et architecture
-4. Après confirmation de la conception par l'utilisateur, écrire `tasks.md` : document de tâches, diviser en unités minimales exécutables
-5. Appeler `task` (action: batch_create, feature_id: nom du répertoire spec) pour synchroniser les tâches dans la base de données
+**Flux Spec** (2→3→4 strictement dans l'ordre, révision puis confirmation à chaque étape) :
+1. Créer `{specs_path}`
+2. `requirements.md` — portée + critères d'acceptation
+3. `design.md` — solution technique + architecture
+4. `tasks.md` — unités minimales exécutables, marquées `- [ ]`
 
-**⚠️ Les étapes 2→3→4 doivent être exécutées strictement dans l'ordre, ne jamais sauter design.md pour écrire directement tasks.md. Chaque étape doit attendre la confirmation de l'utilisateur avant de continuer.**
-6. Exécuter les sous-tâches dans l'ordre (voir « Flux d'Exécution des Sous-tâches » ci-dessous)
-7. Après avoir tout terminé, appeler `task` (action: list) pour confirmer qu'il ne manque rien
+**Révision de documents** (après chaque étape, avant soumission pour confirmation) :
+- Vérification directe de complétude + **scan inverse** (Grep mots-clés couvrant les fichiers sources, comparaison élément par élément)
+- requirements : recherche code des modules concernés, confirmer l'absence d'omissions
+- design : scan par couche de flux de données (stockage→données→métier→interface→présentation), attention aux ruptures de couche intermédiaire
+- tasks : vérification croisée avec requirements + design élément par élément
 
-**Flux d'Exécution des Sous-tâches** (vérification forcée par Hook, Edit/Write seront bloqués si non suivi) :
-1. Avant de commencer : `task` (action: update, task_id: X, status: in_progress) pour marquer la sous-tâche actuelle
-2. Exécuter les modifications de code
-3. Après achèvement : `task` (action: update, task_id: X, status: completed) pour mettre à jour le statut (synchronise automatiquement la checkbox tasks.md)
-4. Passer immédiatement à la sous-tâche suivante, répéter 1-3
+**Flux d'exécution** :
+5. `task batch_create` (feature_id=nom du répertoire, **children imbriqués obligatoires**)
+6. Exécuter les sous-tâches dans l'ordre (interdit de sauter, interdit « itération future ») :
+   - `task update` (in_progress) → lire la section correspondante de design.md → implémenter → `task update` (completed)
+   - **Avant de commencer, vérifier que toutes les tâches précédentes dans tasks.md sont `[x]`**
+   - Omissions découvertes pendant l'organisation/exécution → mettre à jour design.md/tasks.md d'abord
+7. `task list` confirmer l'absence d'omissions
+8. Auto-test, signaler l'achèvement, établir le blocage en attente de vérification, **interdit de git commit/push de son propre chef**
 
-**Convention feature_id** : doit correspondre au nom du répertoire spec, kebab-case (ex., `task-scheduler`, `v0.2.5-upgrade`)
+**Répartition** : task gère le plan et le progrès, track gère les bugs. Bug trouvé pendant l'exécution de task → `track create`, corriger puis continuer task
 
-**Répartition avec track** : task gère le plan de développement et le progrès, track gère le suivi des bugs/problèmes. Bug trouvé pendant l'exécution de task → `track create` pour enregistrer, corriger puis continuer task
-
-**Standards de document de tâches** :
-- Chaque tâche affinée en unité minimale exécutable, utiliser `- [ ]` pour marquer le statut
-- Après avoir terminé chaque sous-tâche, doit immédiatement : 1) `task update` pour mettre à jour le statut 2) confirmer que l'entrée tasks.md est mise à jour en `[x]`. Traiter un par un, ne jamais mettre à jour en lot après achèvement en masse
-- Lors de l'organisation des documents de tâches, doit ouvrir le document de conception pour vérifier élément par élément, compléter les omissions avant d'exécuter
-- Exécuter dans l'ordre, ne jamais sauter, ne jamais utiliser « itération future » pour sauter des tâches
-- **Avant de commencer une tâche, doit vérifier tasks.md pour confirmer que toutes les tâches précédentes sont marquées `[x]`, doit terminer les tâches prérequises incomplètes d'abord, saut de groupe interdit**
-
-**Auto-vérification** : lors de l'organisation des documents de tâches, doit ouvrir le document de conception pour vérifier élément par élément, compléter les omissions avant d'exécuter. Après avoir tout terminé, `task list` pour confirmer qu'il ne manque rien
-
-**Scénarios ne nécessitant pas de spec** : modification de fichier unique, bug simple, ajustement de configuration → directement `track create` pour le flux de suivi des problèmes
+**Pas besoin de spec** : modification de fichier unique, bug simple, ajustement de configuration → directement track
 
 ---
 
 ## 7. Exigences de Qualité de Mémoire
 
-- Convention de tags : doit inclure un tag de catégorie (piège / connaissance du projet) + tags de mots-clés extraits du contenu (nom de module, nom de fonction, termes techniques), ne jamais utiliser un seul tag de catégorie
-- Type commande : commande exécutable complète, pas d'abréviations d'alias
-- Type processus : étapes spécifiques, pas seulement des conclusions
-- Type piège : symptômes d'erreur + cause racine + approche correcte
+- tags : tag de catégorie (piège / connaissance du projet) + tags de mots-clés (nom de module, nom de fonction, termes techniques)
+- Type commande : commande exécutable complète ; type processus : étapes spécifiques ; type piège : symptômes + cause racine + approche correcte
 
 ---
 
@@ -167,43 +118,31 @@ STEERING_CONTENT = """# AIVectorMemory - Règles de Flux de Travail
 | forget | Supprimer mémoire | memory_id / memory_ids |
 | status | État de session | state(omettre=lire, passer=mettre à jour), clear_fields |
 | track | Suivi des problèmes | action(create/update/archive/delete/list) |
-| task | Gestion des tâches | action(batch_create/update/list/delete/archive), feature_id |
+| task | Gestion des tâches | action(batch_create/update/list/delete/archive), feature_id, tasks[].children |
 | readme | Génération README | action(generate/diff), lang, sections |
 | auto_save | Sauvegarder préférences | preferences, extra_tags |
 
-**Description des champs status** :
-- `is_blocked` : si bloqué
-- `block_reason` : raison du blocage
-- `next_step` : prochaine étape (ne peut être rempli qu'après confirmation de l'utilisateur)
-- `current_task` : tâche actuelle
-- `progress` : champ calculé en lecture seule, auto-agrégé depuis track + task, pas d'entrée manuelle nécessaire
-- `recent_changes` : changements récents (maximum 10 entrées)
-- `pending` : liste en attente
-- `clear_fields` : noms de champs de liste à vider (ex., `["pending"]`), contournement pour certains IDEs qui filtrent les tableaux vides
+**Champs status** : is_blocked, block_reason, next_step (après confirmation utilisateur), current_task, progress (lecture seule), recent_changes (≤10), pending, clear_fields
 
 ---
 
 ## 9. Standards de Développement
 
-**Style de code** : concision d'abord, opérateur ternaire > if-else, évaluation court-circuit > conditionnel, template strings > concaténation, pas de commentaires inutiles
+**Code** : concision d'abord, ternaire > if-else, court-circuit > conditionnel, template strings > concaténation, pas de commentaires inutiles
 
-**Flux de travail Git** : travail quotidien sur la branche `dev`, ne jamais commit directement sur master. Ne commit que lorsque l'utilisateur le demande explicitement. Flux de commit : confirmer la branche dev (`git branch --show-current`) → `git add -A` → `git commit -m "fix: description brève"` → `git push origin dev`. Merge vers master uniquement lorsque l'utilisateur le demande explicitement.
+**Git** : travail quotidien sur la branche `dev`, interdit de commit directement sur master. Ne commit que sur demande : confirmer dev → `git add -A` → `git commit` → `git push origin dev`
 
-**Sécurité IDE** : pas de combinaisons `$(...)` + pipe, pas de scripts multiligne `python3 -c` (écrire des fichiers .py), `lsof -ti:port` doit ajouter ignoreWarning
+**Sécurité IDE** : pas de combinaisons `$(...)` + pipe, pas de `python3 -c` multiligne (>2 lignes → écrire .py), `lsof` doit ajouter ignoreWarning
 
-**Exigences d'auto-test** : ne jamais demander à l'utilisateur d'opérer manuellement, auto-test doit réussir avant de dire « en attente de vérification ». Backend : pytest/curl. **Changements visibles frontend : UNIQUEMENT les outils Playwright MCP** (browser_navigate → interaction → browser_snapshot), toute autre méthode est une violation. Ne pas appeler browser_close après les tests.
+**Auto-test** : interdit de demander à l'utilisateur d'opérer manuellement, tests réussis avant de dire « en attente de vérification ». Backend : pytest/curl ; frontend : **uniquement Playwright MCP** (navigate→interaction→snapshot, ne pas close)
 
-**Exécution des tâches** : exécuter dans l'ordre sans sauter, entièrement automatisé, ne jamais utiliser « itération future » pour sauter. Avant de commencer une tâche, doit vérifier tasks.md pour confirmer que tous les prérequis sont `[x]`, doit terminer les prérequis incomplets d'abord
+**Migration de contenu** : interdit de réécrire de mémoire, doit copier ligne par ligne du fichier source
 
-**Standard de complétion** : seulement terminé ou non terminé, interdiction de déclarations vagues comme « pratiquement terminé »
+**Continuation** : compact/context transfer → terminer le travail en cours d'abord, puis faire le rapport
 
-**Migration de contenu** : ne jamais réécrire de mémoire, doit copier ligne par ligne du fichier source
+**Optimisation du contexte** : préférer grep pour localiser puis lire des lignes spécifiques, utiliser strReplace pour les modifications
 
-**Continuation context transfer/compact** : terminer le travail en cours d'abord, puis faire le rapport
-
-**Optimisation du contexte** : préférer `grepSearch` pour localiser, puis `readFile` pour des lignes spécifiques. Utiliser `strReplace` pour les modifications de code, ne pas lire puis écrire
-
-**Gestion des erreurs** : en cas d'échecs répétés, enregistrer les méthodes essayées, essayer une approche différente, si toujours en échec alors demander à l'utilisateur
+**Gestion des erreurs** : en cas d'échecs répétés, enregistrer les méthodes essayées, essayer une approche différente, si toujours en échec → demander à l'utilisateur
 """
 
 

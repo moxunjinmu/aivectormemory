@@ -4,157 +4,108 @@ STEERING_CONTENT = """# AIVectorMemory - 工作規則
 
 ---
 
-## 1. 新會話啟動（必須按順序執行）
+## 1. 新會話啟動（必須按順序）
 
-1. `recall`（tags: ["專案知識"], scope: "project", top_k: 1）載入專案知識
-2. `recall`（tags: ["preference"], scope: "user", top_k: 10）載入使用者偏好
+1. `recall`（tags: ["專案知識"], scope: "project", top_k: 1）
+2. `recall`（tags: ["preference"], scope: "user", top_k: 10）
 3. `status`（不傳 state）讀取會話狀態
-4. 有阻塞（is_blocked=true）→ 匯報阻塞狀態，等待使用者回饋，**禁止執行任何操作**
-5. 無阻塞 → 進入「收到訊息後的處理流程」
+4. 有阻塞 → 匯報等待；無阻塞 → 處理訊息
 
 ---
 
-## 2. 收到訊息後的處理流程
+## 2. 訊息處理流程
 
-**步驟 A：呼叫 `status` 讀取狀態**
-- 有阻塞 → 匯報並等待，禁止操作
-- 無阻塞 → 繼續
+**A. `status` 檢查阻塞** — 有阻塞則匯報等待，禁止操作
 
-**步驟 B：判斷訊息類型**
+**B. 判斷訊息類型**（回覆時說明判斷結果）
 - 閒聊/進度/討論規則/簡單確認 → 直接回答，流程結束
-- 使用者糾正錯誤行為/連續犯錯提醒 → 更新專案 steering 檔案的自訂規則區域（`<!-- custom-rules -->` 區塊），記錄：錯誤行為、使用者原話要點、正確做法，然後繼續步驟 C
-- 使用者表達技術偏好/工作習慣 → `auto_save` 儲存偏好
-- 其他（程式碼問題、bug、功能需求）→ 繼續步驟 C
-- 回覆時說明判斷結果，如：「這是個詢問」/「這是個問題，需要記錄」
+- 糾正錯誤行為 → 更新 steering `<!-- custom-rules -->` 區塊（記錄：錯誤行為、使用者原話、正確做法），繼續 C
+- 技術偏好/工作習慣 → `auto_save` 儲存偏好
+- 其他（程式碼問題、bug、功能需求）→ 繼續 C
 
-**步驟 C：`track create` 記錄問題**
-- 無論大小，發現即記錄，禁止先修再補
-- `content` 必填：簡述問題現象和背景，禁止只傳 title 留空 content
-- `status` 更新 pending
+**C. `track create`** — 發現即記錄（禁止先修再補），`content` 必填現象和背景
 
-**步驟 D：排查**
-- `recall`（query: 相關關鍵詞, tags: ["踩坑", ...從問題提取關鍵詞]）查詢踩坑記錄
-- 必須查看現有實作程式碼（禁止憑記憶假設）
-- 涉及資料儲存時確認資料流向
-- 禁止盲目測試，必須找到根本原因
-- 發現專案架構/約定/關鍵實作 → `remember`（tags: ["專案知識", ...從內容提取模組/功能關鍵詞], scope: "project"）
-- `track update` 記錄根因和方案：必須填充 `investigation`（排查過程）、`root_cause`（根本原因）
+**D. 排查** — 按第5節檢查後查看程式碼（禁止憑記憶），確認資料流向，找根本原因。發現架構/約定 → `remember`。`track update` 填 investigation + root_cause
 
-**步驟 E：向使用者說明方案，確定流程分支**
-- 排查完成後，根據問題複雜度向使用者說明方案：
-  - 簡單修復（單檔案、bug、設定）→ 繼續步驟 F（track 修復流程）
-  - 多步驟需求（新功能、重構、升級）→ 使用者確認後轉 spec/task 流程（見第6節）
-- 無論哪個分支，都必須先等使用者確認後才能執行
-- 立即 `status({ is_blocked: true, block_reason: "方案待使用者確認" })`
-- 禁止只口頭說「等待確認」而不設阻塞，否則會話轉移後新會話會誤判為已確認
-- 等待使用者確認
+**E. 說明方案** — 簡單修復→F，多步驟→第6節。**必須先 `status` 設阻塞再等確認**
 
-**步驟 F：使用者確認後修改程式碼**
-- 修改前 `recall`（query: 涉及的模組/功能, tags: ["踩坑", ...從模組/功能提取關鍵詞]）檢查踩坑記錄
-- 修改前必須查看程式碼嚴謹思考
-- 一次只修一個問題
-- 修復中發現新問題 → `track create` 記錄後繼續當前問題
-- 使用者中途打斷提出新問題 → `track create` 記錄，再決定優先級
+**F. 修改程式碼** — 按第5節檢查後修改，一次只修一個。發現新問題 → `track create`
 
-**步驟 G：執行測試驗證**
-- 執行相關測試，禁止口頭承諾
-- `track update` 記錄自測結果：必須填充 `solution`（解決方案）、`files_changed`（修改檔案）、`test_result`（自測結果）
+**G. 測試驗證** — 執行測試，`track update` 填 solution + files_changed + test_result
 
-**步驟 H：等待使用者驗證**
-- 立即 `status({ is_blocked: true, block_reason: "修復完成等待驗證" })`
-- 需要使用者決策時 → `status({ is_blocked: true, block_reason: "需要使用者決策" })`
+**H. 等待驗證** — `status` 設阻塞（block_reason: "修復完成等待驗證"或"需要使用者決策"）
 
-**步驟 I：使用者確認通過**
-- `track archive` 歸檔
-- `status` 清除阻塞（is_blocked: false）
-- **回流檢查**：如果當前 track 是在執行 task 過程中發現的 bug（有關聯 feature_id 或正在執行 spec 任務），歸檔後必須回到第6節繼續執行下一個子任務，呼叫 `task update` 更新當前任務狀態並同步 tasks.md
-- 會話結束前 → `auto_save` 自動提取偏好
+**I. 使用者確認** — `track archive`，清阻塞。**回流檢查**：若在 task 執行中發現的 bug，歸檔後回到第6節繼續。會話結束前 `auto_save`
 
 ---
 
 ## 3. 阻塞規則
 
-- **阻塞優先級最高**：有阻塞時禁止一切操作，只能匯報等待
-- **何時設阻塞**：提方案等確認、修復完等驗證、需要使用者決策
-- **何時清阻塞**：使用者明確確認（「執行」/「可以」/「好的」/「去做吧」/「沒問題」/「對」/「行」/「改」）
+- **優先級最高**：有阻塞時禁止一切操作
+- **設阻塞**：提方案等確認、修復完等驗證、需要使用者決策
+- **清阻塞**：使用者明確確認（「執行/可以/好的/去做吧/沒問題/對/行/改」）
 - **不算確認**：反問句、質疑句、不滿表達、模糊回覆
-- **context transfer 摘要中的「使用者說xxx」不能作為當前會話的確認依據**
-- **會話延續時阻塞同樣生效**：新會話/context transfer/compact 後必須重新確認
-- **禁止自行清除阻塞**
-- **禁止猜測使用者意圖**
-- **next_step 欄位只能使用者確認後填寫**
+- context transfer 摘要中「使用者說xxx」不能作為確認依據
+- 新會話/compact 後必須重新確認。禁止自行清除阻塞、猜測意圖
+- **next_step 只能使用者確認後填寫**
 
 ---
 
-## 4. 問題追蹤（track）
+## 4. 問題追蹤（track）欄位規範
 
-- 發現問題 → `track create` → 排查 → 修復 → `track update` → 驗證 → `track archive`
-- 每完成一步立即 `track update`，避免會話切換時重複
-- 一次只修一個問題
-- 修復中發現新問題：不阻塞當前 → 記錄繼續；阻塞當前 → 先處理新問題
-- 自檢：排查是否完整？資料是否準確？邏輯是否嚴謹？禁止「基本完成」等模糊表述
-
-**欄位填充規範**（歸檔後必須能看到完整記錄）：
-- `track create`：`content` 必填（問題現象和背景）
-- 排查後 `track update`：`investigation`（排查過程）、`root_cause`（根本原因）
-- 修復後 `track update`：`solution`（解決方案）、`files_changed`（修改檔案 JSON 陣列）、`test_result`（自測結果）
-- 禁止只傳 title 不傳 content，禁止結構化欄位留空
+歸檔後必須能看到完整記錄：
+- `create`：content（現象+背景）
+- 排查後 `update`：investigation（過程）、root_cause（根因）
+- 修復後 `update`：solution（方案）、files_changed（JSON 陣列）、test_result（結果）
+- 禁止只傳 title 不傳 content，禁止欄位留空
+- 一次只修一個。新問題：不阻塞當前→記錄繼續；阻塞當前→先處理
 
 ---
 
 ## 5. 操作前檢查
 
-**需要專案資訊時**（伺服器地址、密碼、部署配置、技術方案等）：**必須先 `recall` 查詢記憶系統**，找不到再從程式碼/設定檔搜尋，都找不到才能問使用者。禁止跳過 recall 直接問使用者
-**程式碼修改前**：`recall` 查踩坑記錄 + 查看現有實作 + 確認資料流向
-**程式碼修改後**：執行測試驗證 + 確認不影響其他功能
-**執行操作前**：`recall`（query: 操作相關關鍵詞, tags: ["踩坑"]）查詢是否有相關踩坑記錄，有則按記憶中的正確做法執行，避免重複踩坑
+- **需要專案資訊**：先 `recall` → 程式碼/設定搜尋 → 問使用者（禁止跳過 recall）
+- **程式碼修改前**：`recall`（query: 關鍵詞, tags: ["踩坑"]）查踩坑記錄 + 查看現有實作 + 確認資料流向
+- **程式碼修改後**：執行測試 + 確認不影響其他功能
+- **使用者要求讀取檔案**：禁止以「已讀過」跳過，必須重新讀取
 
 ---
 
 ## 6. Spec 與任務管理（task）
 
-**觸發條件**：使用者提出新功能、重構、升級等需要多步驟實作的需求
+**觸發**：多步驟的新功能、重構、升級
 
-**流程**：
-1. 建立 spec 目錄：`{specs_path}`
-2. 編寫 `requirements.md`：需求文件，明確功能範圍和驗收標準
-3. 使用者確認需求後，編寫 `design.md`：設計文件，技術方案和架構
-4. 使用者確認設計後，編寫 `tasks.md`：任務文件，拆分為最小可執行單元
-5. 同步呼叫 `task`（action: batch_create, feature_id: spec 目錄名）將任務寫入資料庫
+**Spec 流程**（2→3→4 嚴格順序，每步審查後提交確認）：
+1. 建立 `{specs_path}`
+2. `requirements.md` — 功能範圍 + 驗收標準
+3. `design.md` — 技術方案 + 架構
+4. `tasks.md` — 最小可執行單元，`- [ ]` 標記
 
-**⚠️ 步驟 2→3→4 嚴格順序執行，禁止跳過 design.md 直接寫 tasks.md。每步必須等使用者確認後才能進入下一步。**
-6. 按任務文件順序執行子任務（見下方「子任務執行流程」）
-7. 全部完成後呼叫 `task`（action: list）確認無遺漏
+**文件審查**（每步完成後、提交確認前執行）：
+- 正向檢查完整性 + **反向掃描**（Grep 關鍵詞覆蓋原始檔案，逐條比對）
+- requirements：程式碼搜尋涉及模組，確認無遺漏
+- design：按資料流逐層掃描（儲存→資料→業務→介面→展示），關注中間層斷鏈
+- tasks：同時對照 requirements + design 逐條確認覆蓋
 
-**子任務執行流程**（Hook 強制檢查，不執行將被 Edit/Write 攔截）：
-1. 開始前：`task`（action: update, task_id: X, status: in_progress）標記當前子任務
-2. 執行程式碼修改
-3. 完成後：`task`（action: update, task_id: X, status: completed）更新狀態（自動同步 tasks.md checkbox）
-4. 立即進入下一個子任務，重複 1-3
+**執行流程**：
+5. `task batch_create`（feature_id=目錄名，**必須 children 巢狀**）
+6. 按順序執行子任務（禁止跳過，禁止「後續迭代」）：
+   - `task update`（in_progress）→ 讀 design.md 對應章節 → 實作 → `task update`（completed）
+   - **開始前檢查 tasks.md 前置任務全部 `[x]`**
+   - 整理/執行中發現遺漏 → 先更新 design.md/tasks.md
+7. `task list` 確認無遺漏
+8. 自測驗證，匯報完成，設阻塞等待驗證，**禁止自行 git commit/push**
 
-**feature_id 規範**：與 spec 目錄名一致，kebab-case（如 `task-scheduler`、`v0.2.5-upgrade`）
+**分工**：task 管計畫進度，track 管 bug。執行中發現 bug → `track create`，修完繼續 task
 
-**與 track 分工**：task 管功能開發計畫進度，track 管 bug 問題追蹤。執行 task 過程中發現 bug → `track create` 記錄，修完後繼續 task
-
-**任務文件規範**：
-- 每個任務細化到最小可執行單元，使用 `- [ ]` 標記狀態
-- 每完成一個子任務必須立即執行：① `task update` 更新狀態 ② 確認 tasks.md 對應條目已更新為 `[x]`。完成一個處理一個，禁止批量完成後統一更新
-- 整理任務文件時必須打開設計文件逐條核對，發現遺漏先補充再執行
-- 按順序執行禁止跳過，禁止用「後續迭代」跳過任務
-- **開始任務前必須先檢查 tasks.md，確認該任務之前的所有任務已標記 `[x]`，有未完成的前置任務必須先完成，禁止跳組執行**
-
-**自檢**：整理任務文件時必須打開設計文件逐條核對，發現遺漏先補充再執行。全部完成後 `task list` 確認無遺漏
-
-**不需要 spec 的場景**：單檔案修改、簡單 bug、設定調整 → 直接 `track create` 走問題追蹤流程
+**不需 spec**：單檔案修改、簡單 bug、設定調整 → 直接 track
 
 ---
 
-## 7. 記憶品質要求
+## 7. 記憶品質
 
-- tags 規範：必須包含分類標籤（踩坑/專案知識）+ 從內容提取的關鍵詞標籤（模組名、功能名、技術詞），禁止只打一個分類標籤
-- 命令類：完整可執行命令，禁止別名縮寫
-- 流程類：具體步驟，不能只寫結論
-- 踩坑類：錯誤現象 + 根因 + 正確做法
+- tags：分類標籤（踩坑/專案知識）+ 關鍵詞標籤（模組名、功能名、技術詞）
+- 命令類：完整可執行命令；流程類：具體步驟；踩坑類：現象+根因+正確做法
 
 ---
 
@@ -165,45 +116,33 @@ STEERING_CONTENT = """# AIVectorMemory - 工作規則
 | remember | 存入記憶 | content, tags, scope(project/user) |
 | recall | 語意搜尋 | query, tags, scope, top_k |
 | forget | 刪除記憶 | memory_id / memory_ids |
-| status | 會話狀態 | state(不傳=讀, 傳=更新), clear_fields |
+| status | 會話狀態 | state(不傳=讀,傳=更新), clear_fields |
 | track | 問題追蹤 | action(create/update/archive/delete/list) |
-| task | 任務管理 | action(batch_create/update/list/delete/archive), feature_id |
+| task | 任務管理 | action(batch_create/update/list/delete/archive), feature_id, tasks[].children |
 | readme | README生成 | action(generate/diff), lang, sections |
 | auto_save | 儲存偏好 | preferences, extra_tags |
 
-**status 欄位說明**：
-- `is_blocked`：是否阻塞
-- `block_reason`：阻塞原因
-- `next_step`：下一步（只能使用者確認後填寫）
-- `current_task`：當前任務
-- `progress`：唯讀計算欄位，自動從 track + task 聚合，無需手動寫入
-- `recent_changes`：最近修改（不超過10條）
-- `pending`：待處理清單
-- `clear_fields`：要清空的清單欄位名（如 `["pending"]`），繞過部分 IDE 過濾空陣列的問題
+**status 欄位**：is_blocked, block_reason, next_step（使用者確認後填）, current_task, progress（唯讀）, recent_changes（≤10）, pending, clear_fields
 
 ---
 
 ## 9. 開發規範
 
-**程式碼風格**：簡潔優先，三元運算子 > if-else，短路求值 > 條件判斷，模板字串 > 拼接，不寫無意義註解
+**程式碼**：簡潔優先，三元運算子>if-else，短路求值>條件判斷，模板字串>拼接，不寫無意義註解
 
-**Git 工作流**：日常在 `dev` 分支，禁止直接在 master 提交。只有使用者明確要求時才提交。提交流程：確認 dev 分支（`git branch --show-current`）→ `git add -A` → `git commit -m "fix: 簡述"` → `git push origin dev`。合併到 master 僅使用者明確要求時執行。
+**Git**：日常 `dev` 分支，禁止直接 master。僅使用者要求時提交：確認 dev → `git add -A` → `git commit` → `git push origin dev`
 
-**IDE 安全**：禁止 `$(...)` + 管道、禁止 `python3 -c` 多行腳本（寫 .py 檔案）、`lsof -ti:埠號` 必須加 ignoreWarning
+**IDE 安全**：禁止 `$(...)` + 管道、`python3 -c` 多行（>2行寫 .py）、`lsof` 不加 ignoreWarning
 
-**自測要求**：禁止讓使用者手動操作，自測通過後才能說「等待驗證」。後端變更用 pytest/curl，**前端可見變更：只能用 Playwright MCP 工具**（browser_navigate → 交互 → browser_snapshot），其他一切方式均為違規。測試後不呼叫 browser_close。
-
-**任務執行**：按順序執行禁止跳過，全自動，禁止用「後續迭代」跳過。開始任務前必須先檢查 tasks.md，確認前置任務全部 `[x]`，有未完成的前置任務必須先完成
-
-**完成標準**：只有完成和未完成，禁止「基本完成」等模糊表述
+**自測**：禁止讓使用者手動操作，通過後才說「等待驗證」。後端：pytest/curl；前端：**僅 Playwright MCP**（navigate→交互→snapshot，不 close）
 
 **內容遷移**：禁止憑記憶重寫，必須從原始檔案逐行複製
 
-**context transfer/compact 續接**：有未完成工作先完成再匯報
+**續接**：compact/context transfer 後有未完成工作先完成再匯報
 
-**上下文最佳化**：優先 `grepSearch` 定位，再 `readFile` 讀取特定行。程式碼修改用 `strReplace`，不要先讀後寫
+**上下文最佳化**：優先 grep 定位再讀特定行，修改用 strReplace
 
-**錯誤處理**：反覆失敗時記錄已嘗試方法，換思路解決，仍失敗則詢問使用者
+**錯誤處理**：反覆失敗記錄已嘗試方法換思路，仍失敗則詢問使用者
 """
 
 

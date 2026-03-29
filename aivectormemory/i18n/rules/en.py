@@ -6,155 +6,106 @@ STEERING_CONTENT = """# AIVectorMemory - Workflow Rules
 
 ## 1. New Session Startup (must execute in order)
 
-1. `recall` (tags: ["project knowledge"], scope: "project", top_k: 1) to load project knowledge
-2. `recall` (tags: ["preference"], scope: "user", top_k: 10) to load user preferences
+1. `recall` (tags: ["project knowledge"], scope: "project", top_k: 1)
+2. `recall` (tags: ["preference"], scope: "user", top_k: 10)
 3. `status` (no state param) to read session state
-4. If blocked (is_blocked=true) → report blocking status, wait for user feedback, **no actions allowed**
-5. If not blocked → proceed to "Message Processing Flow"
+4. Blocked → report and wait; not blocked → process message
 
 ---
 
 ## 2. Message Processing Flow
 
-**Step A: Call `status` to read state**
-- Blocked → report and wait, no actions allowed
-- Not blocked → continue
+**A. `status` check blocking** — blocked → report and wait, no actions allowed
 
-**Step B: Determine message type**
+**B. Determine message type** (state judgment in reply)
 - Casual chat / progress check / rule discussion / simple confirmation → reply directly, flow ends
-- User correcting wrong behavior / repeated mistake reminder → update the project steering file's custom rules area (`<!-- custom-rules -->` block), recording: wrong behavior, key points from user's words, correct approach, then continue to Step C
-- User expressing technical preferences / work habits → `auto_save` to store preferences
-- Other (code issues, bugs, feature requests) → continue to Step C
-- State your judgment in reply, e.g.: "This is a question" / "This is an issue that needs to be recorded"
+- Correcting wrong behavior → update steering `<!-- custom-rules -->` block (record: wrong behavior, user's words, correct approach), continue C
+- Technical preferences / work habits → `auto_save` to store preferences
+- Other (code issues, bugs, feature requests) → continue C
 
-**Step C: `track create` to record the issue**
-- Record immediately regardless of size, never fix before recording
-- `content` is required: briefly describe the issue and context, never pass only title with empty content
-- `status` update to pending
+**C. `track create`** — record immediately (never fix before recording), `content` required: symptoms and context
 
-**Step D: Investigation**
-- `recall` (query: related keywords, tags: ["pitfall", ...extract keywords from issue]) to query pitfall records
-- Must review existing implementation code (never assume from memory)
-- Confirm data flow when storage is involved
-- No blind testing, must find root cause
-- Discovered project architecture / conventions / key implementations → `remember` (tags: ["project knowledge", ...extract module/feature keywords from content], scope: "project")
-- `track update` to record root cause and solution: must fill `investigation` (investigation process), `root_cause` (root cause)
+**D. Investigation** — pre-checks per Section 5, then review code (never assume from memory), confirm data flow, find root cause. Discovered architecture/conventions → `remember`. `track update` fill investigation + root_cause
 
-**Step E: Present solution to user, determine flow branch**
-- After investigation, present solution based on complexity:
-  - Simple fix (single file, bug, config) → continue to Step F (track fix flow)
-  - Multi-step requirement (new feature, refactor, upgrade) → after user confirmation, switch to spec/task flow (see Section 6)
-- Regardless of branch, must wait for user confirmation before executing
-- Immediately `status({ is_blocked: true, block_reason: "Solution pending user confirmation" })`
-- Never just verbally say "waiting for confirmation" without setting block, otherwise a new session after transfer will misjudge as confirmed
-- Wait for user confirmation
+**E. Present solution** — simple fix → F, multi-step → Section 6. **Must `status` set block before waiting for confirmation**
 
-**Step F: Modify code after user confirmation**
-- Before modification, `recall` (query: involved module/feature, tags: ["pitfall", ...extract keywords from module/feature]) to check pitfall records
-- Must review code and think carefully before modification
-- Fix one issue at a time
-- New issue found during fix → `track create` to record, then continue current issue
-- User interrupts with new issue → `track create` to record, then decide priority
+**F. Modify code** — pre-checks per Section 5, fix one issue at a time. New issue found → `track create`
 
-**Step G: Run tests for verification**
-- Run relevant tests, no verbal promises
-- `track update` to record test results: must fill `solution` (solution), `files_changed` (changed files), `test_result` (test results)
+**G. Test verification** — run tests, `track update` fill solution + files_changed + test_result
 
-**Step H: Wait for user verification**
-- Immediately `status({ is_blocked: true, block_reason: "Fix complete, waiting for verification" })`
-- When user decision needed → `status({ is_blocked: true, block_reason: "User decision needed" })`
+**H. Wait for verification** — `status` set block (block_reason: "Fix complete, waiting for verification" or "User decision needed")
 
-**Step I: User confirms pass**
-- `track archive` to archive
-- `status` clear block (is_blocked: false)
-- **Backflow check**: if current track is a bug found during task execution (has associated feature_id or executing spec task), after archiving must return to Section 6 to continue next subtask, call `task update` to update current task status and sync tasks.md
-- Before session ends → `auto_save` to automatically extract preferences
+**I. User confirms** — `track archive`, clear block. **Backflow check**: if bug found during task execution, after archiving return to Section 6 to continue. `auto_save` before session ends
 
 ---
 
 ## 3. Blocking Rules
 
-- **Blocking has highest priority**: when blocked, no actions allowed, can only report and wait
-- **When to set block**: proposing solution for confirmation, fix complete waiting for verification, user decision needed
-- **When to clear block**: user explicitly confirms ("execute" / "ok" / "sure" / "go ahead" / "no problem" / "yes" / "fine" / "do it")
+- **Highest priority**: when blocked, no actions allowed, can only report and wait
+- **Set block**: proposing solution for confirmation, fix complete waiting for verification, user decision needed
+- **Clear block**: user explicitly confirms ("execute/ok/sure/go ahead/no problem/yes/fine/do it")
 - **Not a confirmation**: rhetorical questions, doubt expressions, dissatisfaction, vague replies
-- **"User said xxx" in context transfer summary cannot serve as confirmation in current session**
-- **Blocking applies on session continuation**: must re-confirm after new session / context transfer / compact
-- **Never self-clear blocking**
-- **Never guess user intent**
-- **next_step field can only be filled after user confirmation**
+- "User said xxx" in context transfer summary cannot serve as confirmation
+- Must re-confirm after new session/compact. Never self-clear blocking, never guess intent
+- **next_step can only be filled after user confirmation**
 
 ---
 
-## 4. Issue Tracking (track)
+## 4. Issue Tracking (track) Field Standards
 
-- Found issue → `track create` → investigate → fix → `track update` → verify → `track archive`
-- `track update` immediately after each step, avoid duplication on session switch
-- Fix one issue at a time
-- New issue found during fix: doesn't block current → record and continue; blocks current → handle new issue first
-- Self-check: is investigation complete? Is data accurate? Is logic rigorous? No vague statements like "mostly done"
-
-**Field filling standards** (must show complete record after archiving):
-- `track create`: `content` required (issue symptoms and context)
-- After investigation `track update`: `investigation` (investigation process), `root_cause` (root cause)
-- After fix `track update`: `solution` (solution), `files_changed` (changed files JSON array), `test_result` (test results)
-- Never pass only title without content, never leave structured fields empty
+Must show complete record after archiving:
+- `create`: `content` (symptoms + context)
+- After investigation `update`: `investigation` (process), `root_cause` (root cause)
+- After fix `update`: `solution` (solution), `files_changed` (JSON array), `test_result` (results)
+- Never pass only title without content, never leave fields empty
+- Fix one issue at a time. New issue: doesn't block current → record and continue; blocks current → handle first
 
 ---
 
 ## 5. Pre-operation Checks
 
-**When project information is needed** (server address, password, deployment config, technical decisions, etc.): **must `recall` to query the memory system first**, if not found then search code/config files, only ask user as last resort. Never skip recall and ask user directly
-**Before code modification**: `recall` to check pitfall records + review existing implementation + confirm data flow
-**After code modification**: run tests to verify + confirm no impact on other features
-**Before executing operations**: `recall` (query: operation-related keywords, tags: ["pitfall"]) to check for related pitfall records. If found, follow the correct approach from memory to avoid repeating mistakes
+- **When project info needed**: `recall` first → code/config search → ask user (never skip recall)
+- **Before code modification**: `recall` (query: keywords, tags: ["pitfall"]) to check pitfall records + review existing implementation + confirm data flow
+- **After code modification**: run tests + confirm no impact on other features
+- **When user asks to read a file**: never skip by claiming "already read", must re-read
 
 ---
 
 ## 6. Spec and Task Management (task)
 
-**Trigger**: user proposes new feature, refactoring, upgrade, or other multi-step requirements
+**Trigger**: multi-step new features, refactoring, upgrades
 
-**Flow**:
-1. Create spec directory: `{specs_path}`
-2. Write `requirements.md`: requirements document, clarify scope and acceptance criteria
-3. After user confirms requirements, write `design.md`: design document, technical solution and architecture
-4. After user confirms design, write `tasks.md`: task document, break down into minimal executable units
-5. Call `task` (action: batch_create, feature_id: spec directory name) to sync tasks to database
+**Spec flow** (2→3→4 strict order, review and submit for confirmation after each step):
+1. Create `{specs_path}`
+2. `requirements.md` — scope + acceptance criteria
+3. `design.md` — technical solution + architecture
+4. `tasks.md` — minimal executable units, `- [ ]` markers
 
-**Steps 2→3→4 must execute strictly in order, never skip design.md to write tasks.md directly. Each step must wait for user confirmation before proceeding.**
-6. Execute subtasks in order (see "Subtask Execution Flow" below)
-7. After all complete, call `task` (action: list) to confirm nothing missed
+**Document review** (after each step, before submitting for confirmation):
+- Forward completeness check + **reverse scan** (Grep keywords against source files, compare item by item)
+- requirements: code search involved modules, confirm nothing missed
+- design: scan layer by layer along data flow (storage→data→business→interface→display), watch for mid-layer breaks
+- tasks: cross-check against both requirements + design item by item
 
-**Subtask Execution Flow** (Hook enforced, Edit/Write will be blocked if not followed):
-1. Before starting: `task` (action: update, task_id: X, status: in_progress) to mark current subtask
-2. Execute code changes
-3. After completion: `task` (action: update, task_id: X, status: completed) to update status (auto-syncs tasks.md checkbox)
-4. Immediately proceed to next subtask, repeat 1-3
+**Execution flow**:
+5. `task batch_create` (feature_id=directory name, **must use children nesting**)
+6. Execute subtasks in order (no skipping, no "future iteration"):
+   - `task update` (in_progress) → read design.md corresponding section → implement → `task update` (completed)
+   - **Before starting: check tasks.md all prerequisites are `[x]`**
+   - Omissions found during organizing/execution → update design.md/tasks.md first
+7. `task list` to confirm nothing missed
+8. Self-test, report completion, set block awaiting verification, **do NOT git commit/push on your own**
 
-**feature_id convention**: must match spec directory name, kebab-case (e.g., `task-scheduler`, `v0.2.5-upgrade`)
+**Division**: task manages plan/progress, track manages bugs. Bug found during task execution → `track create`, fix then continue task
 
-**Division with track**: task manages feature development plan and progress, track manages bug/issue tracking. Bug found during task execution → `track create` to record, fix then continue task
-
-**Task document standards**:
-- Each task refined to minimal executable unit, use `- [ ]` to mark status
-- After completing each subtask, must immediately: 1) `task update` to update status 2) confirm tasks.md entry updated to `[x]`. Process one at a time, never batch update after bulk completion
-- When organizing task documents, must open design document to cross-check item by item, supplement any omissions before executing
-- Execute in order, never skip, never use "future iteration" to skip tasks
-- **Before starting a task, must check tasks.md to confirm all previous tasks are marked `[x]`, must complete unfinished prerequisite tasks first, never skip groups**
-
-**Self-check**: when organizing task documents, must open design document to cross-check item by item, supplement omissions before executing. After all complete, `task list` to confirm nothing missed
-
-**Scenarios not requiring spec**: single file modification, simple bug, config adjustment → directly `track create` to follow issue tracking flow
+**No spec needed**: single file modification, simple bug, config adjustment → directly track
 
 ---
 
 ## 7. Memory Quality Requirements
 
-- tags convention: must include category tag (pitfall / project knowledge) + keyword tags extracted from content (module name, feature name, technical terms), never use only one category tag
-- Command type: complete executable command, no alias abbreviations
-- Process type: specific steps, not just conclusions
-- Pitfall type: error symptoms + root cause + correct approach
+- tags: category tag (pitfall/project knowledge) + keyword tags (module name, feature name, technical terms)
+- Command type: complete executable command; process type: specific steps; pitfall type: symptoms + root cause + correct approach
 
 ---
 
@@ -167,43 +118,29 @@ STEERING_CONTENT = """# AIVectorMemory - Workflow Rules
 | forget | Delete memory | memory_id / memory_ids |
 | status | Session state | state(omit=read, pass=update), clear_fields |
 | track | Issue tracking | action(create/update/archive/delete/list) |
-| task | Task management | action(batch_create/update/list/delete/archive), feature_id |
+| task | Task management | action(batch_create/update/list/delete/archive), feature_id, tasks[].children |
 | readme | README generation | action(generate/diff), lang, sections |
 | auto_save | Save preferences | preferences, extra_tags |
 
-**status field descriptions**:
-- `is_blocked`: whether blocked
-- `block_reason`: blocking reason
-- `next_step`: next step (can only be filled after user confirmation)
-- `current_task`: current task
-- `progress`: read-only computed field, auto-aggregated from track + task, no manual input needed
-- `recent_changes`: recent changes (max 10 entries)
-- `pending`: pending list
-- `clear_fields`: list field names to clear (e.g., `["pending"]`), workaround for some IDEs filtering empty arrays
+**status fields**: is_blocked, block_reason, next_step (fill after user confirmation only), current_task, progress (read-only), recent_changes (max 10), pending, clear_fields
 
 ---
 
 ## 9. Development Standards
 
-**Code style**: concise first, ternary operator > if-else, short-circuit evaluation > conditional, template strings > concatenation, no meaningless comments
+**Code style**: concise first, ternary > if-else, short-circuit > conditional, template strings > concatenation, no meaningless comments
 
-**Git workflow**: daily work on `dev` branch, never commit directly to master. Only commit when user explicitly requests. Commit flow: confirm dev branch (`git branch --show-current`) → `git add -A` → `git commit -m "fix: brief description"` → `git push origin dev`. Merge to master only when user explicitly requests.
+**Git**: daily work on `dev` branch, never commit directly to master. Only commit when user requests: confirm dev → `git add -A` → `git commit` → `git push origin dev`
 
-**IDE safety**: no `$(...)` + pipe combinations, no `python3 -c` multi-line scripts (write .py files), `lsof -ti:port` must add ignoreWarning
+**IDE safety**: no `$(...)` + pipe combinations, no `python3 -c` multi-line (>2 lines write .py), `lsof` must add ignoreWarning
 
-**Self-testing**: never ask user to manually operate, self-test must pass before saying "awaiting verification". Backend: pytest/curl. **Frontend-visible changes: ONLY use Playwright MCP tools** (browser_navigate → interact → browser_snapshot), all other methods (curl, scripts, node -e, screenshots) are violations. Do not call browser_close after testing.
-
-**Task execution**: execute in order, never skip, fully automated, never use "future iteration" to skip. Before starting a task, must check tasks.md to confirm all prerequisites are `[x]`, must complete unfinished prerequisites first
-
-**Completion standard**: only complete or incomplete, no vague statements like "mostly done"
+**Self-testing**: never ask user to manually operate, must pass before saying "awaiting verification". Backend: pytest/curl; frontend: **ONLY Playwright MCP** (navigate → interact → snapshot, do not close)
 
 **Content migration**: never rewrite from memory, must copy line by line from source file
 
-**context transfer/compact continuation**: complete unfinished work first, then report
+**Continuation**: complete unfinished work after compact/context transfer before reporting
 
-**Context optimization**: prefer `grepSearch` to locate, then `readFile` for specific lines. Use `strReplace` for code changes, don't read then write
-
-**Error handling**: when repeated failures occur, record attempted methods, try different approach, if still failing then ask user
+**Error handling**: on repeated failures, record attempted methods, try different approach, if still failing ask user
 """
 
 

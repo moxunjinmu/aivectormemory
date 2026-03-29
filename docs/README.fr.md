@@ -371,6 +371,16 @@ Ou ajouter env dans la configuration MCP :
 
 ## 📋 Journal des Modifications
 
+### v2.0.9
+
+**Amélioration : Sécurité et Optimisation des Règles**
+- 🔒 Correction des vulnérabilités d'injection SQL, d'injection de commandes et de traversée de répertoires
+- 🛡️ Protection transactionnelle ajoutée pour l'intégrité des données (opérations d'archivage, insertion, mise à jour)
+- 🧠 Formule de similarité unifiée sur tous les chemins de recherche
+- 📏 Règles de flux de travail AI compressées de 38% (219→136 lignes) sans suppression de processus
+- 🧹 Migration v12 nettoie automatiquement les mémoires obsolètes
+- 🌐 Les 7 langues synchronisées
+
 ### v2.0.8
 
 **Nouveau : Tests Navigateur Playwright Intégrés**

@@ -6,155 +6,106 @@ STEERING_CONTENT = """# AIVectorMemory - Workflow-Regeln
 
 ## 1. Neuer Sitzungsstart (muss in Reihenfolge ausgeführt werden)
 
-1. `recall` (tags: ["Projektwissen"], scope: "project", top_k: 1) Projektwissen laden
-2. `recall` (tags: ["preference"], scope: "user", top_k: 10) Benutzereinstellungen laden
+1. `recall` (tags: ["Projektwissen"], scope: "project", top_k: 1)
+2. `recall` (tags: ["preference"], scope: "user", top_k: 10)
 3. `status` (ohne state-Parameter) Sitzungsstatus lesen
-4. Wenn blockiert (is_blocked=true) → Blockierungsstatus melden, auf Benutzerfeedback warten, **keine Aktionen erlaubt**
-5. Wenn nicht blockiert → weiter zum „Nachrichtenverarbeitungsablauf"
+4. Blockiert → melden und warten; nicht blockiert → Nachricht verarbeiten
 
 ---
 
 ## 2. Nachrichtenverarbeitungsablauf
 
-**Schritt A: `status` aufrufen um Status zu lesen**
-- Blockiert → melden und warten, keine Aktionen erlaubt
-- Nicht blockiert → fortfahren
+**A. `status` Blockierung prüfen** — blockiert → melden und warten, keine Aktionen erlaubt
 
-**Schritt B: Nachrichtentyp bestimmen**
+**B. Nachrichtentyp bestimmen** (Beurteilungsergebnis in der Antwort angeben)
 - Smalltalk / Fortschritt / Regeldiskussion / einfache Bestätigung → direkt antworten, Ablauf endet
-- Benutzer korrigiert falsches Verhalten / Erinnerung an wiederholte Fehler → den benutzerdefinierten Regelbereich der Projekt-Steering-Datei aktualisieren (`<!-- custom-rules -->` Block), aufzeichnen: falsches Verhalten, Kernpunkte der Benutzeraussage, korrekter Ansatz, dann weiter zu Schritt C
-- Benutzer drückt technische Präferenzen / Arbeitsgewohnheiten aus → `auto_save` zum Speichern von Einstellungen
-- Sonstiges (Code-Probleme, Bugs, Feature-Anfragen) → weiter zu Schritt C
-- Beurteilungsergebnis in der Antwort angeben, z.B.: „Das ist eine Frage" / „Das ist ein Problem, das aufgezeichnet werden muss"
+- Falsches Verhalten korrigieren → Steering `<!-- custom-rules -->` Block aktualisieren (aufzeichnen: falsches Verhalten, Benutzeraussage, korrekter Ansatz), weiter C
+- Technische Präferenzen / Arbeitsgewohnheiten → `auto_save` zum Speichern von Einstellungen
+- Sonstiges (Code-Probleme, Bugs, Feature-Anfragen) → weiter C
 
-**Schritt C: `track create` um das Problem aufzuzeichnen**
-- Sofort aufzeichnen unabhängig von der Größe, niemals vor der Aufzeichnung beheben
-- `content` ist Pflichtfeld: Problem und Kontext kurz beschreiben, niemals nur title ohne content übergeben
-- `status` auf pending aktualisieren
+**C. `track create`** — sofort aufzeichnen (niemals vor Aufzeichnung beheben), `content` Pflichtfeld: Symptome und Kontext
 
-**Schritt D: Untersuchung**
-- `recall` (query: relevante Schlüsselwörter, tags: ["Stolperfalle", ...Schlüsselwörter aus Problem extrahieren]) um Stolperfallen-Einträge abzufragen
-- Muss bestehenden Implementierungscode überprüfen (niemals aus dem Gedächtnis annehmen)
-- Datenfluss bestätigen wenn Speicherung beteiligt ist
-- Blindes Testen verboten, muss Grundursache finden
-- Projektarchitektur / Konventionen / Schlüsselimplementierungen entdeckt → `remember` (tags: ["Projektwissen", ...Modul-/Funktions-Schlüsselwörter aus Inhalt extrahieren], scope: "project")
-- `track update` um Grundursache und Lösung aufzuzeichnen: `investigation` (Untersuchungsprozess), `root_cause` (Grundursache) müssen ausgefüllt werden
+**D. Untersuchung** — nach Abschnitt 5 prüfen, dann Code überprüfen (niemals aus Gedächtnis annehmen), Datenfluss bestätigen, Grundursache finden. Architektur/Konventionen entdeckt → `remember`. `track update` mit investigation + root_cause
 
-**Schritt E: Lösung dem Benutzer präsentieren, Ablaufzweig bestimmen**
-- Nach der Untersuchung Lösung basierend auf Komplexität präsentieren:
-  - Einfache Korrektur (einzelne Datei, Bug, Konfiguration) → weiter zu Schritt F (track-Korrekturablauf)
-  - Mehrstufige Anforderung (neues Feature, Refactoring, Upgrade) → nach Benutzerbestätigung zu spec/task-Ablauf wechseln (siehe Abschnitt 6)
-- Unabhängig vom Zweig, muss Benutzerbestätigung abwarten bevor ausgeführt wird
-- Sofort `status({ is_blocked: true, block_reason: "Lösung wartet auf Benutzerbestätigung" })`
-- Niemals nur mündlich „warte auf Bestätigung" sagen ohne Blockierung zu setzen, sonst wird eine neue Sitzung nach Transfer fälschlicherweise als bestätigt beurteilen
-- Auf Benutzerbestätigung warten
+**E. Lösung präsentieren** — einfache Korrektur→F, mehrstufig→Abschnitt 6. **Muss erst `status` Blockierung setzen, dann auf Bestätigung warten**
 
-**Schritt F: Code nach Benutzerbestätigung ändern**
-- Vor der Änderung `recall` (query: beteiligtes Modul/Funktion, tags: ["Stolperfalle", ...Schlüsselwörter aus Modul/Funktion extrahieren]) um Stolperfallen-Einträge zu prüfen
-- Muss Code überprüfen und sorgfältig nachdenken vor der Änderung
-- Ein Problem auf einmal beheben
-- Neues Problem während der Behebung gefunden → `track create` aufzeichnen, dann aktuelles Problem fortsetzen
-- Benutzer unterbricht mit neuem Problem → `track create` aufzeichnen, dann Priorität entscheiden
+**F. Code ändern** — nach Abschnitt 5 prüfen, dann ändern, ein Problem auf einmal. Neues Problem → `track create`
 
-**Schritt G: Tests zur Verifizierung ausführen**
-- Relevante Tests ausführen, keine mündlichen Versprechen
-- `track update` um Testergebnisse aufzuzeichnen: `solution` (Lösung), `files_changed` (geänderte Dateien), `test_result` (Testergebnisse) müssen ausgefüllt werden
+**G. Testen** — Tests ausführen, `track update` mit solution + files_changed + test_result
 
-**Schritt H: Auf Benutzerverifizierung warten**
-- Sofort `status({ is_blocked: true, block_reason: "Korrektur abgeschlossen, wartet auf Verifizierung" })`
-- Wenn Benutzerentscheidung benötigt → `status({ is_blocked: true, block_reason: "Benutzerentscheidung erforderlich" })`
+**H. Auf Verifizierung warten** — `status` Blockierung setzen (block_reason: "Korrektur abgeschlossen, wartet auf Verifizierung" oder "Benutzerentscheidung erforderlich")
 
-**Schritt I: Benutzer bestätigt Freigabe**
-- `track archive` zum Archivieren
-- `status` Blockierung aufheben (is_blocked: false)
-- **Rückfluss-Prüfung**: wenn aktueller track ein Bug ist, der während der task-Ausführung gefunden wurde (hat zugehörige feature_id oder führt spec-Aufgabe aus), nach der Archivierung muss zu Abschnitt 6 zurückgekehrt werden um die nächste Teilaufgabe fortzusetzen, `task update` aufrufen um aktuellen Aufgabenstatus zu aktualisieren und tasks.md zu synchronisieren
-- Vor Sitzungsende → `auto_save` zum automatischen Extrahieren von Einstellungen
+**I. Benutzer bestätigt** — `track archive`, Blockierung aufheben. **Rückfluss-Prüfung**: wenn Bug während task-Ausführung gefunden, nach Archivierung zurück zu Abschnitt 6. Vor Sitzungsende `auto_save`
 
 ---
 
 ## 3. Blockierungsregeln
 
-- **Blockierung hat höchste Priorität**: wenn blockiert, keine Aktionen erlaubt, nur melden und warten
-- **Wann Blockierung setzen**: Lösung zur Bestätigung vorschlagen, Korrektur abgeschlossen wartet auf Verifizierung, Benutzerentscheidung erforderlich
-- **Wann Blockierung aufheben**: Benutzer bestätigt explizit („ausführen" / „ok" / „ja" / „mach das" / „kein Problem" / „gut" / „los" / „einverstanden")
+- **Höchste Priorität**: blockiert → keine Aktionen erlaubt
+- **Blockierung setzen**: Lösung zur Bestätigung, Korrektur wartet auf Verifizierung, Benutzerentscheidung erforderlich
+- **Blockierung aufheben**: Benutzer bestätigt explizit („ausführen/ok/ja/mach das/kein Problem/gut/los/einverstanden")
 - **Gilt nicht als Bestätigung**: rhetorische Fragen, Zweifel, Unzufriedenheit, vage Antworten
-- **„Benutzer sagte xxx" in context transfer-Zusammenfassung kann nicht als Bestätigung in der aktuellen Sitzung dienen**
-- **Blockierung gilt bei Sitzungsfortsetzung**: muss nach neuer Sitzung / context transfer / compact erneut bestätigen
-- **Niemals Blockierung selbst aufheben**
-- **Niemals Benutzerabsicht raten**
-- **next_step-Feld kann nur nach Benutzerbestätigung ausgefüllt werden**
+- „Benutzer sagte xxx" in context transfer-Zusammenfassung kann nicht als Bestätigung dienen
+- Neue Sitzung/compact → muss erneut bestätigen. Niemals Blockierung selbst aufheben, niemals Absicht raten
+- **next_step kann nur nach Benutzerbestätigung ausgefüllt werden**
 
 ---
 
-## 4. Problemverfolgung (track)
+## 4. Problemverfolgung (track) Feldstandards
 
-- Problem gefunden → `track create` → untersuchen → beheben → `track update` → verifizieren → `track archive`
-- `track update` sofort nach jedem Schritt, Duplizierung beim Sitzungswechsel vermeiden
-- Ein Problem auf einmal beheben
-- Neues Problem während Behebung gefunden: blockiert aktuelles nicht → aufzeichnen und fortfahren; blockiert aktuelles → neues Problem zuerst behandeln
-- Selbstprüfung: Ist die Untersuchung vollständig? Sind die Daten genau? Ist die Logik rigoros? Keine vagen Aussagen wie „größtenteils fertig"
-
-**Standards für Feldausfüllung** (muss vollständigen Eintrag nach Archivierung zeigen):
-- `track create`: `content` Pflichtfeld (Problemsymptome und Kontext)
-- Nach Untersuchung `track update`: `investigation` (Untersuchungsprozess), `root_cause` (Grundursache)
-- Nach Behebung `track update`: `solution` (Lösung), `files_changed` (geänderte Dateien JSON-Array), `test_result` (Testergebnisse)
-- Niemals nur title ohne content übergeben, niemals strukturierte Felder leer lassen
+Muss vollständigen Eintrag nach Archivierung zeigen:
+- `create`: content (Symptome + Kontext)
+- Nach Untersuchung `update`: investigation (Prozess), root_cause (Grundursache)
+- Nach Behebung `update`: solution (Lösung), files_changed (JSON-Array), test_result (Ergebnisse)
+- Niemals nur title ohne content, niemals Felder leer lassen
+- Ein Problem auf einmal. Neues Problem: blockiert aktuelles nicht → aufzeichnen und fortfahren; blockiert aktuelles → zuerst behandeln
 
 ---
 
 ## 5. Vor-Operations-Prüfungen
 
-**Wenn Projektinformationen benötigt werden** (Serveradresse, Passwort, Deployment-Konfiguration, technische Entscheidungen usw.): **zuerst `recall` verwenden um das Gedächtnissystem abzufragen**, wenn nicht gefunden dann in Code/Konfigurationsdateien suchen, nur als letztes Mittel den Benutzer fragen. Verboten recall zu überspringen und den Benutzer direkt zu fragen
-**Vor Code-Änderung**: `recall` um Stolperfallen-Einträge zu prüfen + bestehende Implementierung überprüfen + Datenfluss bestätigen
-**Nach Code-Änderung**: Tests zur Verifizierung ausführen + bestätigen dass andere Funktionen nicht betroffen sind
-**Vor der Ausführung von Operationen**: `recall` (query: operationsbezogene Schlüsselwörter, tags: ["Stolperfalle"]) um verwandte Stolperfallen-Einträge zu prüfen. Falls gefunden, den korrekten Ansatz aus dem Gedächtnis befolgen, um wiederholte Fehler zu vermeiden
+- **Projektinformationen benötigt**: erst `recall` → Code/Konfiguration suchen → Benutzer fragen (recall überspringen verboten)
+- **Vor Code-Änderung**: `recall` (query: Schlüsselwörter, tags: ["Stolperfalle"]) Stolperfallen prüfen + bestehende Implementierung überprüfen + Datenfluss bestätigen
+- **Nach Code-Änderung**: Tests ausführen + bestätigen dass andere Funktionen nicht betroffen
+- **Benutzer fordert Datei lesen**: niemals mit „bereits gelesen" überspringen, muss neu lesen
 
 ---
 
 ## 6. Spec und Aufgabenverwaltung (task)
 
-**Auslösebedingung**: Benutzer schlägt neues Feature, Refactoring, Upgrade oder andere mehrstufige Anforderungen vor
+**Auslöser**: mehrstufige neue Features, Refactoring, Upgrades
 
-**Ablauf**:
-1. Spec-Verzeichnis erstellen: `{specs_path}`
-2. `requirements.md` schreiben: Anforderungsdokument, Umfang und Akzeptanzkriterien klären
-3. Nach Benutzerbestätigung der Anforderungen `design.md` schreiben: Designdokument, technische Lösung und Architektur
-4. Nach Benutzerbestätigung des Designs `tasks.md` schreiben: Aufgabendokument, in minimale ausführbare Einheiten aufteilen
-5. `task` (action: batch_create, feature_id: spec-Verzeichnisname) aufrufen um Aufgaben in Datenbank zu synchronisieren
+**Spec-Ablauf** (2→3→4 strikt in Reihenfolge, nach jedem Schritt Prüfung und Bestätigung):
+1. `{specs_path}` erstellen
+2. `requirements.md` — Umfang + Akzeptanzkriterien
+3. `design.md` — technische Lösung + Architektur
+4. `tasks.md` — minimale ausführbare Einheiten, `- [ ]` Markierung
 
-**⚠️ Schritte 2→3→4 müssen strikt in Reihenfolge ausgeführt werden, niemals design.md überspringen um tasks.md direkt zu schreiben. Jeder Schritt muss auf Benutzerbestätigung warten bevor fortgefahren wird.**
-6. Teilaufgaben in Reihenfolge ausführen (siehe „Teilaufgaben-Ausführungsablauf" unten)
-7. Nach Abschluss aller Aufgaben `task` (action: list) aufrufen um zu bestätigen dass nichts fehlt
+**Dokumentprüfung** (nach jedem Schritt, vor Bestätigungsanfrage):
+- Vorwärtsprüfung auf Vollständigkeit + **Rückwärts-Scan** (Grep-Schlüsselwörter in Quelldateien, Punkt für Punkt abgleichen)
+- requirements: Code-Suche in betroffenen Modulen, keine Auslassungen
+- design: Datenfluss schichtweise scannen (Speicher→Daten→Geschäftslogik→Schnittstelle→Anzeige), Mittelschicht-Unterbrechungen beachten
+- tasks: gleichzeitig mit requirements + design Punkt für Punkt abgleichen
 
-**Teilaufgaben-Ausführungsablauf** (durch Hook erzwungene Prüfung, Edit/Write werden blockiert wenn nicht befolgt):
-1. Vor dem Start: `task` (action: update, task_id: X, status: in_progress) um aktuelle Teilaufgabe zu markieren
-2. Code-Änderungen ausführen
-3. Nach Abschluss: `task` (action: update, task_id: X, status: completed) um Status zu aktualisieren (synchronisiert automatisch tasks.md-Checkbox)
-4. Sofort zur nächsten Teilaufgabe übergehen, 1-3 wiederholen
+**Ausführungsablauf**:
+5. `task batch_create` (feature_id=Verzeichnisname, **muss children verschachteln**)
+6. Teilaufgaben in Reihenfolge ausführen (niemals überspringen, niemals „zukünftige Iteration"):
+   - `task update` (in_progress) → design.md entsprechenden Abschnitt lesen → implementieren → `task update` (completed)
+   - **Vor Start prüfen dass alle Voraussetzungen in tasks.md `[x]` sind**
+   - Auslassungen bei Organisierung/Ausführung entdeckt → erst design.md/tasks.md aktualisieren
+7. `task list` um zu bestätigen dass nichts fehlt
+8. Selbsttest, Abschluss melden, Blockierung setzen und auf Verifizierung warten, **kein eigenständiges git commit/push**
 
-**feature_id-Konvention**: muss mit spec-Verzeichnisname übereinstimmen, kebab-case (z.B. `task-scheduler`, `v0.2.5-upgrade`)
+**Aufteilung**: task verwaltet Planfortschritt, track verwaltet Bugs. Bug während task-Ausführung → `track create`, beheben und task fortsetzen
 
-**Aufteilung mit track**: task verwaltet Feature-Entwicklungsplan und Fortschritt, track verwaltet Bug-/Problemverfolgung. Bug während task-Ausführung gefunden → `track create` aufzeichnen, beheben und dann task fortsetzen
-
-**Aufgabendokument-Standards**:
-- Jede Aufgabe auf minimale ausführbare Einheit verfeinert, `- [ ]` für Status verwenden
-- Nach Abschluss jeder Teilaufgabe sofort ausführen: 1) `task update` um Status zu aktualisieren 2) bestätigen dass tasks.md-Eintrag auf `[x]` aktualisiert wurde. Einzeln verarbeiten, niemals nach Massenabschluss gesammelt aktualisieren
-- Beim Organisieren von Aufgabendokumenten muss Designdokument geöffnet und Punkt für Punkt abgeglichen werden, Auslassungen vor der Ausführung ergänzen
-- In Reihenfolge ausführen, niemals überspringen, niemals „zukünftige Iteration" zum Überspringen von Aufgaben verwenden
-- **Vor dem Start einer Aufgabe muss tasks.md geprüft werden um zu bestätigen dass alle vorherigen Aufgaben mit `[x]` markiert sind, unvollständige Voraussetzungsaufgaben müssen zuerst abgeschlossen werden, Gruppen-Überspringen verboten**
-
-**Selbstprüfung**: beim Organisieren von Aufgabendokumenten muss Designdokument geöffnet und Punkt für Punkt abgeglichen werden, Auslassungen vor der Ausführung ergänzen. Nach Abschluss aller Aufgaben `task list` um zu bestätigen dass nichts fehlt
-
-**Szenarien ohne spec**: einzelne Dateiänderung, einfacher Bug, Konfigurationsanpassung → direkt `track create` für Problemverfolgungsablauf
+**Ohne spec**: einzelne Dateiänderung, einfacher Bug, Konfigurationsanpassung → direkt track
 
 ---
 
 ## 7. Anforderungen an Gedächtnisqualität
 
-- tags-Konvention: muss Kategorie-Tag (Stolperfalle / Projektwissen) + aus Inhalt extrahierte Schlüsselwort-Tags (Modulname, Funktionsname, Fachbegriffe) enthalten, niemals nur ein Kategorie-Tag verwenden
-- Befehlstyp: vollständig ausführbarer Befehl, keine Alias-Abkürzungen
-- Prozesstyp: konkrete Schritte, nicht nur Schlussfolgerungen
-- Stolperfallentyp: Fehlersymptome + Grundursache + korrekter Ansatz
+- tags: Kategorie-Tag (Stolperfalle/Projektwissen) + Schlüsselwort-Tags (Modulname, Funktionsname, Fachbegriffe)
+- Befehlstyp: vollständig ausführbarer Befehl; Prozesstyp: konkrete Schritte; Stolperfallentyp: Symptome + Grundursache + korrekter Ansatz
 
 ---
 
@@ -167,19 +118,11 @@ STEERING_CONTENT = """# AIVectorMemory - Workflow-Regeln
 | forget | Gedächtnis löschen | memory_id / memory_ids |
 | status | Sitzungsstatus | state(weglassen=lesen, übergeben=aktualisieren), clear_fields |
 | track | Problemverfolgung | action(create/update/archive/delete/list) |
-| task | Aufgabenverwaltung | action(batch_create/update/list/delete/archive), feature_id |
+| task | Aufgabenverwaltung | action(batch_create/update/list/delete/archive), feature_id, tasks[].children |
 | readme | README-Generierung | action(generate/diff), lang, sections |
 | auto_save | Einstellungen speichern | preferences, extra_tags |
 
-**status-Feldbeschreibungen**:
-- `is_blocked`: ob blockiert
-- `block_reason`: Blockierungsgrund
-- `next_step`: nächster Schritt (kann nur nach Benutzerbestätigung ausgefüllt werden)
-- `current_task`: aktuelle Aufgabe
-- `progress`: schreibgeschütztes berechnetes Feld, automatisch aus track + task aggregiert, keine manuelle Eingabe erforderlich
-- `recent_changes`: letzte Änderungen (maximal 10 Einträge)
-- `pending`: ausstehende Liste
-- `clear_fields`: Namen der zu leerenden Listenfelder (z.B. `["pending"]`), Umgehung für einige IDEs die leere Arrays filtern
+**status-Felder**: is_blocked, block_reason, next_step (nur nach Benutzerbestätigung), current_task, progress (schreibgeschützt), recent_changes (≤10), pending, clear_fields
 
 ---
 
@@ -187,21 +130,15 @@ STEERING_CONTENT = """# AIVectorMemory - Workflow-Regeln
 
 **Code-Stil**: Kürze zuerst, ternärer Operator > if-else, Kurzschlussauswertung > Bedingung, Template-Strings > Verkettung, keine bedeutungslosen Kommentare
 
-**Git-Workflow**: tägliche Arbeit auf `dev`-Branch, niemals direkt auf master committen. Nur committen wenn der Benutzer es explizit anfordert. Commit-Ablauf: dev-Branch bestätigen (`git branch --show-current`) → `git add -A` → `git commit -m "fix: Kurzbeschreibung"` → `git push origin dev`. Merge zu master nur wenn Benutzer es explizit anfordert.
+**Git-Workflow**: tägliche Arbeit auf `dev`-Branch, niemals direkt auf master. Nur committen wenn Benutzer es anfordert: dev bestätigen → `git add -A` → `git commit` → `git push origin dev`
 
 **IDE-Sicherheit**: keine `$(...)` + Pipe-Kombinationen, keine mehrzeiligen `python3 -c`-Skripte (.py-Dateien schreiben), `lsof -ti:Port` muss ignoreWarning hinzufügen
 
-**Selbsttest-Anforderungen**: Benutzer niemals bitten manuell zu operieren, Selbsttest muss bestehen bevor „wartet auf Verifizierung" gesagt wird. Backend: pytest/curl. **Frontend-sichtbare Änderungen: NUR Playwright MCP-Tools verwenden** (browser_navigate → Interaktion → browser_snapshot), alle anderen Methoden sind Verstöße. Nach dem Test browser_close nicht aufrufen.
-
-**Aufgabenausführung**: in Reihenfolge ausführen, niemals überspringen, vollautomatisch, niemals „zukünftige Iteration" zum Überspringen verwenden. Vor dem Start einer Aufgabe muss tasks.md geprüft werden um zu bestätigen dass alle Voraussetzungen `[x]` sind, unvollständige Voraussetzungen müssen zuerst abgeschlossen werden
-
-**Abschlussstandard**: nur abgeschlossen oder nicht abgeschlossen, keine vagen Aussagen wie „größtenteils fertig"
+**Selbsttest**: Benutzer niemals bitten manuell zu operieren, Test muss bestehen bevor „wartet auf Verifizierung". Backend: pytest/curl; **Frontend: NUR Playwright MCP** (navigate→Interaktion→snapshot, kein close)
 
 **Inhaltsmigration**: niemals aus dem Gedächtnis umschreiben, muss Zeile für Zeile aus Quelldatei kopieren
 
-**context transfer/compact-Fortsetzung**: unvollständige Arbeit zuerst abschließen, dann berichten
-
-**Kontext-Optimierung**: `grepSearch` zum Lokalisieren bevorzugen, dann `readFile` für bestimmte Zeilen. `strReplace` für Code-Änderungen verwenden, nicht erst lesen dann schreiben
+**Fortsetzung**: compact/context transfer → unvollständige Arbeit zuerst abschließen, dann berichten
 
 **Fehlerbehandlung**: bei wiederholten Fehlern versuchte Methoden aufzeichnen, anderen Ansatz versuchen, wenn weiterhin fehlschlagend dann Benutzer fragen
 """

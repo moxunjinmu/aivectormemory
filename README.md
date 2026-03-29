@@ -377,6 +377,16 @@ Or add env to MCP config:
 
 ## 📋 Changelog
 
+### v2.0.9
+
+**Enhancement: Security & Rule Optimization**
+- 🔒 Fixed SQL injection, command injection, and path traversal vulnerabilities
+- 🛡️ Added transaction protection for data integrity (archive, insert, update operations)
+- 🧠 Unified similarity formula across all search paths
+- 📏 Compressed AI workflow rules by 38% (219→136 lines) with zero process removal
+- 🧹 v12 migration cleans up legacy garbage memories automatically
+- 🌐 All 7 languages synchronized
+
 ### v2.0.8
 
 **New: Playwright Browser Testing Built-in**

@@ -371,6 +371,16 @@ Oder env in der MCP-Konfiguration hinzufügen:
 
 ## 📋 Änderungsprotokoll
 
+### v2.0.9
+
+**Verbesserung: Sicherheit & Regeloptimierung**
+- 🔒 SQL-Injection, Command-Injection und Path-Traversal-Schwachstellen behoben
+- 🛡️ Transaktionsschutz für Datenintegrität hinzugefügt (Archivierung, Einfügen, Aktualisierung)
+- 🧠 Ähnlichkeitsformel über alle Suchpfade vereinheitlicht
+- 📏 AI-Workflow-Regeln um 38% komprimiert (219→136 Zeilen) ohne Prozessentfernung
+- 🧹 v12-Migration bereinigt automatisch alte Müll-Erinnerungen
+- 🌐 Alle 7 Sprachen synchronisiert
+
 ### v2.0.8
 
 **Neu: Integrierter Playwright Browser-Test**
