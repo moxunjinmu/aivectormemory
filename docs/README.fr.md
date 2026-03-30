@@ -371,6 +371,14 @@ Ou ajouter env dans la configuration MCP :
 
 ## 📋 Journal des Modifications
 
+### v2.1.1
+
+**Amélioration : Mise à niveau du système de règles IA**
+- 📋 CLAUDE.md complété : ajout Identité et Ton (§1), 7 Principes Fondamentaux (§3), exemples de jugement de type de message, sections sécurité IDE et auto-test étendues
+- ⚠️ Hook avec Rappel des Violations Fréquentes : exemples ❌ négatifs renforçant les 4 règles les plus fréquemment oubliées (auto-test, recall, track create, sécurité IDE)
+- 🌐 Les 7 fichiers de règles linguistiques mis à jour en synchronisation (zh-CN/zh-TW/en/ja/es/de/fr)
+- 🔢 Sections de CLAUDE.md renumérotées en §1–§11, références croisées mises à jour
+
 ### v2.1.0
 
 **Nouveau : Moteur de Mémoire Intelligent + Désinstallation**

@@ -378,6 +378,14 @@ export HF_ENDPOINT=https://hf-mirror.com
 
 ## 📋 更新日志
 
+### v2.1.1
+
+**优化：AI 规则体系升级**
+- 📋 CLAUDE.md 补全：新增身份与语气（§1）、核心原则 7 条（§3）、消息类型判断示例、IDE 安全和自测详细展开
+- ⚠️ Hook 新增高频违规提醒：用 ❌ 负面示例强化自测、recall、track create、IDE 安全 4 项最常遗漏规则
+- 🌐 7 语言规则文件全量同步更新（zh-CN/zh-TW/en/ja/es/de/fr）
+- 🔢 CLAUDE.md 章节重新编号为 §1–§11，交叉引用同步更新
+
 ### v2.1.0
 
 **新功能：智能记忆引擎 + 卸载**

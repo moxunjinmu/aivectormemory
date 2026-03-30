@@ -377,6 +377,14 @@ Or add env to MCP config:
 
 ## 📋 Changelog
 
+### v2.1.1
+
+**Enhancement: AI Rule System Upgrade**
+- 📋 CLAUDE.md completion: added Identity & Tone (§1), 7 Core Principles (§3), message type judgment examples, expanded IDE safety and self-test sections
+- ⚠️ Hook added Common Violations Reminder: ❌ negative examples reinforcing the 4 most frequently missed rules (self-test, recall, track create, IDE safety)
+- 🌐 All 7 language rule files updated in sync (zh-CN/zh-TW/en/ja/es/de/fr)
+- 🔢 CLAUDE.md sections renumbered to §1–§11, cross-references updated accordingly
+
 ### v2.1.0
 
 **New: Smart Memory Engine + Uninstall**

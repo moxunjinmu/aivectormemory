@@ -371,6 +371,14 @@ Oder env in der MCP-Konfiguration hinzufügen:
 
 ## 📋 Änderungsprotokoll
 
+### v2.1.1
+
+**Verbesserung: AI-Regelsystem-Upgrade**
+- 📋 CLAUDE.md vervollständigt: Identität und Tonfall (§1), 7 Kernprinzipien (§3), Nachrichtentyp-Beurteilungsbeispiele, IDE-Sicherheit und Selbsttest-Abschnitte erweitert
+- ⚠️ Hook mit Häufige-Verstöße-Erinnerung ergänzt: ❌ Negativbeispiele zur Verstärkung der 4 am häufigsten vergessenen Regeln (Selbsttest, Recall, Track Create, IDE-Sicherheit)
+- 🌐 Alle 7 Sprach-Regeldateien synchron aktualisiert (zh-CN/zh-TW/en/ja/es/de/fr)
+- 🔢 CLAUDE.md-Abschnitte auf §1–§11 umnummeriert, Querverweise aktualisiert
+
 ### v2.1.0
 
 **Neu: Smart Memory Engine + Deinstallation**
