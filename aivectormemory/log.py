@@ -2,7 +2,7 @@ import logging
 import sys
 
 
-def setup_logger(level: str = "WARNING") -> logging.Logger:
+def _setup_logger(level: str = "WARNING") -> logging.Logger:
     logger = logging.getLogger("aivectormemory")
     if not logger.handlers:
         handler = logging.StreamHandler(sys.stderr)
@@ -12,4 +12,4 @@ def setup_logger(level: str = "WARNING") -> logging.Logger:
     return logger
 
 
-log = setup_logger()
+log = _setup_logger()

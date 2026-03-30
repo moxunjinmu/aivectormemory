@@ -1,5 +1,3 @@
-import os
-import sys
 import numpy as np
 from functools import lru_cache
 from pathlib import Path
@@ -24,11 +22,10 @@ class EmbeddingEngine:
         if self.ready:
             return
         try:
-            from huggingface_hub import hf_hub_download
             from tokenizers import Tokenizer
             import onnxruntime as ort
 
-            model_dir = self._download_model(hf_hub_download)
+            model_dir = self._download_model()
             self._tokenizer = Tokenizer.from_file(str(model_dir / "tokenizer.json"))
             self._tokenizer.enable_padding()
             self._tokenizer.enable_truncation(max_length=512)
@@ -48,7 +45,7 @@ class EmbeddingEngine:
             log.error("Failed to load embedding model: %s", e)
             raise
 
-    def _download_model(self, hf_hub_download) -> Path:
+    def _download_model(self) -> Path:
         import os
         os.environ.setdefault("HF_HUB_TIMEOUT", "30")
         from huggingface_hub import snapshot_download
@@ -117,5 +114,3 @@ class EmbeddingEngine:
 
         return tuple(normalized.tolist())
 
-    def encode_batch(self, texts: list[str]) -> list[list[float]]:
-        return [self.encode(t) for t in texts]

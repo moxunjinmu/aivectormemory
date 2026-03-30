@@ -2,7 +2,7 @@ from aivectormemory.config import DEDUP_THRESHOLD
 from aivectormemory.db.memory_repo import MemoryRepo
 from aivectormemory.db.user_memory_repo import UserMemoryRepo
 from aivectormemory.i18n.responses import fmt
-from aivectormemory.tools.keywords import extract_keywords
+from aivectormemory.tools.keywords import enrich_tags
 from aivectormemory.utils import validate_content, validate_tags, contains_project_path
 
 
@@ -19,11 +19,7 @@ def handle_remember(args, *, cm, engine, session_id, **_):
         content = content[:5000]
 
     # 自动从 content 提取关键词补充到 tags
-    existing = {t.lower() for t in tags}
-    for kw in extract_keywords(content):
-        if kw.lower() not in existing:
-            tags.append(kw)
-            existing.add(kw.lower())
+    enrich_tags(tags, content)
 
     embedding = engine.encode(content)
 

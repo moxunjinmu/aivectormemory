@@ -1,5 +1,6 @@
 import json
 
+from aivectormemory.utils import distance_to_similarity
 from .base import BaseRepo
 
 
@@ -222,7 +223,7 @@ class IssueRepo(BaseRepo):
             ).fetchone()
             if archive:
                 d = dict(archive)
-                d["similarity"] = round(1 - (r["distance"] ** 2) / 2, 4)
+                d["similarity"] = distance_to_similarity(r["distance"])
                 results.append(d)
             if len(results) >= top_k:
                 break

@@ -57,3 +57,12 @@ def extract_keywords(content: str, max_kw: int = 5) -> list[str]:
             result.append(w)
 
     return result
+
+
+def enrich_tags(tags: list, content: str) -> None:
+    """从 content 提取关键词，就地补充到 tags（跳过已存在的）"""
+    existing = {t.lower() for t in tags}
+    for kw in extract_keywords(content):
+        if kw.lower() not in existing:
+            tags.append(kw)
+            existing.add(kw.lower())

@@ -1,7 +1,7 @@
 import json
 from aivectormemory.db.state_repo import StateRepo
 from aivectormemory.db.issue_repo import IssueRepo
-from aivectormemory.db.task_repo import TaskRepo
+from aivectormemory.db.cleanup import maybe_cleanup
 from aivectormemory.errors import success_response
 from aivectormemory.i18n.responses import to_json
 
@@ -55,6 +55,7 @@ def handle_status(args, *, cm, **_):
         result["progress"] = _build_progress(cm.conn, cm.project_dir)
         return to_json(success_response(state=result, action="updated"))
     else:
+        maybe_cleanup(cm.conn, cm.project_dir)
         state = repo.get()
         if not state:
             state = repo.upsert()

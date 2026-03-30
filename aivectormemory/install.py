@@ -349,7 +349,7 @@ def _build_cursor_hooks(script_path: str) -> dict:
     return cfg
 
 
-def _write_cursor_hooks(hooks_dir: Path, lang: str | None = None) -> list[str]:
+def _write_cursor_hooks(hooks_dir: Path) -> list[str]:
     """写入 Cursor hooks 到 .cursor/hooks.json"""
     results = []
     hooks_dir.mkdir(parents=True, exist_ok=True)
@@ -391,7 +391,7 @@ def _build_windsurf_hooks(script_path: str) -> dict:
     return cfg
 
 
-def _write_windsurf_hooks(hooks_dir: Path, lang: str | None = None) -> list[str]:
+def _write_windsurf_hooks(hooks_dir: Path) -> list[str]:
     """写入 Windsurf hooks 到 .windsurf/hooks.json"""
     results = []
     hooks_dir.mkdir(parents=True, exist_ok=True)
@@ -819,9 +819,9 @@ def run_install(project_dir: str | None = None):
             elif hooks_dir_str.endswith(".claude"):
                 hook_results = _write_claude_code_hooks(hooks_dir, lang=selected_lang)
             elif hooks_dir_str.endswith(".cursor"):
-                hook_results = _write_cursor_hooks(hooks_dir, lang=selected_lang)
+                hook_results = _write_cursor_hooks(hooks_dir)
             elif hooks_dir_str.endswith(".windsurf"):
-                hook_results = _write_windsurf_hooks(hooks_dir, lang=selected_lang)
+                hook_results = _write_windsurf_hooks(hooks_dir)
             else:
                 hook_results = _write_hooks(hooks_dir, lang=selected_lang)
             for r in hook_results:
@@ -864,3 +864,298 @@ def run_install(project_dir: str | None = None):
         cm.close()
     except Exception as e:
         print(f"\n⚠️  项目注册到数据库失败（Web 看板可能不显示此项目）: {e}")
+
+
+# ---------------------------------------------------------------------------
+# Uninstall
+# ---------------------------------------------------------------------------
+
+def _remove_mcp_server(filepath: Path, fmt: str) -> list[str]:
+    """从 MCP 配置文件中移除 aivectormemory + playwright server 条目"""
+    results = []
+    if not filepath.exists():
+        return results
+    server_names = (DEFAULT_SERVER_NAME,) + LEGACY_SERVER_NAMES
+    all_names = server_names + (PLAYWRIGHT_SERVER_NAME,)
+
+    if fmt == "codex":
+        content = filepath.read_text("utf-8")
+        original = content
+        content = _strip_codex_managed_block(content)
+        content = _strip_codex_server_sections(content, all_names)
+        content = _normalize_toml_content(content)
+        if content != original:
+            if content.strip():
+                filepath.write_text(content, encoding="utf-8")
+            else:
+                _safe_unlink(filepath)
+            results.append(f"✓ 已移除  MCP: {filepath.name}")
+        else:
+            results.append(f"- 无变更  MCP: {filepath.name}")
+        return results
+
+    try:
+        config = json.loads(filepath.read_text("utf-8"))
+    except (json.JSONDecodeError, OSError):
+        return results
+    key = _root_key(fmt)
+    servers = config.get(key, {})
+    removed = []
+    for name in all_names:
+        if name in servers:
+            del servers[name]
+            removed.append(name)
+    if removed:
+        if not servers and key in config:
+            del config[key]
+        if config:
+            filepath.write_text(json.dumps(config, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+        else:
+            _safe_unlink(filepath)
+        results.append(f"✓ 已移除  MCP: {filepath.name} ({', '.join(removed)})")
+    else:
+        results.append(f"- 无变更  MCP: {filepath.name}")
+    return results
+
+
+def _remove_steering(filepath: Path, mode: str) -> list[str]:
+    """移除 steering 规则"""
+    results = []
+    if not filepath.exists():
+        return results
+    if mode == "file":
+        content = filepath.read_text("utf-8")
+        if STEERING_MARKER in content:
+            _safe_unlink(filepath)
+            results.append(f"✓ 已删除  Steering: {filepath.name}")
+        else:
+            results.append(f"- 跳过    Steering: {filepath.name}（非 AIVectorMemory 生成）")
+    elif mode == "append":
+        content = filepath.read_text("utf-8")
+        if STEERING_MARKER not in content:
+            results.append(f"- 无变更  Steering: {filepath.name}")
+            return results
+        start = content.index(STEERING_MARKER)
+        next_marker = content.find("\n<!-- ", start + len(STEERING_MARKER))
+        end = next_marker if next_marker != -1 else len(content)
+        updated = content[:start].rstrip() + content[end:]
+        updated = updated.strip() + "\n" if updated.strip() else ""
+        if updated:
+            filepath.write_text(updated, encoding="utf-8")
+            results.append(f"✓ 已移除  Steering: {filepath.name}（保留其他内容）")
+        else:
+            _safe_unlink(filepath)
+            results.append(f"✓ 已删除  Steering: {filepath.name}（已空）")
+    return results
+
+
+def _remove_kiro_hooks(hooks_dir: Path) -> list[str]:
+    """移除 Kiro hooks"""
+    results = []
+    targets = ["dev-workflow-check.kiro.hook", "pre-tool-use-check.kiro.hook", "check_track.sh"]
+    for name in targets:
+        f = hooks_dir / name
+        if f.exists() and _safe_unlink(f):
+            results.append(f"✓ 已删除  Hook: {name}")
+    return results
+
+
+def _remove_claude_code_hooks(hooks_dir: Path) -> list[str]:
+    """移除 Claude Code hooks + scripts + permissions"""
+    results = []
+    # 删除脚本
+    script_dir = hooks_dir / "hooks"
+    for name in ["check_track.sh", "inject-workflow-rules.sh", "compact-recovery.sh"]:
+        f = script_dir / name
+        if f.exists() and _safe_unlink(f):
+            results.append(f"✓ 已删除  Script: .claude/hooks/{name}")
+    if script_dir.exists() and not any(script_dir.iterdir()):
+        script_dir.rmdir()
+    # 清理 settings.json
+    settings = hooks_dir / "settings.json"
+    if not settings.exists():
+        return results
+    try:
+        config = json.loads(settings.read_text("utf-8"))
+    except (json.JSONDecodeError, OSError):
+        return results
+    changed = False
+    # 移除 hooks 段
+    for key in ["PreToolUse", "UserPromptSubmit", "SessionStart", "Stop", "TaskCompleted"]:
+        if key in config.get("hooks", {}):
+            del config["hooks"][key]
+            changed = True
+    if not config.get("hooks"):
+        config.pop("hooks", None)
+    # 移除 permissions
+    mcp_prefixes = (f"mcp__{DEFAULT_SERVER_NAME}__", f"mcp__{PLAYWRIGHT_SERVER_NAME}__")
+    if "permissions" in config and "allow" in config["permissions"]:
+        before = len(config["permissions"]["allow"])
+        config["permissions"]["allow"] = [
+            p for p in config["permissions"]["allow"]
+            if not any(p.startswith(prefix) for prefix in mcp_prefixes)
+        ]
+        if len(config["permissions"]["allow"]) < before:
+            changed = True
+        if not config["permissions"]["allow"]:
+            del config["permissions"]["allow"]
+        if not config.get("permissions"):
+            del config["permissions"]
+    if changed:
+        if config:
+            settings.write_text(json.dumps(config, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+        else:
+            _safe_unlink(settings)
+        results.append("✓ 已清理  .claude/settings.json (hooks + permissions)")
+    return results
+
+
+def _remove_cursor_hooks(hooks_dir: Path) -> list[str]:
+    """移除 Cursor hooks"""
+    results = []
+    # 删除脚本
+    script_dir = hooks_dir / "hooks"
+    f = script_dir / "check_track.sh"
+    if f.exists() and _safe_unlink(f):
+        results.append("✓ 已删除  Script: .cursor/hooks/check_track.sh")
+    if script_dir.exists() and not any(script_dir.iterdir()):
+        script_dir.rmdir()
+    # 清理 hooks.json
+    filepath = hooks_dir / "hooks.json"
+    if not filepath.exists():
+        return results
+    try:
+        config = json.loads(filepath.read_text("utf-8"))
+    except (json.JSONDecodeError, OSError):
+        return results
+    changed = False
+    for key in ["preToolUse", "beforeSubmitPrompt"]:
+        if key in config.get("hooks", {}):
+            del config["hooks"][key]
+            changed = True
+    if not config.get("hooks"):
+        config.pop("hooks", None)
+    if changed:
+        if config:
+            filepath.write_text(json.dumps(config, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+        else:
+            _safe_unlink(filepath)
+        results.append("✓ 已清理  .cursor/hooks.json")
+    return results
+
+
+def _remove_windsurf_hooks(hooks_dir: Path) -> list[str]:
+    """移除 Windsurf hooks"""
+    results = []
+    script_dir = hooks_dir / "hooks"
+    f = script_dir / "check_track.sh"
+    if f.exists() and _safe_unlink(f):
+        results.append("✓ 已删除  Script: .windsurf/hooks/check_track.sh")
+    if script_dir.exists() and not any(script_dir.iterdir()):
+        script_dir.rmdir()
+    filepath = hooks_dir / "hooks.json"
+    if not filepath.exists():
+        return results
+    try:
+        config = json.loads(filepath.read_text("utf-8"))
+    except (json.JSONDecodeError, OSError):
+        return results
+    changed = False
+    if "pre_write_code" in config.get("hooks", {}):
+        del config["hooks"]["pre_write_code"]
+        changed = True
+    if not config.get("hooks"):
+        config.pop("hooks", None)
+    if changed:
+        if config:
+            filepath.write_text(json.dumps(config, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+        else:
+            _safe_unlink(filepath)
+        results.append("✓ 已清理  .windsurf/hooks.json")
+    return results
+
+
+def _remove_opencode_plugins(plugins_dir: Path) -> list[str]:
+    """移除 OpenCode 插件"""
+    results = []
+    f = plugins_dir / "aivectormemory-pre-tool-check.js"
+    if f.exists() and _safe_unlink(f):
+        results.append("✓ 已删除  Plugin: aivectormemory-pre-tool-check.js")
+    return results
+
+
+_HOOKS_REMOVER_BY_SUFFIX = {
+    ".kiro/hooks":        _remove_kiro_hooks,
+    ".claude":            _remove_claude_code_hooks,
+    ".cursor":            _remove_cursor_hooks,
+    ".windsurf":          _remove_windsurf_hooks,
+    ".opencode/plugins":  _remove_opencode_plugins,
+}
+
+
+def _find_hooks_remover(hooks_dir: Path):
+    """根据 hooks 目录路径后缀匹配 remover 函数"""
+    path_str = str(hooks_dir)
+    for suffix, remover in _HOOKS_REMOVER_BY_SUFFIX.items():
+        if path_str.endswith(suffix):
+            return remover
+    return None
+
+
+def _safe_unlink(filepath: Path) -> bool:
+    """安全删除文件，Windows 文件锁定时打印警告"""
+    try:
+        filepath.unlink()
+        return True
+    except OSError as e:
+        print(f"  ⚠️  无法删除 {filepath.name}: {e}")
+        return False
+
+
+def run_uninstall(project_dir: str | None = None):
+    """从当前项目卸载 AIVectorMemory 的所有 IDE 配置"""
+    pdir = str(Path(project_dir or os.getcwd()).resolve())
+    root = Path(pdir)
+    print(f"项目目录: {pdir}\n")
+
+    installed = _detect_installed_ide_names(root)
+    if not installed:
+        print("未检测到已安装的 IDE 配置，无需卸载。")
+        return
+
+    print(f"检测到已安装: {', '.join(sorted(installed))}\n")
+
+    cleaned_hooks_dirs: set[str] = set()  # 防止共享目录重复清理
+
+    for name, path_fn, fmt, is_global, steering_fn, steering_mode, hooks_fn in IDES:
+        if name not in installed:
+            continue
+        print(f"── {name} ──")
+        # 1. 移除 MCP 配置（全局配置跳过）
+        if is_global:
+            mcp_path = path_fn(root)
+            print(f"  ⚠️  跳过全局 MCP 配置: {mcp_path}")
+            print(f"       如需移除请手动编辑: {mcp_path}")
+        else:
+            mcp_path = path_fn(root)
+            if mcp_path:
+                for r in _remove_mcp_server(mcp_path, fmt):
+                    print(f"  {r}")
+        # 2. 移除 Steering
+        if steering_fn and steering_mode:
+            steering_path = steering_fn(root)
+            for r in _remove_steering(steering_path, steering_mode):
+                print(f"  {r}")
+        # 3. 移除 Hooks（根据路径后缀匹配 remover，防止共享目录重复清理）
+        if hooks_fn:
+            hooks_dir = hooks_fn(root)
+            hooks_key = str(hooks_dir)
+            if hooks_key not in cleaned_hooks_dirs:
+                remover = _find_hooks_remover(hooks_dir)
+                if remover:
+                    for r in remover(hooks_dir):
+                        print(f"  {r}")
+                    cleaned_hooks_dirs.add(hooks_key)
+        print()
+
+    print("✓ 卸载完成（记忆数据已保留，如需清除请手动删除 ~/.aivectormemory/）")

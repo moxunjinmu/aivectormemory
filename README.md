@@ -377,6 +377,20 @@ Or add env to MCP config:
 
 ## 📋 Changelog
 
+### v2.1.0
+
+**New: Smart Memory Engine + Uninstall**
+- 🧠 FTS5 full-text search with Chinese tokenization (jieba) — keyword search now actually works for CJK content
+- 🔀 Hybrid retrieval: vector + FTS5 dual-path with RRF (Reciprocal Rank Fusion) merging
+- 📊 Composite scoring: results ranked by similarity × 0.5 + recency × 0.3 + frequency × 0.2, weighted by importance
+- ⚡ Conflict detection: similar memories (0.85–0.95) auto-superseded, old facts fade automatically
+- 📦 Memory tiers: frequently accessed memories auto-promote to long_term and get searched first
+- 🗑️ Auto-archive: stale short_term memories (90 days inactive + low importance) cleaned up automatically
+- 🔗 Relation expansion: tag overlap ≥ 2 builds related links, 1-hop expansion surfaces connected memories
+- 📝 Auto-summary: long memories (>500 chars) get summaries, brief mode returns summaries to save tokens
+- 🧹 Code cleanup: removed 15 dead code items, refactored 7 duplicate patterns into shared utilities
+- ❌ `run uninstall` — cleanly removes all IDE configurations (MCP, steering, hooks, permissions) while preserving memory data
+
 ### v2.0.9
 
 **Enhancement: Security & Rule Optimization**

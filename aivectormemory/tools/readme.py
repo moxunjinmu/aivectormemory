@@ -1,5 +1,4 @@
 """readme 工具 - 从代码和配置自动生成 README 内容"""
-import json
 from pathlib import Path
 
 from aivectormemory.i18n.responses import to_json
@@ -12,15 +11,6 @@ SUPPORTED_LANGS = {
     "de": "docs/README.de.md",
     "fr": "docs/README.fr.md",
     "es": "docs/README.es.md",
-}
-
-LANG_LABELS = {
-    "en": "English",
-    "zh-TW": "繁體中文",
-    "ja": "日本語",
-    "de": "Deutsch",
-    "fr": "Français",
-    "es": "Español",
 }
 
 

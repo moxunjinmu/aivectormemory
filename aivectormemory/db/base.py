@@ -1,8 +1,16 @@
 import json
 import sqlite3
 import uuid
-from datetime import datetime
 from typing import Any
+
+from aivectormemory.utils import now_iso
+
+import jieba
+
+
+def tokenize_for_fts(content: str) -> str:
+    """jieba 分词后用空格连接，供 FTS5 索引"""
+    return ' '.join(jieba.cut(content))
 
 
 class BaseRepo:
@@ -13,7 +21,7 @@ class BaseRepo:
         self.project_dir = project_dir
 
     def _now(self) -> str:
-        return datetime.now().astimezone().isoformat()
+        return now_iso()
 
     def _commit(self) -> None:
         from aivectormemory.db.connection import _in_transaction
@@ -38,15 +46,17 @@ class BaseMemoryRepo(BaseRepo):
     def insert(self, content: str, tags: list[str], session_id: int,
                embedding: list[float], dedup_threshold: float = 0.95,
                source: str = "manual", **extra) -> dict:
+        from aivectormemory.config import CONFLICT_THRESHOLD
+        from aivectormemory.summarizer import generate_summary
         import aivectormemory.db.connection as _conn_mod
         was_in_transaction = _conn_mod._in_transaction
         if not was_in_transaction:
             self.conn.execute("BEGIN IMMEDIATE")
             _conn_mod._in_transaction = True
         try:
-            dup = self._find_duplicate(embedding, dedup_threshold)
-            if dup:
-                result = self._update_existing(dup["id"], content, tags, session_id, embedding)
+            action, dup_id, conflict_ids = self._check_similar(embedding, dedup_threshold, CONFLICT_THRESHOLD)
+            if action == "update":
+                result = self._update_existing(dup_id, content, tags, session_id, embedding)
             else:
                 now = self._now()
                 mid = uuid.uuid4().hex[:12]
@@ -55,6 +65,23 @@ class BaseMemoryRepo(BaseRepo):
                 self.conn.execute(f"INSERT INTO {self.TABLE} ({cols}) VALUES ({placeholders})", vals)
                 self.conn.execute(f"INSERT INTO {self.VEC_TABLE} (id, embedding) VALUES (?,?)", (mid, json.dumps(embedding)))
                 self._sync_tags(mid, tags)
+                # T3.1: FTS5 同步
+                fts_table = f"fts_{self.TABLE}"
+                tokenized = tokenize_for_fts(content)
+                self.conn.execute(f"INSERT INTO {fts_table}(id, content) VALUES (?, ?)", [mid, tokenized])
+                # T6.2: 矛盾检测 — 创建 supersedes 关系 + 降低旧记忆 importance
+                if conflict_ids:
+                    self._create_supersedes_relations(self.conn, mid, conflict_ids)
+                    self._reduce_importance(self.conn, conflict_ids, self.TABLE)
+                # T15.3: 自动摘要
+                summary = generate_summary(content)
+                if summary:
+                    try:
+                        self.conn.execute(f"UPDATE {self.TABLE} SET summary=? WHERE id=?", [summary, mid])
+                    except Exception:
+                        pass  # v14 迁移前 summary 字段不存在
+                # T14: 自动建立 related 关系（tag 重叠 >= 2）
+                self._build_relations(mid, tags)
                 result = {"id": mid, "action": "created"}
             if not was_in_transaction:
                 self.conn.commit()
@@ -74,42 +101,87 @@ class BaseMemoryRepo(BaseRepo):
 
     def _update_existing(self, mid: str, content: str, tags: list[str],
                          session_id: int, embedding: list[float]) -> dict:
-        import aivectormemory.db.connection as _conn_mod
-        was_in_transaction = _conn_mod._in_transaction
-        if not was_in_transaction:
-            self.conn.execute("BEGIN IMMEDIATE")
-            _conn_mod._in_transaction = True
+        """更新已有记忆（始终在 insert() 的事务内调用）"""
+        from aivectormemory.summarizer import generate_summary
+        now = self._now()
+        self.conn.execute(
+            f"UPDATE {self.TABLE} SET content=?, tags=?, session_id=?, updated_at=? WHERE id=?",
+            (content, json.dumps(tags, ensure_ascii=False), session_id, now, mid))
+        self.conn.execute(f"DELETE FROM {self.VEC_TABLE} WHERE id=?", (mid,))
+        self.conn.execute(f"INSERT INTO {self.VEC_TABLE} (id, embedding) VALUES (?,?)", (mid, json.dumps(embedding)))
+        self._sync_tags(mid, tags)
+        # T3.2: FTS5 同步
+        fts_table = f"fts_{self.TABLE}"
+        self.conn.execute(f"DELETE FROM {fts_table} WHERE id = ?", [mid])
+        tokenized = tokenize_for_fts(content)
+        self.conn.execute(f"INSERT INTO {fts_table}(id, content) VALUES (?, ?)", [mid, tokenized])
+        # T15.3: 自动摘要 — 更新时重新生成
+        summary = generate_summary(content)
         try:
-            now = self._now()
-            self.conn.execute(
-                f"UPDATE {self.TABLE} SET content=?, tags=?, session_id=?, updated_at=? WHERE id=?",
-                (content, json.dumps(tags, ensure_ascii=False), session_id, now, mid))
-            self.conn.execute(f"DELETE FROM {self.VEC_TABLE} WHERE id=?", (mid,))
-            self.conn.execute(f"INSERT INTO {self.VEC_TABLE} (id, embedding) VALUES (?,?)", (mid, json.dumps(embedding)))
-            self._sync_tags(mid, tags)
-            if not was_in_transaction:
-                self.conn.commit()
-            return {"id": mid, "action": "updated"}
+            self.conn.execute(f"UPDATE {self.TABLE} SET summary=? WHERE id=?", [summary or '', mid])
         except Exception:
-            if not was_in_transaction:
-                self.conn.rollback()
-            raise
-        finally:
-            if not was_in_transaction:
-                _conn_mod._in_transaction = False
+            pass  # v14 迁移前 summary 字段不存在
+        return {"id": mid, "action": "updated"}
 
-    def _find_duplicate(self, embedding: list[float], threshold: float) -> dict | None:
+    def _check_similar(self, embedding: list[float], dedup_threshold: float,
+                       conflict_threshold: float) -> tuple[str, str | None, list[str]]:
+        """返回 (action, dup_id, conflict_ids)"""
         rows = self.conn.execute(
             f"SELECT id, distance FROM {self.VEC_TABLE} WHERE embedding MATCH ? AND k = 5",
             (json.dumps(embedding),)
         ).fetchall()
+        conflicts = []
         for r in rows:
             if not self._is_same_scope(r["id"]):
                 continue
             similarity = 1 - (r["distance"] ** 2) / 2
-            if similarity >= threshold:
-                return dict(r)
-        return None
+            if similarity >= dedup_threshold:
+                return ("update", r["id"], [])
+            if similarity >= conflict_threshold:
+                conflicts.append(r["id"])
+        return ("insert", None, conflicts)
+
+    def _create_supersedes_relations(self, conn, new_id: str, conflict_ids: list[str]) -> None:
+        db_scope = 'user' if self.TABLE == 'user_memories' else 'project'
+        now = self._now()
+        for old_id in conflict_ids:
+            conn.execute(
+                "INSERT OR IGNORE INTO memory_relations(memory_id, related_id, relation_type, scope, created_at) VALUES (?, ?, 'supersedes', ?, ?)",
+                [new_id, old_id, db_scope, now]
+            )
+
+    def _reduce_importance(self, conn, conflict_ids: list[str], table: str) -> None:
+        for old_id in conflict_ids:
+            conn.execute(
+                f"UPDATE {table} SET importance = importance * 0.3 WHERE id = ?",
+                [old_id]
+            )
+
+    def _build_relations(self, new_id: str, tags: list[str]) -> None:
+        """tag 重叠 >= 2 时建立 related 关系，每条记忆最多 10 条"""
+        if len(tags) < 2:
+            return
+
+        scope = 'user' if self.TABLE == 'user_memories' else 'project'
+        placeholders = ','.join('?' * len(tags))
+        rows = self.conn.execute(f"""
+            SELECT mt.memory_id, COUNT(*) as overlap
+            FROM {self.TAG_TABLE} mt
+            WHERE mt.tag IN ({placeholders})
+            AND mt.memory_id != ?
+            GROUP BY mt.memory_id
+            HAVING overlap >= 2
+            ORDER BY overlap DESC
+            LIMIT 10
+        """, tags + [new_id]).fetchall()
+
+        now = self._now()
+        for row in rows:
+            related_id = row[0] if isinstance(row, tuple) else row['memory_id']
+            self.conn.execute(
+                "INSERT OR IGNORE INTO memory_relations(memory_id, related_id, relation_type, scope, created_at) VALUES (?, ?, 'related', ?, ?)",
+                [new_id, related_id, scope, now]
+            )
 
     def _is_same_scope(self, mid: str) -> bool:
         """子类覆盖：MemoryRepo 需检查 project_dir，UserMemoryRepo 直接返回 True"""
@@ -132,10 +204,12 @@ class BaseMemoryRepo(BaseRepo):
     def _filter_and_collect(self, rows: list, top_k: int, filters: dict) -> list[dict]:
         results = []
         for r in rows:
-            mem = self.conn.execute(f"SELECT * FROM {self.TABLE} WHERE id=?", (r["id"],)).fetchone()
-            if not mem or not self._match_filters(mem, filters):
+            row = self.conn.execute(f"SELECT * FROM {self.TABLE} WHERE id=?", (r["id"],)).fetchone()
+            if not row:
                 continue
-            d = dict(mem)
+            d = dict(row)
+            if not self._match_filters(d, filters):
+                continue
             d["distance"] = r["distance"]
             results.append(d)
             if len(results) >= top_k:
@@ -144,12 +218,19 @@ class BaseMemoryRepo(BaseRepo):
 
     def _match_filters(self, mem: dict, filters: dict) -> bool:
         """子类覆盖以添加过滤逻辑"""
+        tier = filters.get("tier")
+        if tier and mem.get("tier", "short_term") != tier:
+            return False
         return True
 
     def search_by_vector_with_tags(self, embedding: list[float], tags: list[str],
                                     top_k: int = 5, **filters) -> list[dict]:
         import numpy as np
+        tier = filters.pop("tier", None)
         candidates = self.list_by_tags(tags, limit=1000, tags_mode="any", **filters)
+        # T12: tier 过滤
+        if tier:
+            candidates = [c for c in candidates if c.get("tier", "short_term") == tier]
         if not candidates:
             return []
         query_vec = np.array(embedding, dtype=np.float32)
@@ -172,6 +253,11 @@ class BaseMemoryRepo(BaseRepo):
         self.conn.execute(f"DELETE FROM {self.VEC_TABLE} WHERE id=?", (mid,))
         if self.TAG_TABLE:
             self.conn.execute(f"DELETE FROM {self.TAG_TABLE} WHERE memory_id=?", (mid,))
+        # T3.3: FTS5 同步清理
+        fts_table = f"fts_{self.TABLE}"
+        self.conn.execute(f"DELETE FROM {fts_table} WHERE id = ?", [mid])
+        # T8: memory_relations 级联清理
+        self.conn.execute("DELETE FROM memory_relations WHERE memory_id = ? OR related_id = ?", [mid, mid])
         self._commit()
         return cur.rowcount > 0
 
@@ -182,31 +268,6 @@ class BaseMemoryRepo(BaseRepo):
     def list_by_tags(self, tags: list[str], limit: int = 100, **filters) -> list[dict]:
         """子类覆盖"""
         raise NotImplementedError
-
-    def keyword_search(self, query_text: str, top_k: int = 5, **filters) -> list[dict]:
-        """关键词搜索：按空格分词，LIKE 匹配 content，返回带 _kw_score 的结果"""
-        keywords = [kw.strip() for kw in query_text.split() if len(kw.strip()) >= 2]
-        if not keywords:
-            return []
-        or_clauses = " OR ".join(["content LIKE ?" for _ in keywords])
-        params = [f"%{kw}%" for kw in keywords]
-        sql = f"SELECT * FROM {self.TABLE} WHERE ({or_clauses})"
-        sql, params = self._apply_keyword_filters(sql, params, filters)
-        sql += " LIMIT ?"
-        params.append(top_k * 3)
-        rows = self.conn.execute(sql, params).fetchall()
-        results = []
-        for r in rows:
-            d = dict(r)
-            content = d["content"]
-            d["_kw_score"] = sum(1 for kw in keywords if kw in content) / len(keywords)
-            results.append(d)
-        results.sort(key=lambda x: x["_kw_score"], reverse=True)
-        return results[:top_k]
-
-    def _apply_keyword_filters(self, sql: str, params: list, filters: dict) -> tuple[str, list]:
-        """子类覆盖添加关键词搜索的过滤条件"""
-        return sql, params
 
     def get_tag_counts(self, **filters) -> dict[str, int]:
         """子类覆盖"""

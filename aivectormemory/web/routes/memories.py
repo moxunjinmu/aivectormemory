@@ -1,6 +1,6 @@
 import json
 
-from aivectormemory.utils import now_iso, safe_table
+from aivectormemory.utils import now_iso, safe_table, distance_to_similarity, parse_pagination
 from aivectormemory.db.memory_repo import MemoryRepo
 from aivectormemory.db.user_memory_repo import UserMemoryRepo
 
@@ -11,16 +11,7 @@ def get_memories(cm, params, pdir):
     tag = params.get("tag", [None])[0]
     source = params.get("source", [None])[0]
     exclude_tags_raw = params.get("exclude_tags", [None])[0]
-    try:
-        limit = int(params.get("limit", [100])[0])
-    except (ValueError, TypeError):
-        limit = 100
-    try:
-        offset = int(params.get("offset", [0])[0])
-    except (ValueError, TypeError):
-        offset = 0
-    limit = max(1, min(limit, 500))
-    offset = max(0, min(offset, 100000))
+    limit, offset = parse_pagination(params, default_limit=100)
 
     repo = MemoryRepo(cm.conn, pdir)
     user_repo = UserMemoryRepo(cm.conn)
@@ -272,5 +263,5 @@ def search_memories(handler, cm, pdir):
         results = sorted(proj_results + user_results, key=lambda x: x.get("distance", 0))[:top_k]
 
     for r in results:
-        r["similarity"] = round(1 - (r.get("distance", 0) ** 2) / 2, 4)
+        r["similarity"] = distance_to_similarity(r.get("distance", 0))
     return {"results": results, "count": len(results), "query": query}

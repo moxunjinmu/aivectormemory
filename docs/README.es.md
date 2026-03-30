@@ -371,6 +371,20 @@ O agregar env en la configuración MCP:
 
 ## 📋 Registro de Cambios
 
+### v2.1.0
+
+**Nuevo: Motor de Memoria Inteligente + Desinstalación**
+- 🧠 Búsqueda de texto completo FTS5 con tokenización china (jieba) — la búsqueda por palabras clave ahora funciona correctamente para contenido CJK
+- 🔀 Recuperación híbrida: vector + FTS5 doble vía con fusión RRF (Reciprocal Rank Fusion)
+- 📊 Puntuación compuesta: similitud×0,5 + actualidad×0,3 + frecuencia×0,2, ponderada por importancia
+- ⚡ Detección de conflictos: memorias similares (0,85–0,95) se marcan automáticamente como reemplazadas, los datos antiguos se desvanecen
+- 📦 Niveles de memoria: las memorias de acceso frecuente se promueven automáticamente a long_term y se buscan primero
+- 🗑️ Auto-archivo: memorias a corto plazo expiradas (90 días inactivas + baja importancia) se limpian automáticamente
+- 🔗 Expansión de relaciones: superposición de etiquetas ≥ 2 crea enlaces relacionados, expansión de 1 salto descubre memorias conectadas
+- 📝 Auto-resumen: memorias largas (>500 caracteres) obtienen resúmenes, el modo brief devuelve resúmenes para ahorrar tokens
+- 🧹 Limpieza de código: eliminados 15 elementos de código muerto, 7 patrones duplicados refactorizados en utilidades compartidas
+- ❌ `run uninstall` — elimina limpiamente todas las configuraciones IDE (MCP, steering, hooks, permisos) preservando los datos de memoria
+
 ### v2.0.9
 
 **Mejora: Seguridad y Optimización de Reglas**

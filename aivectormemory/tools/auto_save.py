@@ -2,7 +2,7 @@ from aivectormemory.config import DEDUP_THRESHOLD
 from aivectormemory.db.memory_repo import MemoryRepo
 from aivectormemory.db.user_memory_repo import UserMemoryRepo
 from aivectormemory.i18n.responses import fmt
-from aivectormemory.tools.keywords import extract_keywords
+from aivectormemory.tools.keywords import enrich_tags
 from aivectormemory.utils import normalize_tags, contains_project_path
 
 
@@ -22,11 +22,7 @@ def handle_auto_save(args, *, cm, engine, session_id, **_):
             embedding = engine.encode(item)
             tags = ["preference"] + (normalize_tags(args.get("extra_tags")) or [])
             # 自动从 item 提取关键词补充到 tags
-            existing = {t.lower() for t in tags}
-            for kw in extract_keywords(item):
-                if kw.lower() not in existing:
-                    tags.append(kw)
-                    existing.add(kw.lower())
+            enrich_tags(tags, item)
             # 含项目路径的偏好降级为项目记忆
             if contains_project_path(item):
                 result = project_repo.insert(item, tags, "project", session_id, embedding, DEDUP_THRESHOLD, source="auto_save")

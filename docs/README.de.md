@@ -371,6 +371,20 @@ Oder env in der MCP-Konfiguration hinzufügen:
 
 ## 📋 Änderungsprotokoll
 
+### v2.1.0
+
+**Neu: Smart Memory Engine + Deinstallation**
+- 🧠 FTS5-Volltextsuche mit chinesischer Tokenisierung (jieba) — Stichwortsuche funktioniert jetzt korrekt für CJK-Inhalte
+- 🔀 Hybridsuche: Vektor + FTS5 Dual-Path mit RRF (Reciprocal Rank Fusion) Zusammenführung
+- 📊 Zusammengesetzte Bewertung: Ähnlichkeit×0,5 + Aktualität×0,3 + Häufigkeit×0,2, gewichtet nach Wichtigkeit
+- ⚡ Konflikterkennung: Ähnliche Erinnerungen (0,85–0,95) werden automatisch als ersetzt markiert, alte Fakten verblassen automatisch
+- 📦 Speicherebenen: Häufig abgerufene Erinnerungen werden automatisch zu long_term befördert und priorisiert durchsucht
+- 🗑️ Auto-Archivierung: Abgelaufene Kurzzeiteinnerungen (90 Tage inaktiv + geringe Wichtigkeit) werden automatisch bereinigt
+- 🔗 Beziehungserweiterung: Tag-Überlappung ≥ 2 erstellt automatisch Verknüpfungen, 1-Hop-Erweiterung findet verwandte Erinnerungen
+- 📝 Auto-Zusammenfassung: Lange Erinnerungen (>500 Zeichen) erhalten Zusammenfassungen, Brief-Modus gibt Zusammenfassungen zurück um Token zu sparen
+- 🧹 Code-Bereinigung: 15 tote Code-Elemente entfernt, 7 duplizierte Muster in gemeinsame Utilities refaktorisiert
+- ❌ `run uninstall` — Entfernt sauber alle IDE-Konfigurationen (MCP, Steering, Hooks, Berechtigungen) unter Beibehaltung der Speicherdaten
+
 ### v2.0.9
 
 **Verbesserung: Sicherheit & Regeloptimierung**

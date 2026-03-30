@@ -14,6 +14,8 @@ CREATE TABLE IF NOT EXISTS memories (
     source TEXT NOT NULL DEFAULT 'manual',
     project_dir TEXT NOT NULL DEFAULT '',
     session_id INTEGER NOT NULL DEFAULT 0,
+    tier TEXT NOT NULL DEFAULT 'short_term' CHECK(tier IN ('short_term', 'long_term')),
+    summary TEXT,
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL
 )"""
@@ -104,6 +106,10 @@ INDEXES = [
     "CREATE INDEX IF NOT EXISTS idx_tasks_archive_feature ON tasks_archive(feature_id)",
     "CREATE INDEX IF NOT EXISTS idx_memory_tags_tag ON memory_tags(tag)",
     "CREATE INDEX IF NOT EXISTS idx_user_memory_tags_tag ON user_memory_tags(tag)",
+    "CREATE INDEX IF NOT EXISTS idx_memory_relations_memory ON memory_relations(memory_id)",
+    "CREATE INDEX IF NOT EXISTS idx_memory_relations_related ON memory_relations(related_id)",
+    "CREATE INDEX IF NOT EXISTS idx_memories_tier ON memories(tier)",
+    "CREATE INDEX IF NOT EXISTS idx_user_memories_tier ON user_memories(tier)",
 ]
 
 TASKS_TABLE = """
@@ -128,6 +134,8 @@ CREATE TABLE IF NOT EXISTS user_memories (
     tags TEXT NOT NULL DEFAULT '[]',
     source TEXT NOT NULL DEFAULT 'manual',
     session_id INTEGER NOT NULL DEFAULT 0,
+    tier TEXT NOT NULL DEFAULT 'short_term' CHECK(tier IN ('short_term', 'long_term')),
+    summary TEXT,
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL
 )"""
@@ -184,9 +192,52 @@ CREATE TABLE IF NOT EXISTS users (
     last_login TEXT
 )"""
 
-ALL_TABLES = [SCHEMA_VERSION_TABLE, MEMORIES_TABLE, VEC_MEMORIES_TABLE, SESSION_STATE_TABLE, ISSUES_TABLE, ISSUES_ARCHIVE_TABLE, TASKS_TABLE, USER_MEMORIES_TABLE, VEC_USER_MEMORIES_TABLE, VEC_ISSUES_ARCHIVE_TABLE, TASKS_ARCHIVE_TABLE, MEMORY_TAGS_TABLE, USER_MEMORY_TAGS_TABLE, USERS_TABLE]
+FTS_MEMORIES_TABLE = """
+CREATE VIRTUAL TABLE IF NOT EXISTS fts_memories USING fts5(
+    id UNINDEXED,
+    content,
+    tokenize='unicode61'
+)"""
 
-CURRENT_SCHEMA_VERSION = 12
+FTS_USER_MEMORIES_TABLE = """
+CREATE VIRTUAL TABLE IF NOT EXISTS fts_user_memories USING fts5(
+    id UNINDEXED,
+    content,
+    tokenize='unicode61'
+)"""
+
+MEMORIES_ARCHIVE_TABLE = """
+CREATE TABLE IF NOT EXISTS memories_archive (
+    id TEXT PRIMARY KEY,
+    content TEXT NOT NULL,
+    scope TEXT NOT NULL DEFAULT 'project',
+    session_id INTEGER,
+    project_dir TEXT,
+    source TEXT DEFAULT 'manual',
+    tier TEXT NOT NULL DEFAULT 'short_term',
+    access_count INTEGER NOT NULL DEFAULT 0,
+    last_accessed_at TEXT,
+    importance REAL NOT NULL DEFAULT 0.5,
+    summary TEXT,
+    archived_at TEXT NOT NULL DEFAULT (datetime('now')),
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+)"""
+
+MEMORY_RELATIONS_TABLE = """
+CREATE TABLE IF NOT EXISTS memory_relations (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    memory_id TEXT NOT NULL,
+    related_id TEXT NOT NULL,
+    relation_type TEXT NOT NULL,
+    scope TEXT NOT NULL DEFAULT 'project',
+    created_at TEXT NOT NULL,
+    UNIQUE(memory_id, related_id, relation_type)
+)"""
+
+ALL_TABLES = [SCHEMA_VERSION_TABLE, MEMORIES_TABLE, VEC_MEMORIES_TABLE, SESSION_STATE_TABLE, ISSUES_TABLE, ISSUES_ARCHIVE_TABLE, TASKS_TABLE, USER_MEMORIES_TABLE, VEC_USER_MEMORIES_TABLE, VEC_ISSUES_ARCHIVE_TABLE, TASKS_ARCHIVE_TABLE, MEMORY_TAGS_TABLE, USER_MEMORY_TAGS_TABLE, USERS_TABLE, FTS_MEMORIES_TABLE, FTS_USER_MEMORIES_TABLE, MEMORY_RELATIONS_TABLE, MEMORIES_ARCHIVE_TABLE]
+
+CURRENT_SCHEMA_VERSION = 14
 
 
 def _get_schema_version(conn) -> int:

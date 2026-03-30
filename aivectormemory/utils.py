@@ -84,6 +84,24 @@ def contains_project_path(content: str) -> bool:
     return False
 
 
+def parse_pagination(params: dict, default_limit: int = 20) -> tuple[int, int]:
+    """从查询参数解析 limit/offset，带类型安全和范围钳位。"""
+    try:
+        limit = int(params.get("limit", [default_limit])[0])
+    except (ValueError, TypeError):
+        limit = default_limit
+    try:
+        offset = int(params.get("offset", [0])[0])
+    except (ValueError, TypeError):
+        offset = 0
+    return max(1, min(limit, 500)), max(0, min(offset, 100000))
+
+
+def distance_to_similarity(distance: float) -> float:
+    """将向量距离转换为相似度分数（L2 距离 → 余弦相似度近似）"""
+    return round(1 - (distance ** 2) / 2, 4)
+
+
 def validate_title(title: str) -> str:
     if not title or not isinstance(title, str):
         raise ValueError("title is required and must be a string")

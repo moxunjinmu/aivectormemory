@@ -23,23 +23,17 @@ class MemoryRepo(BaseMemoryRepo):
         mem = self.conn.execute("SELECT project_dir FROM memories WHERE id=?", (mid,)).fetchone()
         return mem and mem["project_dir"] == self.project_dir
 
-    def _apply_keyword_filters(self, sql, params, filters):
-        scope = filters.get("scope", "all")
-        if scope == "project":
-            sql += " AND project_dir=?"
-            params.append(filters.get("project_dir", self.project_dir))
-        source = filters.get("source")
-        if source:
-            sql += " AND source=?"
-            params.append(source)
-        return sql, params
-
     def _match_filters(self, mem, filters) -> bool:
         scope = filters.get("scope", "all")
         if scope == "project" and mem["project_dir"] != filters.get("project_dir", self.project_dir):
             return False
         source = filters.get("source")
-        return not source or mem.get("source", "manual") == source
+        if source and mem.get("source", "manual") != source:
+            return False
+        tier = filters.get("tier")
+        if tier and mem.get("tier", "short_term") != tier:
+            return False
+        return True
 
     def _build_tag_filter(self, base_sql: str, tags: list[str],
                           tags_mode: str, scope: str = "all",

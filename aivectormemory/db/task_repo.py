@@ -137,13 +137,25 @@ class TaskRepo(BaseRepo):
         self._commit()
         return count
 
-    def complete_by_feature(self, feature_id: str):
-        now = self._now()
+    def _do_archive(self, feature_id: str, rows, now: str) -> int:
+        """核心归档逻辑：INSERT archive + DELETE source"""
+        count = 0
+        for r in rows:
+            self.conn.execute(
+                """INSERT INTO tasks_archive
+                   (project_dir, feature_id, title, status, sort_order, parent_id,
+                    task_type, metadata, original_task_id, archived_at, created_at, updated_at)
+                   VALUES (?,?,?,?,?,?,?,?,?,?,?,?)""",
+                (r["project_dir"], r["feature_id"], r["title"], r["status"],
+                 r["sort_order"], r["parent_id"], r["task_type"], r["metadata"],
+                 r["id"], now, r["created_at"], r["updated_at"])
+            )
+            count += 1
         self.conn.execute(
-            "UPDATE tasks SET status='completed', updated_at=? WHERE project_dir=? AND feature_id=? AND status!='completed'",
-            (now, self.project_dir, feature_id)
+            "DELETE FROM tasks WHERE project_dir=? AND feature_id=?",
+            (self.project_dir, feature_id)
         )
-        self._commit()
+        return count
 
     def archive_by_feature(self, feature_id: str) -> dict:
         from aivectormemory.db.connection import _in_transaction as _outer_txn
@@ -154,45 +166,14 @@ class TaskRepo(BaseRepo):
             (self.project_dir, feature_id)
         ).fetchall()
         if _outer_txn:
-            # 已在外部事务中，直接执行
-            count = 0
-            for r in rows:
-                self.conn.execute(
-                    """INSERT INTO tasks_archive
-                       (project_dir, feature_id, title, status, sort_order, parent_id,
-                        task_type, metadata, original_task_id, archived_at, created_at, updated_at)
-                       VALUES (?,?,?,?,?,?,?,?,?,?,?,?)""",
-                    (r["project_dir"], r["feature_id"], r["title"], r["status"],
-                     r["sort_order"], r["parent_id"], r["task_type"], r["metadata"],
-                     r["id"], now, r["created_at"], r["updated_at"])
-                )
-                count += 1
-            self.conn.execute(
-                "DELETE FROM tasks WHERE project_dir=? AND feature_id=?",
-                (self.project_dir, feature_id)
-            )
+            count = self._do_archive(feature_id, rows, now)
             self._commit()
             return {"archived": count, "feature_id": feature_id}
         # 自行管理事务
         self.conn.execute("BEGIN IMMEDIATE")
         _conn_mod._in_transaction = True
         try:
-            count = 0
-            for r in rows:
-                self.conn.execute(
-                    """INSERT INTO tasks_archive
-                       (project_dir, feature_id, title, status, sort_order, parent_id,
-                        task_type, metadata, original_task_id, archived_at, created_at, updated_at)
-                       VALUES (?,?,?,?,?,?,?,?,?,?,?,?)""",
-                    (r["project_dir"], r["feature_id"], r["title"], r["status"],
-                     r["sort_order"], r["parent_id"], r["task_type"], r["metadata"],
-                     r["id"], now, r["created_at"], r["updated_at"])
-                )
-                count += 1
-            self.conn.execute(
-                "DELETE FROM tasks WHERE project_dir=? AND feature_id=?",
-                (self.project_dir, feature_id)
-            )
+            count = self._do_archive(feature_id, rows, now)
             self.conn.commit()
         except Exception:
             self.conn.rollback()
@@ -208,7 +189,6 @@ class TaskRepo(BaseRepo):
             params.append(feature_id)
         sql += " ORDER BY feature_id, sort_order, id"
         rows = [dict(r) for r in self.conn.execute(sql, params).fetchall()]
-        id_map = {r["original_task_id"]: r for r in rows}
         top_level = [r for r in rows if r["parent_id"] == 0]
         for node in top_level:
             node["children"] = [r for r in rows if r["parent_id"] == node["original_task_id"]]

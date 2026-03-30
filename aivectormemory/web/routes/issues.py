@@ -1,3 +1,4 @@
+from aivectormemory.utils import parse_pagination
 from aivectormemory.db.issue_repo import IssueRepo
 from aivectormemory.db.task_repo import TaskRepo
 
@@ -6,16 +7,7 @@ def get_issues(cm, params, pdir):
     date = params.get("date", [None])[0]
     status = params.get("status", [None])[0]
     keyword = params.get("keyword", [None])[0]
-    try:
-        limit = int(params.get("limit", [20])[0])
-    except (ValueError, TypeError):
-        limit = 20
-    try:
-        offset = int(params.get("offset", [0])[0])
-    except (ValueError, TypeError):
-        offset = 0
-    limit = max(1, min(limit, 500))
-    offset = max(0, min(offset, 100000))
+    limit, offset = parse_pagination(params)
     repo = IssueRepo(cm.conn, pdir)
     if status == "archived":
         issues, total = repo.list_archived(date=date, limit=limit, offset=offset, keyword=keyword)
@@ -64,9 +56,6 @@ def post_issue(handler, cm, pdir):
     repo = IssueRepo(cm.conn, pdir)
     parent_id = body.get("parent_id", 0)
     result = repo.create(d, title, content, parent_id=parent_id)
-    if result.get("deduplicated"):
-        return result
-
     return result
 
 
