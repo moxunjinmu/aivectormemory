@@ -377,6 +377,15 @@ Or add env to MCP config:
 
 ## 📋 Changelog
 
+### v2.1.3
+
+**Fix: Scoring Engine Overhaul**
+- 🧮 Fixed critical bug: composite score now uses original vector similarity instead of RRF rank score — previously a ~0.8 similarity was replaced by ~0.015 RRF score, destroying semantic relevance signal
+- √ importance changed from direct multiplier to `sqrt(importance)` — reduces extreme penalty (0.15 → 0.387 instead of 0.15) while preserving supersede suppression
+- 🛡️ Similarity floor: memories with similarity ≥ 0.85 get a guaranteed minimum score, preventing high-relevance memories from being buried by low importance
+- ⚖️ Rebalanced weights: similarity 0.55 (was 0.5), recency 0.30, frequency 0.15 (was 0.2) — semantic relevance now dominates ranking
+- 📉 FTS-only fallback reduced from 0.5 to 0.3 — pure keyword matches no longer get inflated similarity scores
+
 ### v2.1.2
 
 **Fix: Memory Recall Accuracy**

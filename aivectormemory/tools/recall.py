@@ -2,7 +2,7 @@ from datetime import datetime, timezone
 
 import jieba
 
-from aivectormemory.config import DEFAULT_TOP_K
+from aivectormemory.config import DEFAULT_TOP_K, FTS_FALLBACK_SIM
 from aivectormemory.db.memory_repo import MemoryRepo
 from aivectormemory.db.user_memory_repo import UserMemoryRepo
 from aivectormemory.db.issue_repo import IssueRepo
@@ -104,7 +104,7 @@ def _apply_composite_score(merged: list[dict], conn, table: str):
 
     for m in merged:
         m["score"] = composite_score(
-            similarity=m.get("rrf_score", m.get("similarity", 0.5)),
+            similarity=m.get("similarity", FTS_FALLBACK_SIM),
             last_accessed_at=m.get("last_accessed_at") or m.get("created_at", ""),
             access_count=m.get("access_count", 0),
             max_access_count=max_ac,

@@ -371,6 +371,15 @@ O agregar env en la configuración MCP:
 
 ## 📋 Registro de Cambios
 
+### v2.1.3
+
+**Corrección: Revisión Completa del Motor de Puntuación**
+- 🧮 Corrección de bug crítico: la puntuación compuesta ahora usa la similitud vectorial original en lugar de la puntuación de rango RRF — anteriormente una similitud de ~0.8 era reemplazada por una puntuación RRF de ~0.015, destruyendo la señal de relevancia semántica
+- √ importance cambió de multiplicador directo a `sqrt(importance)` — reduce la penalización extrema (0.15 → 0.387 en lugar de 0.15) mientras preserva la supresión de supersede
+- 🛡️ Piso de similitud: los recuerdos con similitud ≥ 0.85 obtienen una puntuación mínima garantizada, evitando que recuerdos de alta relevancia sean enterrados por baja importance
+- ⚖️ Pesos reequilibrados: similarity 0.55 (antes 0.5), recency 0.30, frequency 0.15 (antes 0.2) — la relevancia semántica ahora domina el ranking
+- 📉 Respaldo solo-FTS reducido de 0.5 a 0.3 — las coincidencias puramente por palabras clave ya no obtienen puntuaciones de similitud infladas
+
 ### v2.1.2
 
 **Corrección: Precisión de Recuperación de Memoria**

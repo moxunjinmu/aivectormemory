@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
-from math import exp
+from math import exp, sqrt
 
-from .config import DECAY_RATE, W_FREQ, W_REC, W_SIM
+from .config import DECAY_RATE, W_FREQ, W_REC, W_SIM, SIMILARITY_FLOOR
 
 
 def composite_score(
@@ -18,13 +18,17 @@ def composite_score(
     Formula:
         recency  = exp(-DECAY_RATE * hours_since_access)
         frequency = min(access_count / max(max_access_count, 1), 1.0)
-        score = similarity * W_SIM + recency * W_REC + frequency * W_FREQ
-        score *= importance
+        raw = similarity * W_SIM + recency * W_REC + frequency * W_FREQ
+        if similarity >= SIMILARITY_FLOOR: raw = max(raw, similarity * 0.6)
+        score = raw * sqrt(importance)
     """
     hours = _hours_since(last_accessed_at)
     recency = exp(-DECAY_RATE * hours)
     frequency = min(access_count / max(max_access_count, 1), 1.0)
-    return (similarity * W_SIM + recency * W_REC + frequency * W_FREQ) * importance
+    raw = similarity * W_SIM + recency * W_REC + frequency * W_FREQ
+    if similarity >= SIMILARITY_FLOOR:
+        raw = max(raw, similarity * 0.6)
+    return raw * sqrt(importance)
 
 
 def _hours_since(iso_timestamp: str) -> float:

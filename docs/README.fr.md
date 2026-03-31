@@ -371,6 +371,15 @@ Ou ajouter env dans la configuration MCP :
 
 ## 📋 Journal des Modifications
 
+### v2.1.3
+
+**Correction : Refonte du Moteur de Scoring**
+- 🧮 Correction d'un bug critique : le score composite utilise désormais la similarité vectorielle originale au lieu du score de rang RRF — auparavant une similarité de ~0.8 était remplacée par un score RRF de ~0.015, détruisant le signal de pertinence sémantique
+- √ importance passe d'un multiplicateur direct à `sqrt(importance)` — réduit la pénalité extrême (0.15 → 0.387 au lieu de 0.15) tout en préservant la suppression supersede
+- 🛡️ Plancher de similarité : les souvenirs avec une similarité ≥ 0.85 obtiennent un score minimum garanti, empêchant les souvenirs à haute pertinence d'être enfouis par une faible importance
+- ⚖️ Rééquilibrage des poids : similarity 0.55 (avant 0.5), recency 0.30, frequency 0.15 (avant 0.2) — la pertinence sémantique domine désormais le classement
+- 📉 Repli FTS-uniquement réduit de 0.5 à 0.3 — les correspondances purement par mots-clés n'obtiennent plus de scores de similarité gonflés
+
 ### v2.1.2
 
 **Correction : Précision de la Recherche de Mémoire**

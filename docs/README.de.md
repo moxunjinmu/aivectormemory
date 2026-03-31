@@ -371,6 +371,15 @@ Oder env in der MCP-Konfiguration hinzufügen:
 
 ## 📋 Änderungsprotokoll
 
+### v2.1.3
+
+**Fix: Überarbeitung der Scoring-Engine**
+- 🧮 Kritischen Bug behoben: Composite-Score verwendet jetzt die originale Vektor-Ähnlichkeit statt des RRF-Rang-Scores — zuvor wurde eine Ähnlichkeit von ~0.8 durch einen RRF-Score von ~0.015 ersetzt, was das semantische Relevanzsignal zerstörte
+- √ importance von direktem Multiplikator zu `sqrt(importance)` geändert — reduziert extreme Bestrafung (0.15 → 0.387 statt 0.15) bei Beibehaltung der Supersede-Unterdrückung
+- 🛡️ Ähnlichkeits-Mindestgrenze: Erinnerungen mit Ähnlichkeit ≥ 0.85 erhalten eine garantierte Mindestpunktzahl, um zu verhindern, dass hochrelevante Erinnerungen durch niedrige importance vergraben werden
+- ⚖️ Neugewichtung: similarity 0.55 (vorher 0.5), recency 0.30, frequency 0.15 (vorher 0.2) — semantische Relevanz dominiert jetzt das Ranking
+- 📉 FTS-only-Fallback von 0.5 auf 0.3 reduziert — reine Keyword-Treffer erhalten keine aufgeblähten Ähnlichkeitswerte mehr
+
 ### v2.1.2
 
 **Fehlerbehebung: Genauigkeit der Gedächtnis-Abfrage**
