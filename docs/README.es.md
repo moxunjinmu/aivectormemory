@@ -371,6 +371,13 @@ O agregar env en la configuración MCP:
 
 ## 📋 Registro de Cambios
 
+### v2.1.2
+
+**Corrección: Precisión de Recuperación de Memoria**
+- 🔍 Corregido corte codicioso en búsqueda por niveles: los resultados de `long_term` bloqueaban la búsqueda de memorias `short_term`, haciendo invisibles memorias altamente relevantes
+- 🔧 Ambos niveles se buscan simultáneamente, clasificados por puntuación compuesta (similitud × recencia × frecuencia × importancia)
+- 🛡️ Corregido bug de mutación del diccionario `filters` en `_search_tier`
+
 ### v2.1.1
 
 **Mejora: Actualización del Sistema de Reglas de IA**

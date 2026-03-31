@@ -56,11 +56,16 @@ Ejemplos: "Esto es una pregunta, verificaré el código relevante antes de respo
 
 **E. Presentar solución** — corrección simple→F, múltiples pasos→Sección 8. **Debe primero `status` establecer bloqueo antes de esperar confirmación**
 
-**F. Modificar código** — según Sección 7 verificar antes de modificar, un problema a la vez. Nuevo problema encontrado → `track create`
+**F. Modificar código** — según Sección 7 verificar antes de modificar, un problema a la vez
 
-**G. Verificación con pruebas** — ejecutar pruebas, `track update` llenar solution + files_changed + test_result
+⛔ GATE: G1-G4 deben completarse TODOS antes de pasar a H. Establecer bloqueo o reportar resultados con algún paso incompleto = violación
+**G1. Ejecutar pruebas** — backend: pytest/curl, frontend: SOLO Playwright MCP. Saltar = violación
+**G2. Verificar efectos secundarios** — grep nombres de funciones/variables modificadas, confirmar que otros llamadores no se ven afectados
+**G3. Manejar nuevos problemas** — comportamiento inesperado durante pruebas: bloquea actual→corregir inmediatamente y continuar; no bloquea→`track create` para registrar y continuar
+**G4. track update** — llenar solution + files_changed + test_result
+⛔ /GATE
 
-**H. Esperar verificación** — `status` establecer bloqueo (block_reason: "Corrección completa, esperando verificación" o "Se necesita decisión del usuario")
+**H. Esperar verificación** — solo después de completar TODOS G1-G4 se puede `status` establecer bloqueo (block_reason: "Corrección completa, esperando verificación" o "Se necesita decisión del usuario")
 
 **I. Usuario confirma** — `track archive`, limpiar bloqueo. **Verificación de retorno**: si es bug encontrado durante ejecución de task, después de archivar volver a Sección 8 para continuar. Antes de terminar sesión → `auto_save`
 
@@ -220,15 +225,19 @@ DEV_WORKFLOW_PROMPT = (
     "- **Sin** `lsof -ti:puerto` sin ignoreWarning (será bloqueado por verificación de seguridad)\n"
     "- **Enfoque correcto**: escribir SQL en archivo `.sql` y usar `< data/xxx.sql`; escribir scripts de verificación Python como archivos .py y ejecutar con `python3 xxx.py`; usar `lsof -ti:puerto` + ignoreWarning:true para verificación de puertos\n\n"
     "---\n\n"
-    "## ⚠️ Auto-test\n\n"
-    "Después de modificar archivos de código, **debe ejecutar pruebas antes de establecer el estado de bloqueo \"esperando verificación\"**. "
-    "No diga \"esperando verificación\" después de modificar código sin ejecutar pruebas. Solo archivos de documentación/configuración (.md/.json/.yaml/.toml/.sh etc.) no requieren auto-test.\n\n"
-    "**Cambios visibles en frontend: SOLO usar herramientas Playwright MCP** (browser_navigate → interacción → browser_snapshot), cualquier otro método (curl, scripts, node -e, capturas de pantalla) es una violación. No llamar browser_close después de las pruebas.\n\n"
+    "## ⚠️ Checklist Obligatorio Post-Cambio de Código (ejecutar después de CADA modificación de código)\n\n"
+    "Después de modificar archivos de código, completar las siguientes verificaciones en orden. **No establecer bloqueo ni reportar resultados hasta completar TODOS los pasos**:\n\n"
+    "1. **Ejecutar pruebas** — backend: pytest/curl, frontend: SOLO Playwright MCP (navigate→interacción→snapshot, no close). Saltar = violación\n"
+    "2. **Verificar efectos secundarios** — grep nombres de funciones/variables modificadas, confirmar que otros llamadores no se ven afectados\n"
+    "3. **Manejar nuevos problemas** — comportamiento inesperado: bloquea actual→corregir inmediatamente y continuar; no bloquea→`track create` y continuar\n"
+    "4. **track update** — llenar solution + files_changed + test_result\n"
+    "5. Solo después de completar TODO lo anterior se puede `status` establecer bloqueo \"esperando verificación\"\n\n"
+    "Solo archivos de documentación/configuración (.md/.json/.yaml/.toml/.sh etc.) están exentos de este checklist.\n\n"
     "---\n\n"
-    "## ⚠️ Recordatorio de Violaciones Frecuentes\n\n"
-    "- ❌ Decir \"esperando verificación\" sin ejecutar pruebas → debe ejecutar pruebas primero\n"
+    "## ⚠️ Ejemplos de Violaciones (estrictamente prohibidos)\n\n"
+    "- ❌ Decir \"esperando verificación\" sin completar pruebas → debe completar el checklist de 5 pasos primero\n"
     "- ❌ Asumir de memoria → debe recall + leer código actual para verificar\n"
-    "- ❌ Saltar track create e ir directamente a corregir código\n"
+    "- ❌ Encontrar problema y no registrar → si bloquea: corregir y continuar; si no bloquea: track create y continuar\n"
     "- ❌ python3 -c multilínea / $(…)+pipe → congelará el IDE\n\n"
     "⚠️ Reglas completas en CLAUDE.md — deben seguirse estrictamente."
 )

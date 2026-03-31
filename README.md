@@ -377,6 +377,13 @@ Or add env to MCP config:
 
 ## 📋 Changelog
 
+### v2.1.2
+
+**Fix: Memory Recall Accuracy**
+- 🔍 Fixed tiered search greedy cutoff: `long_term` results previously blocked `short_term` memories from being searched, causing highly relevant memories to be invisible
+- 🔧 Both tiers now searched simultaneously, ranked by composite score (similarity × recency × frequency × importance)
+- 🛡️ Fixed `filters` dict mutation bug in `_search_tier` — original filters no longer modified by reference
+
 ### v2.1.1
 
 **Enhancement: AI Rule System Upgrade**

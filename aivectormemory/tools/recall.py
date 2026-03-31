@@ -228,15 +228,13 @@ def _query_user(cm, engine, query, tags, top_k, source, tags_mode="all", exclude
 
 
 def _search_tier(cm, engine, repo, query, tags, top_k, tier, exclude_superseded, table, scope, filters=None):
-    """统一的分层搜索：同时适用于 user_memories 和 memories"""
+    """统一搜索：tier=None 时搜全量，tier 有值时搜指定层"""
     embedding = engine.encode(query)
+    kw = {**(filters or {}), "tier": tier} if tier else (filters or {})
     if tags:
-        kw = filters or {}
-        kw["tier"] = tier
         vec = _add_similarity(repo.search_by_vector_with_tags(embedding, tags, top_k=top_k * 2, **kw))
     else:
-        vec = _add_similarity(repo.search_by_vector(embedding, top_k=top_k * 2, tier=tier) if not filters
-                              else repo.search_by_vector(embedding, top_k=top_k * 2, **{**filters, "tier": tier}))
+        vec = _add_similarity(repo.search_by_vector(embedding, top_k=top_k * 2, **kw))
 
     fts = fts_search(cm.conn, query, scope=scope, top_k=top_k * 2, tier=tier)
     merged = rrf_merge(vec, fts)
@@ -266,16 +264,9 @@ def _query_scope(cm, engine, repo, query, tags, top_k, source, tags_mode, exclud
             rows = [r for r in rows if r.get("tier", "short_term") == tier]
         return rows
 
-    tiers_to_search = [tier] if tier else ["long_term", "short_term"]
-    final = []
-    for t in tiers_to_search:
-        remaining = top_k - len(final)
-        if remaining <= 0:
-            break
-        tier_filters = {**filters, "tier": t} if filters else None
-        tier_results = _search_tier(cm, engine, repo, query, tags, remaining, t, exclude_superseded,
-                                    table, scope, filters=filters)
-        final.extend(tier_results)
+    # 不再按 tier 贪心截断，统一搜索后由 composite_score 排序
+    final = _search_tier(cm, engine, repo, query, tags, top_k, tier, exclude_superseded,
+                         table, scope, filters=filters)
 
     _update_access(cm.conn, table, final)
     return final

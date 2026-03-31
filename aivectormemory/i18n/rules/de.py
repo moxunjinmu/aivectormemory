@@ -56,11 +56,16 @@ Beispiele: "Das ist eine Frage, ich überprüfe den relevanten Code vor der Antw
 
 **E. Lösung präsentieren** — einfache Korrektur→F, mehrstufig→Abschnitt 8. **Muss erst `status` Blockierung setzen, dann auf Bestätigung warten**
 
-**F. Code ändern** — nach Abschnitt 7 prüfen, dann ändern, ein Problem auf einmal. Neues Problem → `track create`
+**F. Code ändern** — nach Abschnitt 7 prüfen, dann ändern, ein Problem auf einmal
 
-**G. Testen** — Tests ausführen, `track update` mit solution + files_changed + test_result
+⛔ GATE: G1-G4 müssen ALLE abgeschlossen sein bevor H betreten wird. Blockierung setzen oder Ergebnisse melden mit unvollständigen Schritten = Verstoß
+**G1. Tests ausführen** — Backend: pytest/curl, Frontend: NUR Playwright MCP. Überspringen = Verstoß
+**G2. Seiteneffekte prüfen** — geänderte Funktions-/Variablennamen greppen, bestätigen dass andere Aufrufer nicht betroffen
+**G3. Neue Probleme behandeln** — unerwartetes Verhalten beim Testen: blockiert aktuelles→sofort beheben und fortfahren; blockiert nicht→`track create` aufzeichnen und fortfahren
+**G4. track update** — solution + files_changed + test_result ausfüllen
+⛔ /GATE
 
-**H. Auf Verifizierung warten** — `status` Blockierung setzen (block_reason: "Korrektur abgeschlossen, wartet auf Verifizierung" oder "Benutzerentscheidung erforderlich")
+**H. Auf Verifizierung warten** — nur nachdem ALLE G1-G4 abgeschlossen sind kann `status` Blockierung gesetzt werden (block_reason: "Korrektur abgeschlossen, wartet auf Verifizierung" oder "Benutzerentscheidung erforderlich")
 
 **I. Benutzer bestätigt** — `track archive`, Blockierung aufheben. **Rückfluss-Prüfung**: wenn Bug während task-Ausführung gefunden, nach Archivierung zurück zu Abschnitt 8. Vor Sitzungsende `auto_save`
 
@@ -220,15 +225,19 @@ DEV_WORKFLOW_PROMPT = (
     "- **Kein** `lsof -ti:Port` ohne ignoreWarning (wird von Sicherheitsprüfung blockiert)\n"
     "- **Korrekter Ansatz**: SQL in `.sql`-Datei schreiben und `< data/xxx.sql` verwenden; Python-Verifizierungsskripte als .py-Dateien schreiben und mit `python3 xxx.py` ausführen; `lsof -ti:Port` + ignoreWarning:true für Port-Prüfungen verwenden\n\n"
     "---\n\n"
-    "## ⚠️ Selbsttest\n\n"
-    "Nach Änderungen an Code-Dateien **müssen Sie Tests ausführen, bevor Sie den Blockierungsstatus \"Warten auf Überprüfung\" setzen**. "
-    "Sagen Sie nicht \"Warten auf Überprüfung\" nach Code-Änderungen ohne Tests. Nur Dokumentations-/Konfigurationsdateien (.md/.json/.yaml/.toml/.sh etc.) erfordern keinen Selbsttest.\n\n"
-    "**Frontend-sichtbare Änderungen: NUR Playwright MCP-Tools verwenden** (browser_navigate → Interaktion → browser_snapshot), alle anderen Methoden (curl, Skripte, node -e, Screenshots) sind Verstöße. Nach dem Test browser_close nicht aufrufen.\n\n"
+    "## ⚠️ Pflicht-Checkliste nach Code-Änderung (nach JEDER Code-Änderung ausführen)\n\n"
+    "Nach Änderungen an Code-Dateien folgende Prüfungen der Reihe nach abschließen. **Kein Blockierung-Setzen oder Ergebnis-Melden bis ALLE Schritte erledigt**:\n\n"
+    "1. **Tests ausführen** — Backend: pytest/curl, Frontend: NUR Playwright MCP (navigate→Interaktion→snapshot, kein close). Überspringen = Verstoß\n"
+    "2. **Seiteneffekte prüfen** — geänderte Funktions-/Variablennamen greppen, bestätigen dass andere Aufrufer nicht betroffen\n"
+    "3. **Neue Probleme behandeln** — unerwartetes Verhalten: blockiert aktuelles→sofort beheben und fortfahren; blockiert nicht→`track create` und fortfahren\n"
+    "4. **track update** — solution + files_changed + test_result ausfüllen\n"
+    "5. Erst nach Abschluss ALLER obigen Schritte kann `status` Blockierung \"Warten auf Überprüfung\" gesetzt werden\n\n"
+    "Nur Dokumentations-/Konfigurationsdateien (.md/.json/.yaml/.toml/.sh etc.) sind von dieser Checkliste ausgenommen.\n\n"
     "---\n\n"
-    "## ⚠️ Häufige Verstöße Erinnerung\n\n"
-    "- ❌ \"Warten auf Überprüfung\" sagen ohne Tests → muss zuerst Tests ausführen\n"
+    "## ⚠️ Verstoß-Beispiele (streng verboten)\n\n"
+    "- ❌ \"Warten auf Überprüfung\" ohne Tests → muss zuerst 5-Schritte-Checkliste abschließen\n"
     "- ❌ Aus Gedächtnis annehmen → muss recall + tatsächlichen Code lesen\n"
-    "- ❌ track create überspringen und direkt Code korrigieren\n"
+    "- ❌ Problem gefunden aber nicht aufgezeichnet → blockiert: beheben und fortfahren; blockiert nicht: track create und fortfahren\n"
     "- ❌ python3 -c mehrzeilig / $(…)+Pipe → IDE friert ein\n\n"
     "⚠️ Vollständige Regeln in CLAUDE.md — müssen strikt befolgt werden."
 )

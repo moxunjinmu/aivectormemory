@@ -56,11 +56,16 @@ STEERING_CONTENT = """# AIVectorMemory - 工作规则
 
 **E. 说明方案** — 简单修复→F，多步骤→第8节。**必须先 `status` 设阻塞再等确认**
 
-**F. 修改代码** — 按第7节检查后修改，一次只修一个。发现新问题 → `track create`
+**F. 修改代码** — 按第7节检查后修改，一次只修一个
 
-**G. 测试验证** — 运行测试，`track update` 填 solution + files_changed + test_result
+⛔ GATE：以下 G1-G4 必须全部完成才能进入 H，任何一项未完成禁止设阻塞或汇报结果
+**G1. 运行测试** — 后端 pytest/curl，前端仅 Playwright MCP。跳过此步 = 违规
+**G2. 检查副作用** — grep 改动涉及的函数/变量名，确认其他调用方不受影响
+**G3. 新问题处理** — 测试中发现非预期行为：阻塞当前 → 立即修复再继续；不阻塞 → `track create` 记录后继续
+**G4. track update** — 填 solution + files_changed + test_result
+⛔ /GATE
 
-**H. 等待验证** — `status` 设阻塞（block_reason: "修复完成等待验证"或"需要用户决策"）
+**H. 等待验证** — 仅 G1-G4 全部完成后才能 `status` 设阻塞（block_reason: "修复完成等待验证"或"需要用户决策"）
 
 **I. 用户确认** — `track archive`，清阻塞。**回流检查**：若在 task 执行中发现的 bug，归档后回到第8节继续。会话结束前 `auto_save`
 
@@ -220,15 +225,19 @@ DEV_WORKFLOW_PROMPT = (
     "- **禁止** `lsof -ti:端口` 不加 ignoreWarning（会被安全检查拦截）\n"
     "- **正确做法**：SQL 写入 `.sql` 文件用 `< data/xxx.sql` 执行；Python 验证脚本写成 .py 文件用 `python3 xxx.py` 执行；端口检查用 `lsof -ti:端口` + ignoreWarning:true\n\n"
     "---\n\n"
-    "## ⚠️ 自测检查\n\n"
-    "修改了代码文件后，**必须先运行测试验证再设阻塞\"等待验证\"**。"
-    "禁止修改代码后直接说\"等待验证\"而不跑测试。仅修改文档/配置文件（.md/.json/.yaml/.toml/.sh 等非代码文件）时不要求自测。\n\n"
-    "**前端可见变更：只能用 Playwright MCP 工具**（browser_navigate → 交互 → browser_snapshot），其他一切方式（curl、脚本、node -e、截图）均为违规。测试后不调用 browser_close。\n\n"
+    "## ⚠️ 代码修改后强制检查（每次修改代码后必须逐条执行）\n\n"
+    "修改代码文件后，必须按顺序完成以下检查，**任何一项未完成都不能设阻塞或汇报结果**：\n\n"
+    "1. **运行测试** — 后端 pytest/curl，前端仅 Playwright MCP（navigate→交互→snapshot，不 close）。跳过 = 违规\n"
+    "2. **检查副作用** — grep 改动涉及的函数/变量名，确认其他调用方不受影响\n"
+    "3. **新问题处理** — 测试中发现非预期行为：阻塞当前→立即修复再继续；不阻塞→`track create` 记录后继续\n"
+    "4. **track update** — 填 solution + files_changed + test_result\n"
+    "5. 以上全部完成后，才能 `status` 设阻塞\"等待验证\"\n\n"
+    "仅修改文档/配置文件（.md/.json/.yaml/.toml/.sh 等非代码文件）时不要求执行此清单。\n\n"
     "---\n\n"
-    "## ⚠️ 高频违规提醒\n\n"
-    "- ❌ 修改代码后直接说\"等待验证\" → 必须先跑测试\n"
+    "## ⚠️ 违规示例（以下行为严格禁止）\n\n"
+    "- ❌ 修改代码后直接说\"等待验证\" → 必须先完成上方 5 步检查清单\n"
     "- ❌ 凭记忆假设 → 必须 recall + 读代码验证\n"
-    "- ❌ 跳过 track create 直接修代码\n"
+    "- ❌ 发现问题不记录直接修 → 阻塞当前则修复后继续，不阻塞则 track create 再继续\n"
     "- ❌ python3 -c 多行 / $(…)+管道 → IDE 会卡死\n\n"
     "⚠️ 完整规则见 CLAUDE.md，必须严格遵守。"
 )

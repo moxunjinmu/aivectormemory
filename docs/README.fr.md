@@ -371,6 +371,13 @@ Ou ajouter env dans la configuration MCP :
 
 ## 📋 Journal des Modifications
 
+### v2.1.2
+
+**Correction : Précision de la Recherche de Mémoire**
+- 🔍 Correction de la coupure gloutonne dans la recherche par niveaux : les résultats `long_term` empêchaient la recherche des mémoires `short_term`, rendant invisibles des mémoires très pertinentes
+- 🔧 Les deux niveaux sont maintenant recherchés simultanément, classés par score composite (similarité × récence × fréquence × importance)
+- 🛡️ Correction du bug de mutation du dictionnaire `filters` dans `_search_tier`
+
 ### v2.1.1
 
 **Amélioration : Mise à niveau du système de règles IA**

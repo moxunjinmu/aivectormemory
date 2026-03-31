@@ -371,6 +371,13 @@ Oder env in der MCP-Konfiguration hinzufügen:
 
 ## 📋 Änderungsprotokoll
 
+### v2.1.2
+
+**Fehlerbehebung: Genauigkeit der Gedächtnis-Abfrage**
+- 🔍 Gieriger Abbruch bei gestufter Suche behoben: `long_term`-Ergebnisse blockierten die Suche nach `short_term`-Erinnerungen, wodurch hochrelevante Erinnerungen unsichtbar waren
+- 🔧 Beide Stufen werden nun gleichzeitig durchsucht, sortiert nach kombinierter Bewertung (Ähnlichkeit × Aktualität × Häufigkeit × Wichtigkeit)
+- 🛡️ Bug bei der Mutation des `filters`-Dictionarys in `_search_tier` behoben
+
 ### v2.1.1
 
 **Verbesserung: AI-Regelsystem-Upgrade**
