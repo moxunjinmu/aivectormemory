@@ -177,16 +177,6 @@ def _apply_expand_relations(conn, results: list[dict], scope: str, top_k: int) -
 # Superseded filtering
 # ---------------------------------------------------------------------------
 
-def _load_superseded_ids(conn, scope: str) -> set[str]:
-    """Load IDs of memories that have been superseded."""
-    db_scope = "user" if scope == "user" else "project"
-    rows = conn.execute(
-        "SELECT DISTINCT related_id FROM memory_relations WHERE relation_type = 'supersedes' AND scope = ?",
-        [db_scope],
-    ).fetchall()
-    return {r[0] for r in rows}
-
-
 # ---------------------------------------------------------------------------
 # Main handler
 # ---------------------------------------------------------------------------
@@ -238,11 +228,6 @@ def _search_tier(cm, engine, repo, query, tags, top_k, tier, exclude_superseded,
 
     fts = fts_search(cm.conn, query, scope=scope, top_k=top_k * 2, tier=tier)
     merged = rrf_merge(vec, fts)
-
-    if exclude_superseded:
-        superseded_ids = _load_superseded_ids(cm.conn, scope)
-        if superseded_ids:
-            merged = [m for m in merged if m["id"] not in superseded_ids]
 
     _apply_composite_score(merged, cm.conn, table)
     return merged[:top_k]

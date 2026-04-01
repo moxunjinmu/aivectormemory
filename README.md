@@ -377,6 +377,13 @@ Or add env to MCP config:
 
 ## 📋 Changelog
 
+### v2.1.4
+
+**Fix: Superseded Memory Visibility**
+- 🔓 Removed hard filter that completely hid superseded memories from recall results — previously `exclude_superseded=true` (default) blocked memories before scoring, making them permanently invisible
+- 📊 Superseded memories now ranked naturally via importance reduction (`×0.3`) + `sqrt(importance)` scoring — they appear lower in results instead of disappearing entirely
+- 🧹 Removed `_load_superseded_ids` function and related dead code
+
 ### v2.1.3
 
 **Fix: Scoring Engine Overhaul**

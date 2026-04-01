@@ -378,6 +378,13 @@ export HF_ENDPOINT=https://hf-mirror.com
 
 ## 📋 更新日志
 
+### v2.1.4
+
+**修复：被取代记忆的可见性**
+- 🔓 移除了将被取代记忆从召回结果中完全隐藏的硬过滤 — 此前 `exclude_superseded=true`（默认）在评分之前就阻止了这些记忆，使其永久不可见
+- 📊 被取代记忆现在通过 importance 降低（`×0.3`）+ `sqrt(importance)` 评分自然排序 — 它们在结果中排名靠后而非完全消失
+- 🧹 移除了 `_load_superseded_ids` 函数及相关死代码
+
 ### v2.1.3
 
 **修复：评分引擎全面重构**

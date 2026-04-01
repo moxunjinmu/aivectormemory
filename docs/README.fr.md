@@ -371,6 +371,13 @@ Ou ajouter env dans la configuration MCP :
 
 ## 📋 Journal des Modifications
 
+### v2.1.4
+
+**Correction : Visibilité des Mémoires Remplacées**
+- 🔓 Suppression du filtre dur qui masquait complètement les mémoires remplacées des résultats de recall — auparavant `exclude_superseded=true` (par défaut) bloquait les mémoires avant le scoring, les rendant définitivement invisibles
+- 📊 Les mémoires remplacées sont désormais classées naturellement via la réduction d'importance (`×0.3`) + scoring `sqrt(importance)` — elles apparaissent plus bas dans les résultats au lieu de disparaître entièrement
+- 🧹 Suppression de la fonction `_load_superseded_ids` et du code mort associé
+
 ### v2.1.3
 
 **Correction : Refonte du Moteur de Scoring**

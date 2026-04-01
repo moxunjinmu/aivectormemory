@@ -371,6 +371,13 @@ O agregar env en la configuración MCP:
 
 ## 📋 Registro de Cambios
 
+### v2.1.4
+
+**Corrección: Visibilidad de Memorias Reemplazadas**
+- 🔓 Eliminado el filtro duro que ocultaba completamente las memorias reemplazadas de los resultados de recall — anteriormente `exclude_superseded=true` (por defecto) bloqueaba las memorias antes de la puntuación, haciéndolas permanentemente invisibles
+- 📊 Las memorias reemplazadas ahora se clasifican naturalmente mediante reducción de importance (`×0.3`) + puntuación `sqrt(importance)` — aparecen más abajo en los resultados en lugar de desaparecer por completo
+- 🧹 Eliminada la función `_load_superseded_ids` y código muerto relacionado
+
 ### v2.1.3
 
 **Corrección: Revisión Completa del Motor de Puntuación**

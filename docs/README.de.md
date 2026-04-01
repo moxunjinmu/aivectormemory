@@ -371,6 +371,13 @@ Oder env in der MCP-Konfiguration hinzufügen:
 
 ## 📋 Änderungsprotokoll
 
+### v2.1.4
+
+**Fix: Sichtbarkeit ersetzter Erinnerungen**
+- 🔓 Harten Filter entfernt, der ersetzte Erinnerungen vollständig aus Recall-Ergebnissen ausblendete — zuvor blockierte `exclude_superseded=true` (Standard) Erinnerungen vor der Bewertung und machte sie dauerhaft unsichtbar
+- 📊 Ersetzte Erinnerungen werden jetzt natürlich durch importance-Reduktion (`×0.3`) + `sqrt(importance)`-Bewertung eingestuft — sie erscheinen weiter unten in den Ergebnissen statt vollständig zu verschwinden
+- 🧹 Funktion `_load_superseded_ids` und zugehörigen toten Code entfernt
+
 ### v2.1.3
 
 **Fix: Überarbeitung der Scoring-Engine**
