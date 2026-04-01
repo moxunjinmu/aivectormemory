@@ -371,6 +371,12 @@ export HF_ENDPOINT=https://hf-mirror.com
 
 ## 📋 更新日誌
 
+### v2.1.6
+
+**修復：CLI 入口點重新命名**
+- 🔧 將 CLI 入口點從 `run` 重新命名為 `aivectormemory` — `uvx aivectormemory` 現可直接使用，無需 `--from` 變通方案
+- ♻️ 同步更新 argparse `prog` 名稱及安裝配置
+
 ### v2.1.5
 
 **修復：Playwright MCP 配置相容性**

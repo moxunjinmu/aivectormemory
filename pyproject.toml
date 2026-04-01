@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "aivectormemory"
-version = "2.1.5"
+version = "2.1.6"
 description = "轻量级 MCP Server，为 AI 编程助手提供跨会话持久记忆能力"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -32,7 +32,7 @@ dependencies = [
 ]
 
 [project.scripts]
-run = "aivectormemory.__main__:main"
+aivectormemory = "aivectormemory.__main__:main"
 
 [project.urls]
 Homepage = "https://github.com/Edlineas/aivectormemory"

@@ -377,6 +377,12 @@ Or add env to MCP config:
 
 ## 📋 Changelog
 
+### v2.1.6
+
+**Fix: CLI Entry Point Renamed**
+- 🔧 Renamed CLI entry point from `run` to `aivectormemory` — `uvx aivectormemory` now works directly without `--from` workaround
+- ♻️ Updated argparse `prog` name and install runner config to match
+
 ### v2.1.5
 
 **Fix: Playwright MCP Config Compatibility**

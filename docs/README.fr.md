@@ -371,6 +371,12 @@ Ou ajouter env dans la configuration MCP :
 
 ## 📋 Journal des Modifications
 
+### v2.1.6
+
+**Correction : Point d'Entrée CLI Renommé**
+- 🔧 Point d'entrée CLI renommé de `run` en `aivectormemory` — `uvx aivectormemory` fonctionne désormais directement sans contournement `--from`
+- ♻️ Nom `prog` d'argparse et configuration d'installation mis à jour en synchronisation
+
 ### v2.1.5
 
 **Correction : Compatibilité de Configuration Playwright MCP**

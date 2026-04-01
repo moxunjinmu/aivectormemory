@@ -371,6 +371,12 @@ export HF_ENDPOINT=https://hf-mirror.com
 
 ## 📋 更新履歴
 
+### v2.1.6
+
+**修正：CLI エントリポイントのリネーム**
+- 🔧 CLI エントリポイントを `run` から `aivectormemory` にリネーム — `uvx aivectormemory` が `--from` ワークアラウンドなしで直接使用可能に
+- ♻️ argparse `prog` 名とインストール設定を同期更新
+
 ### v2.1.5
 
 **修正：Playwright MCP 設定の互換性**
