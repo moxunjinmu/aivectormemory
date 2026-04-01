@@ -63,9 +63,14 @@ def _build_playwright_config(fmt: str) -> dict:
     return cfg
 
 
-def auto_repair_playwright_config(project_dir: str) -> None:
-    """MCP server 启动时自动修复 playwright 配置格式（升级无感）"""
-    root = Path(project_dir)
+def _has_npx() -> bool:
+    """检测系统是否有 npx"""
+    import shutil
+    return shutil.which("npx") is not None
+
+
+def _cleanup_legacy_playwright(root: Path) -> None:
+    """清理旧版 install 无条件写入的 playwright 配置（仅清除含 @playwright/mcp 的，不碰用户自定义）"""
     for _label, path_fn, fmt, _is_global, *_ in IDES:
         if fmt == "codex":
             continue
@@ -78,10 +83,13 @@ def auto_repair_playwright_config(project_dir: str) -> None:
             continue
         key = _root_key(fmt)
         pw = config.get(key, {}).get(PLAYWRIGHT_SERVER_NAME)
-        if pw is None or pw == _build_playwright_config(fmt):
+        if pw is None:
             continue
-        config[key][PLAYWRIGHT_SERVER_NAME] = _build_playwright_config(fmt)
+        if "@playwright/mcp" not in json.dumps(pw):
+            continue
+        del config[key][PLAYWRIGHT_SERVER_NAME]
         filepath.write_text(json.dumps(config, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+        print(f"  ⚠ 已清理旧版遗留的 Playwright 配置 → {filepath.name}")
 
 
 HOOKS_CONFIGS = [
@@ -755,6 +763,9 @@ def run_install(project_dir: str | None = None):
     pdir = str(Path(project_dir or ".").resolve()).replace("\\", "/")
     print(f"项目目录: {pdir}\n")
 
+    # 0. 清理旧版遗留的 playwright 配置
+    _cleanup_legacy_playwright(Path(pdir))
+
     # 1. 选择启动方式
     print("启动方式：")
     runner_indices = _choose("选择启动方式 [1]", RUNNERS)
@@ -796,7 +807,14 @@ def run_install(project_dir: str | None = None):
         print("未选择，退出")
         return
 
-    # 3. 写入配置
+    # 4. 是否安装 Playwright MCP
+    install_playwright = False
+    if _has_npx():
+        pw_choice = input("\n是否同时配置 Playwright MCP？(y/N): ").strip().lower()
+        install_playwright = pw_choice in ("y", "yes")
+    print()
+
+    # 5. 写入配置
     print()
     root = Path(pdir)
     selected_ide_names = {valid_ides[idx][1] for idx in ide_indices}
@@ -813,9 +831,10 @@ def run_install(project_dir: str | None = None):
             server_config = _build_config(cmd, args, fmt)
             key = _root_key(fmt)
             changed = _merge_config(filepath, key, DEFAULT_SERVER_NAME, server_config)
-            # 同时写入 Playwright MCP 配置
-            pw_changed = _merge_config(filepath, key, PLAYWRIGHT_SERVER_NAME, _build_playwright_config(fmt))
-            changed = changed or pw_changed
+            # Playwright MCP：仅在用户选择安装且配置中不存在时写入
+            if install_playwright and not _config_has_server(filepath, fmt, PLAYWRIGHT_SERVER_NAME):
+                pw_changed = _merge_config(filepath, key, PLAYWRIGHT_SERVER_NAME, _build_playwright_config(fmt))
+                changed = changed or pw_changed
         status = "✓ 已更新" if changed else "- 无变更"
         print(f"  {status}  {label} MCP 配置")
 

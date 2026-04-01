@@ -138,11 +138,5 @@ class MCPServer:
 
 
 def run_server(project_dir: str | None = None):
-    if project_dir:
-        try:
-            from aivectormemory.install import auto_repair_playwright_config
-            auto_repair_playwright_config(project_dir)
-        except Exception:
-            pass  # 自愈失败不影响 server 启动
     server = MCPServer(project_dir=project_dir)
     server.run()

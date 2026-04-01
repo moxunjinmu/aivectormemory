@@ -371,6 +371,14 @@ O agregar env en la configuración MCP:
 
 ## 📋 Registro de Cambios
 
+### v2.1.7
+
+**Corrección: Configuración Playwright MCP Ya No Se Inyecta Forzosamente**
+- 🔧 Playwright MCP ahora es opcional durante `install` (solo se pregunta cuando `npx` está disponible, predeterminado: No)
+- 🩹 `install` limpia automáticamente configuraciones Playwright heredadas de versiones anteriores — corrige el error "mcp.playwright: Invalid input" en OpenCode
+- 🗑️ Eliminado `auto_repair_playwright_config` del inicio del servidor (inalcanzable cuando falla la validación de configuración)
+- ➕ Añadido `avmrun` como alias corto de CLI (`avmrun install`, `avmrun web`, etc.)
+
 ### v2.1.6
 
 **Corrección: Punto de Entrada CLI Renombrado**

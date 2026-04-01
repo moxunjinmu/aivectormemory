@@ -371,6 +371,14 @@ export HF_ENDPOINT=https://hf-mirror.com
 
 ## 📋 更新履歴
 
+### v2.1.7
+
+**修正：Playwright MCP 設定の強制書き込みを廃止**
+- 🔧 `install` 時の Playwright MCP をオプション化（`npx` がある場合のみ確認、デフォルトはインストールなし）
+- 🩹 `install` が旧バージョンで強制書き込みされた Playwright 設定を自動クリーンアップ — OpenCode「mcp.playwright: Invalid input」クラッシュを修正
+- 🗑️ server 起動時の `auto_repair_playwright_config` を削除（設定検証失敗時に到達不可）
+- ➕ `avmrun` ショートコマンドエイリアスを追加（`avmrun install`、`avmrun web` など）
+
 ### v2.1.6
 
 **修正：CLI エントリポイントのリネーム**

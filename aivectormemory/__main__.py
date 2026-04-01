@@ -16,7 +16,7 @@ def _ensure_utf8_stdio():
 
 def main():
     _ensure_utf8_stdio()
-    parser = argparse.ArgumentParser(prog="aivectormemory", description="AIVectorMemory MCP Server")
+    parser = argparse.ArgumentParser(prog="avmrun", description="AIVectorMemory MCP Server")
     parser.add_argument("--project-dir", default=None, help="项目根目录，默认当前目录")
     sub = parser.add_subparsers(dest="command")
 

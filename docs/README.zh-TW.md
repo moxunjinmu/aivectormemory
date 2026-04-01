@@ -371,6 +371,14 @@ export HF_ENDPOINT=https://hf-mirror.com
 
 ## 📋 更新日誌
 
+### v2.1.7
+
+**修復：Playwright MCP 配置不再強制寫入**
+- 🔧 `install` 時 Playwright MCP 改為可選（僅在有 `npx` 時詢問，預設不安裝）
+- 🩹 `install` 自動清理舊版強制寫入的 Playwright 配置 — 修復 OpenCode「mcp.playwright: Invalid input」崩潰
+- 🗑️ 移除 server 啟動時的 `auto_repair_playwright_config`（配置校驗失敗時不可達）
+- ➕ 新增 `avmrun` 短命令別名（`avmrun install`、`avmrun web` 等）
+
 ### v2.1.6
 
 **修復：CLI 入口點重新命名**
