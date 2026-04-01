@@ -377,6 +377,13 @@ Or add env to MCP config:
 
 ## 📋 Changelog
 
+### v2.1.5
+
+**Fix: Playwright MCP Config Compatibility**
+- 🔧 Fixed `mcp.playwright: Invalid input` error on OpenCode after upgrade — `_build_playwright_config` was missing OpenCode format handling (missing `type: local` + array `command`)
+- ♻️ Refactored `_build_playwright_config` to reuse `_build_config` format logic — eliminates duplicate if-else branches, automatically adapts to all IDE formats
+- 🩹 Added `auto_repair_playwright_config`: MCP server auto-detects and fixes incorrect Playwright config on startup — seamless upgrade, no manual reinstall needed
+
 ### v2.1.4
 
 **Fix: Superseded Memory Visibility**

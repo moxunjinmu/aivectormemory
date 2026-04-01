@@ -57,14 +57,31 @@ PLAYWRIGHT_ARGS = ["-y", f"@playwright/mcp@{PLAYWRIGHT_MCP_VERSION}", "--browser
 
 
 def _build_playwright_config(fmt: str) -> dict:
-    if fmt == "vscode":
-        return {"type": "stdio", "command": "npx", "args": PLAYWRIGHT_ARGS}
-    if fmt == "windsurf":
-        return {"command": "npx", "args": PLAYWRIGHT_ARGS, "disabled": False}
-    if fmt == "standard":
-        return {"command": "npx", "args": PLAYWRIGHT_ARGS, "disabled": False}
-    # basic, opencode, etc.
-    return {"command": "npx", "args": PLAYWRIGHT_ARGS}
+    cfg = _build_config("npx", PLAYWRIGHT_ARGS, fmt)
+    for k in ("autoApprove", "alwaysAllow", "env"):
+        cfg.pop(k, None)
+    return cfg
+
+
+def auto_repair_playwright_config(project_dir: str) -> None:
+    """MCP server 启动时自动修复 playwright 配置格式（升级无感）"""
+    root = Path(project_dir)
+    for _label, path_fn, fmt, _is_global, *_ in IDES:
+        if fmt == "codex":
+            continue
+        filepath = path_fn(root)
+        if not filepath.exists():
+            continue
+        try:
+            config = json.loads(filepath.read_text("utf-8"))
+        except (json.JSONDecodeError, OSError):
+            continue
+        key = _root_key(fmt)
+        pw = config.get(key, {}).get(PLAYWRIGHT_SERVER_NAME)
+        if pw is None or pw == _build_playwright_config(fmt):
+            continue
+        config[key][PLAYWRIGHT_SERVER_NAME] = _build_playwright_config(fmt)
+        filepath.write_text(json.dumps(config, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
 
 HOOKS_CONFIGS = [

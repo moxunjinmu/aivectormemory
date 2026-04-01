@@ -378,6 +378,13 @@ export HF_ENDPOINT=https://hf-mirror.com
 
 ## 📋 更新日志
 
+### v2.1.5
+
+**修复：Playwright MCP 配置兼容性**
+- 🔧 修复 OpenCode 升级后报 `mcp.playwright: Invalid input` 错误 — `_build_playwright_config` 缺少 OpenCode 格式处理（缺少 `type: local` + 数组 `command`）
+- ♻️ 重构 `_build_playwright_config` 复用 `_build_config` 格式逻辑 — 消除重复分支，自动适配所有 IDE 格式
+- 🩹 新增 `auto_repair_playwright_config`：MCP server 启动时自动检测并修复错误的 Playwright 配置 — 升级无感，无需手动重装
+
 ### v2.1.4
 
 **修复：被取代记忆的可见性**

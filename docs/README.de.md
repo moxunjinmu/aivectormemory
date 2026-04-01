@@ -371,6 +371,13 @@ Oder env in der MCP-Konfiguration hinzufügen:
 
 ## 📋 Änderungsprotokoll
 
+### v2.1.5
+
+**Fix: Playwright MCP-Konfigurationskompatibilität**
+- 🔧 Fehler `mcp.playwright: Invalid input` in OpenCode nach Upgrade behoben — `_build_playwright_config` fehlte die Behandlung des OpenCode-Formats (fehlende `type: local` + Array `command`)
+- ♻️ `_build_playwright_config` refaktoriert zur Wiederverwendung der Formatlogik von `_build_config` — eliminiert doppelte Verzweigungen, passt sich automatisch an alle IDE-Formate an
+- 🩹 `auto_repair_playwright_config` hinzugefügt: MCP-Server erkennt und repariert fehlerhafte Playwright-Konfiguration beim Start automatisch — nahtloses Upgrade, keine manuelle Neuinstallation erforderlich
+
 ### v2.1.4
 
 **Fix: Sichtbarkeit ersetzter Erinnerungen**

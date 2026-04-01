@@ -371,6 +371,13 @@ export HF_ENDPOINT=https://hf-mirror.com
 
 ## 📋 更新履歴
 
+### v2.1.5
+
+**修正：Playwright MCP 設定の互換性**
+- 🔧 OpenCode アップグレード後の `mcp.playwright: Invalid input` エラーを修正 — `_build_playwright_config` に OpenCode フォーマット処理が欠落（`type: local` + 配列 `command` が不足）
+- ♻️ `_build_playwright_config` を `_build_config` のフォーマットロジックを再利用するようリファクタリング — 重複分岐を排除し、すべての IDE フォーマットに自動対応
+- 🩹 `auto_repair_playwright_config` を追加：MCP server 起動時に不正な Playwright 設定を自動検出・修復 — シームレスなアップグレード、手動再インストール不要
+
 ### v2.1.4
 
 **修正：取代済みメモリの可視性**
