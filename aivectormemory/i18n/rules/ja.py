@@ -77,7 +77,12 @@ STEERING_CONTENT = """# AIVectorMemory - ワークフロールール
 - ユーザーが新問題で中断 → `track create` で記録、優先度を判断
 
 ⛔ GATE：以下 G1-G4 をすべて完了してから H に進むこと。未完了のままブロック設定や結果報告 = 違反
-**G1. テスト実行** — バックエンド：pytest/curl、フロントエンド：Playwright MCP のみ。スキップ = 違反
+**G1. テスト実行** — 変更の影響範囲に応じてテスト方法を選択：
+  - フロントエンドコードを変更 → Playwright MCP（ToolSearch でロード → browser_navigate → browser_snapshot）
+  - API レスポンス形式/フィールドを変更し、フロントエンドページが呼び出す → curl で API 検証 + Playwright でページ検証
+  - ページ呼び出しのない純バックエンドロジック → pytest / curl
+  - ページに影響するか不明 → 影響ありとして Playwright を使用
+  スキップ = 違反
 **G2. 副作用チェック** — 変更した関数/変数名を grep し、他の呼び出し元に影響がないことを確認
 **G3. 新問題処理** — テスト中に予期しない動作を発見：現在をブロック→即座に修正して続行；ブロックしない→`track create` で記録して続行
 **G4. track update** — solution + files_changed + test_result を記入
@@ -201,7 +206,7 @@ STEERING_CONTENT = """# AIVectorMemory - ワークフロールール
 - **禁止** `lsof -ti:ポート` に ignoreWarning を付けない（セキュリティチェックでブロックされる）
 - **正しいやり方**：SQL は `.sql` ファイルに書いて `< data/xxx.sql` で実行；Python 検証スクリプトは .py ファイルに書いて `python3 xxx.py` で実行；ポート確認は `lsof -ti:ポート` + ignoreWarning:true
 
-**セルフテスト**：コードファイルを修正した後、**必ずテストを実行してから「検証待ち」のブロック状態を設定**。コード修正後テストせずに「検証待ち」と言うことは禁止。ドキュメント/設定ファイル（.md/.json/.yaml/.toml/.sh 等）のみの修正は自己テスト不要。バックエンド：pytest/curl；フロントエンド：**Playwright MCP のみ**（browser_navigate → 操作 → browser_snapshot）、他のすべての方法（curl、スクリプト、node -e、スクリーンショット）は違反。テスト後 browser_close を呼ばない。
+**セルフテスト**：コードファイルを修正した後、**必ずテストを実行してから「検証待ち」のブロック状態を設定**。コード修正後テストせずに「検証待ち」と言うことは禁止。ドキュメント/設定ファイル（.md/.json/.yaml/.toml/.sh 等）のみの修正は自己テスト不要。バックエンド：pytest/curl；フロントエンド：**Playwright MCP のみ**（browser_navigate → 操作 → browser_snapshot）、他のすべての方法（curl、スクリプト、node -e、スクリーンショット、`open` コマンド）は違反。テスト後 browser_close を呼ばない。**Playwright MCP ツールは deferred tools リストにあり、使用前に ToolSearch でロードすること。ツールが利用不可と仮定することは禁止。`open` コマンドの使用やユーザーに手動でブラウザを開かせることは禁止。**
 
 **完了基準**：完了か未完了のみ、「ほぼ完了」は禁止
 

@@ -377,6 +377,16 @@ Or add env to MCP config:
 
 ## 📋 Changelog
 
+### v2.1.9
+
+**Enhancement: Hook-Based Rule Enforcement — Bash Guard + Stop Guard + Test Decision Tree**
+- 🛡️ New `bash_guard.sh` (PreToolUse Bash): blocks `open http` (must use Playwright MCP), multiline `python3 -c`, `$()+pipe` combos, `mysql -e` multi-statements
+- 🛡️ New `stop_guard.sh` (Stop hook): parses transcript to detect — code edited without Playwright verification + response contains "manual operation" words. AI must either use Playwright or explicitly state "this change does not affect frontend pages"
+- 🎯 Testing decision tree added to G1 rule across all 7 languages: choose test method based on impact scope (frontend code → Playwright, API affecting pages → curl + Playwright, pure backend → pytest/curl, unsure → Playwright)
+- 🔧 Removed `_cleanup_legacy_playwright` (no longer deletes existing Playwright config on re-install)
+- 🔧 Playwright MCP install default changed from N to Y
+- 🔧 Self-test rules enhanced: must use ToolSearch to load Playwright MCP from deferred tools, never assume tools unavailable
+
 ### v2.1.8
 
 **Enhancement: Steering Rules Restoration — More Detailed Workflow Steps + Anti-Skip Safeguard**

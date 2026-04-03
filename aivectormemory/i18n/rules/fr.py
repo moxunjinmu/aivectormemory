@@ -77,7 +77,12 @@ Exemples : "C'est une question, je vérifierai le code pertinent avant de répon
 - Utilisateur interrompt avec un nouveau problème en cours de route → `track create` pour enregistrer, puis décider de la priorité
 
 ⛔ GATE : G1-G4 doivent TOUS être complétés avant de passer à H. Établir blocage ou rapporter résultats avec étape incomplète = violation
-**G1. Exécuter les tests** — backend : pytest/curl, frontend : UNIQUEMENT Playwright MCP. Sauter = violation
+**G1. Exécuter les tests** — choisir la méthode de test selon la portée de l'impact :
+  - Code frontend modifié → Playwright MCP (ToolSearch pour charger → browser_navigate → browser_snapshot)
+  - Format/champs de réponse API modifiés ET page frontend les appelle → curl pour vérifier l'API + Playwright pour vérifier la page
+  - Logique backend pure sans appels de page → pytest / curl
+  - Pas sûr si la page est affectée → traiter comme affectée, utiliser Playwright
+  Sauter = violation
 **G2. Vérifier les effets secondaires** — grep les noms de fonctions/variables modifiés, confirmer que les autres appelants ne sont pas affectés
 **G3. Gérer les nouveaux problèmes** — comportement inattendu pendant les tests : bloque l'actuel→corriger immédiatement et continuer ; ne bloque pas→`track create` pour enregistrer et continuer
 **G4. track update** — remplir solution + files_changed + test_result
@@ -201,7 +206,7 @@ L'archive doit montrer un enregistrement complet :
 - **Pas de** `lsof -ti:port` sans ignoreWarning (sera bloqué par la vérification de sécurité)
 - **Approche correcte** : écrire SQL dans un fichier `.sql` et utiliser `< data/xxx.sql` ; écrire les scripts de vérification Python comme fichiers .py et exécuter avec `python3 xxx.py` ; utiliser `lsof -ti:port` + ignoreWarning:true pour les vérifications de port
 
-**Auto-test** : Après avoir modifié des fichiers de code, **vous devez exécuter des tests avant de définir le statut de blocage "en attente de vérification"**. Ne dites pas "en attente de vérification" après avoir modifié le code sans exécuter de tests. Seuls les fichiers de documentation/configuration (.md/.json/.yaml/.toml/.sh etc.) ne nécessitent pas d'auto-test. Backend : pytest/curl ; frontend : **uniquement Playwright MCP** (browser_navigate → interaction → browser_snapshot), toute autre méthode (curl, scripts, node -e, captures d'écran) est une violation. Ne pas appeler browser_close après les tests.
+**Auto-test** : Après avoir modifié des fichiers de code, **vous devez exécuter des tests avant de définir le statut de blocage "en attente de vérification"**. Ne dites pas "en attente de vérification" après avoir modifié le code sans exécuter de tests. Seuls les fichiers de documentation/configuration (.md/.json/.yaml/.toml/.sh etc.) ne nécessitent pas d'auto-test. Backend : pytest/curl ; frontend : **uniquement Playwright MCP** (browser_navigate → interaction → browser_snapshot), toute autre méthode (curl, scripts, node -e, captures d'écran, commande `open`) est une violation. Ne pas appeler browser_close après les tests. **Les outils Playwright MCP sont dans la liste des deferred tools — utilisez ToolSearch pour les charger avant utilisation. Ne supposez jamais que les outils ne sont pas disponibles. N'utilisez jamais la commande `open` et ne demandez jamais à l'utilisateur d'ouvrir un navigateur manuellement.**
 
 **Standard de complétion** : seulement complet ou incomplet, jamais "essentiellement complet"
 

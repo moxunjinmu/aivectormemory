@@ -69,27 +69,6 @@ def _has_npx() -> bool:
     return shutil.which("npx") is not None
 
 
-def _cleanup_legacy_playwright(root: Path) -> None:
-    """清理旧版 install 无条件写入的 playwright 配置（仅清除含 @playwright/mcp 的，不碰用户自定义）"""
-    for _label, path_fn, fmt, _is_global, *_ in IDES:
-        if fmt == "codex":
-            continue
-        filepath = path_fn(root)
-        if not filepath.exists():
-            continue
-        try:
-            config = json.loads(filepath.read_text("utf-8"))
-        except (json.JSONDecodeError, OSError):
-            continue
-        key = _root_key(fmt)
-        pw = config.get(key, {}).get(PLAYWRIGHT_SERVER_NAME)
-        if pw is None:
-            continue
-        if "@playwright/mcp" not in json.dumps(pw):
-            continue
-        del config[key][PLAYWRIGHT_SERVER_NAME]
-        filepath.write_text(json.dumps(config, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-        print(f"  ⚠ 已清理旧版遗留的 Playwright 配置 → {filepath.name}")
 
 
 HOOKS_CONFIGS = [
@@ -127,6 +106,16 @@ def _check_track_script_path() -> Path:
     return Path(__file__).parent / "hooks" / "check_track.sh"
 
 
+def _bash_guard_script_path() -> Path:
+    """返回包内 bash_guard.sh 的路径"""
+    return Path(__file__).parent / "hooks" / "bash_guard.sh"
+
+
+def _stop_guard_script_path() -> Path:
+    """返回包内 stop_guard.sh 的路径"""
+    return Path(__file__).parent / "hooks" / "stop_guard.sh"
+
+
 CLAUDE_CODE_HOOKS_CONFIG = {
     "hooks": {
         "PreToolUse": [
@@ -137,6 +126,16 @@ CLAUDE_CODE_HOOKS_CONFIG = {
                         "type": "command",
                         "command": "",  # 占位，install 时动态填充 check_track.sh 路径
                         "timeout": 10,
+                    }
+                ]
+            },
+            {
+                "matcher": "Bash",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "",  # 占位，install 时动态填充 bash_guard.sh 路径
+                        "timeout": 5,
                     }
                 ]
             }
@@ -158,6 +157,17 @@ CLAUDE_CODE_HOOKS_CONFIG = {
                     {
                         "type": "command",
                         "command": "",  # 占位，install 时动态填充 compact-recovery.sh 路径
+                    }
+                ]
+            }
+        ],
+        "Stop": [
+            {
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "",  # 占位，install 时动态填充 stop_guard.sh 路径
+                        "timeout": 15,
                     }
                 ]
             }
@@ -243,26 +253,39 @@ def _build_opencode_plugin_content(lang: str = None) -> str:
     return OPENCODE_PLUGIN_TEMPLATE.replace('__DEV_WORKFLOW_RULES__', js_rules)
 
 
-def _copy_check_track_script(target_dir: Path) -> tuple[Path, bool]:
-    """复制 check_track.sh 到目标目录，返回 (目标路径, 是否有变更)"""
+def _copy_hook_script(src_path: Path, target_dir: Path, filename: str) -> tuple[Path, bool]:
+    """复制 hook 脚本到目标目录，返回 (目标路径, 是否有变更)"""
     import shutil
     target_dir.mkdir(parents=True, exist_ok=True)
-    src = _check_track_script_path()
-    dst = target_dir / "check_track.sh"
-    if not dst.exists() or dst.read_text("utf-8") != src.read_text("utf-8"):
-        shutil.copy2(src, dst)
+    dst = target_dir / filename
+    if not dst.exists() or dst.read_text("utf-8") != src_path.read_text("utf-8"):
+        shutil.copy2(src_path, dst)
         dst.chmod(0o755)
         return dst, True
     return dst, False
 
 
-def _build_claude_code_hooks(check_script_path: str, inject_script_path: str, compact_recovery_path: str) -> dict:
+def _copy_check_track_script(target_dir: Path) -> tuple[Path, bool]:
+    return _copy_hook_script(_check_track_script_path(), target_dir, "check_track.sh")
+
+
+def _copy_bash_guard_script(target_dir: Path) -> tuple[Path, bool]:
+    return _copy_hook_script(_bash_guard_script_path(), target_dir, "bash_guard.sh")
+
+
+def _copy_stop_guard_script(target_dir: Path) -> tuple[Path, bool]:
+    return _copy_hook_script(_stop_guard_script_path(), target_dir, "stop_guard.sh")
+
+
+def _build_claude_code_hooks(check_script_path: str, inject_script_path: str, compact_recovery_path: str, bash_guard_path: str = "", stop_guard_path: str = "") -> dict:
     """构建 Claude Code hooks 配置，填充实际脚本路径"""
     import copy
     cfg = copy.deepcopy(CLAUDE_CODE_HOOKS_CONFIG)
     cfg["hooks"]["PreToolUse"][0]["hooks"][0]["command"] = check_script_path
+    cfg["hooks"]["PreToolUse"][1]["hooks"][0]["command"] = bash_guard_path
     cfg["hooks"]["UserPromptSubmit"][0]["hooks"][0]["command"] = inject_script_path
     cfg["hooks"]["SessionStart"][0]["hooks"][0]["command"] = compact_recovery_path
+    cfg["hooks"]["Stop"][0]["hooks"][0]["command"] = stop_guard_path
     return cfg
 
 
@@ -316,6 +339,12 @@ def _write_claude_code_hooks(hooks_dir: Path, lang: str | None = None) -> list[s
     # 复制 check_track.sh
     check_path, check_changed = _copy_check_track_script(script_dir)
     results.append(f"{'✓ 已同步' if check_changed else '- 无变更'}  Script: .claude/hooks/check_track.sh")
+    # 复制 bash_guard.sh
+    bash_guard_path, bash_guard_changed = _copy_bash_guard_script(script_dir)
+    results.append(f"{'✓ 已同步' if bash_guard_changed else '- 无变更'}  Script: .claude/hooks/bash_guard.sh")
+    # 复制 stop_guard.sh
+    stop_guard_path, stop_guard_changed = _copy_stop_guard_script(script_dir)
+    results.append(f"{'✓ 已同步' if stop_guard_changed else '- 无变更'}  Script: .claude/hooks/stop_guard.sh")
     # 生成 inject-workflow-rules.sh
     inject_path, inject_changed = _write_inject_workflow_script(script_dir, lang=lang)
     results.append(f"{'✓ 已同步' if inject_changed else '- 无变更'}  Script: .claude/hooks/inject-workflow-rules.sh")
@@ -323,7 +352,7 @@ def _write_claude_code_hooks(hooks_dir: Path, lang: str | None = None) -> list[s
     compact_path, compact_changed = _write_compact_recovery_script(script_dir, lang=lang)
     results.append(f"{'✓ 已同步' if compact_changed else '- 无变更'}  Script: .claude/hooks/compact-recovery.sh")
     # 构建配置
-    new_hooks_cfg = _build_claude_code_hooks(str(check_path), str(inject_path), str(compact_path))
+    new_hooks_cfg = _build_claude_code_hooks(str(check_path), str(inject_path), str(compact_path), str(bash_guard_path), str(stop_guard_path))
     filepath = hooks_dir / "settings.json"
     config = {}
     if filepath.exists():
@@ -333,15 +362,12 @@ def _write_claude_code_hooks(hooks_dir: Path, lang: str | None = None) -> list[s
             config = {}
     existing = config.get("hooks", {})
     new_hooks = new_hooks_cfg["hooks"]
-    hook_keys = ["PreToolUse", "UserPromptSubmit", "SessionStart"]
+    hook_keys = ["PreToolUse", "UserPromptSubmit", "SessionStart", "Stop"]
     changed = any(existing.get(k) != new_hooks.get(k) for k in hook_keys)
-    # 清理旧的 Stop hook
-    has_old_stop = "Stop" in existing
-    if changed or has_old_stop:
+    if changed:
         config.setdefault("hooks", {})
         for k in hook_keys:
             config["hooks"][k] = new_hooks[k]
-        config["hooks"].pop("Stop", None)
         config["hooks"].pop("TaskCompleted", None)
     # 写入 permissions.allow（MCP 工具通配符 + 基础工具自动授权）
     required_perms = [f"mcp__{DEFAULT_SERVER_NAME}__*", f"mcp__{PLAYWRIGHT_SERVER_NAME}__*", "Bash(*)", "Edit(*)", "Write(*)", "Read(*)", "Glob(*)", "Grep(*)"]
@@ -358,7 +384,7 @@ def _write_claude_code_hooks(hooks_dir: Path, lang: str | None = None) -> list[s
         results.append(f"✓ 已写入  Permissions: {len(missing)} 条规则（MCP 工具 + Bash）")
     else:
         results.append("- 无变更  Permissions: 已全部授权")
-    if changed or has_old_stop:
+    if changed:
         filepath.write_text(json.dumps(config, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
         results.append(f"✓ 已生成  Hook: .claude/settings.json ({' + '.join(hook_keys)})")
     else:
@@ -764,9 +790,6 @@ def run_install(project_dir: str | None = None):
     pdir = str(Path(project_dir or ".").resolve()).replace("\\", "/")
     print(f"项目目录: {pdir}\n")
 
-    # 0. 清理旧版遗留的 playwright 配置
-    _cleanup_legacy_playwright(Path(pdir))
-
     # 1. 选择启动方式
     print("启动方式：")
     runner_indices = _choose("选择启动方式 [1]", RUNNERS)
@@ -811,8 +834,8 @@ def run_install(project_dir: str | None = None):
     # 4. 是否安装 Playwright MCP
     install_playwright = False
     if _has_npx():
-        pw_choice = input("\n是否同时配置 Playwright MCP？(y/N): ").strip().lower()
-        install_playwright = pw_choice in ("y", "yes")
+        pw_choice = input("\n是否同时配置 Playwright MCP？(Y/n): ").strip().lower()
+        install_playwright = pw_choice not in ("n", "no")
     print()
 
     # 5. 写入配置
@@ -1002,7 +1025,7 @@ def _remove_claude_code_hooks(hooks_dir: Path) -> list[str]:
     results = []
     # 删除脚本
     script_dir = hooks_dir / "hooks"
-    for name in ["check_track.sh", "inject-workflow-rules.sh", "compact-recovery.sh"]:
+    for name in ["check_track.sh", "inject-workflow-rules.sh", "compact-recovery.sh", "bash_guard.sh", "stop_guard.sh"]:
         f = script_dir / name
         if f.exists() and _safe_unlink(f):
             results.append(f"✓ 已删除  Script: .claude/hooks/{name}")

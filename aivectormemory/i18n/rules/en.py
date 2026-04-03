@@ -77,7 +77,12 @@ Examples: "This is a question, I'll verify the relevant code before answering", 
 - User interrupts with new issue → `track create` to record, then decide priority
 
 ⛔ GATE: G1-G4 must ALL be completed before entering H. Setting block or reporting results with any step incomplete = violation
-**G1. Run tests** — backend: pytest/curl, frontend: ONLY Playwright MCP. Skipping = violation
+**G1. Run tests** — choose test method based on impact scope:
+  - Changed frontend code → Playwright MCP (ToolSearch to load → browser_navigate → browser_snapshot)
+  - Changed API response format/fields AND frontend page calls it → curl to verify API + Playwright to verify page
+  - Pure backend logic with no page callers → pytest / curl
+  - Unsure if it affects the page → treat as affecting, use Playwright
+  Skipping = violation
 **G2. Check side effects** — grep changed function/variable names, confirm no other callers are affected
 **G3. Handle new issues** — unexpected behavior found during testing: blocks current → fix immediately then continue; doesn't block → `track create` to record then continue
 **G4. track update** — fill solution + files_changed + test_result
@@ -201,7 +206,7 @@ Must show complete record after archiving:
 - **No** `lsof -ti:port` without ignoreWarning (will be blocked by security check)
 - **Correct approach**: write SQL to `.sql` file and use `< data/xxx.sql`; write Python verification scripts as .py files and run with `python3 xxx.py`; use `lsof -ti:port` + ignoreWarning:true for port checks
 
-**Self-testing**: After modifying code files, **you must run tests before setting blocked status "awaiting verification"**. Do not say "awaiting verification" after modifying code without running tests. Only documentation/configuration files (.md/.json/.yaml/.toml/.sh etc.) do not require self-testing. Backend: pytest/curl; frontend: **ONLY Playwright MCP** (browser_navigate → interact → browser_snapshot), all other methods (curl, scripts, node -e, screenshots) are violations. Do not call browser_close after testing.
+**Self-testing**: After modifying code files, **you must run tests before setting blocked status "awaiting verification"**. Do not say "awaiting verification" after modifying code without running tests. Only documentation/configuration files (.md/.json/.yaml/.toml/.sh etc.) do not require self-testing. Backend: pytest/curl; frontend: **ONLY Playwright MCP** (browser_navigate → interact → browser_snapshot), all other methods (curl, scripts, node -e, screenshots, `open` command) are violations. Do not call browser_close after testing. **Playwright MCP tools are in the deferred tools list — use ToolSearch to load them before use. Never assume tools are unavailable. Never use the `open` command or ask the user to manually open a browser instead.**
 
 **Completion standard**: only complete or incomplete, never "basically complete"
 

@@ -77,7 +77,12 @@ STEERING_CONTENT = """# AIVectorMemory - 工作规则
 - 用户中途打断提出新问题 → `track create` 记录，再决定优先级
 
 ⛔ GATE：以下 G1-G4 必须全部完成才能进入 H，任何一项未完成禁止设阻塞或汇报结果
-**G1. 运行测试** — 后端 pytest/curl，前端仅 Playwright MCP。跳过此步 = 违规
+**G1. 运行测试** — 根据改动影响范围选择测试方式：
+  - 改了前端代码 → Playwright MCP（ToolSearch 加载 → browser_navigate → browser_snapshot）
+  - 改了 API 响应格式/字段且有前端页面调用 → curl 验证 API + Playwright 验证页面
+  - 纯后端逻辑无页面调用 → pytest / curl
+  - 不确定是否影响页面 → 按影响处理，用 Playwright
+  跳过此步 = 违规
 **G2. 检查副作用** — grep 改动涉及的函数/变量名，确认其他调用方不受影响
 **G3. 新问题处理** — 测试中发现非预期行为：阻塞当前 → 立即修复再继续；不阻塞 → `track create` 记录后继续
 **G4. track update** — 填 solution + files_changed + test_result
@@ -201,7 +206,7 @@ STEERING_CONTENT = """# AIVectorMemory - 工作规则
 - **禁止** `lsof -ti:端口` 不加 ignoreWarning（会被安全检查拦截）
 - **正确做法**：SQL 写入 `.sql` 文件用 `< data/xxx.sql` 执行；Python 验证脚本写成 .py 文件用 `python3 xxx.py` 执行；端口检查用 `lsof -ti:端口` + ignoreWarning:true
 
-**自测**：修改代码文件后，**必须先运行测试验证再设阻塞"等待验证"**。禁止修改代码后直接说"等待验证"而不跑测试。仅修改文档/配置文件（.md/.json/.yaml/.toml/.sh 等非代码文件）时不要求自测。后端：pytest/curl；前端：**仅 Playwright MCP**（browser_navigate → 交互 → browser_snapshot），其他一切方式（curl、脚本、node -e、截图）均为违规。测试后不调用 browser_close。
+**自测**：修改代码文件后，**必须先运行测试验证再设阻塞"等待验证"**。禁止修改代码后直接说"等待验证"而不跑测试。仅修改文档/配置文件（.md/.json/.yaml/.toml/.sh 等非代码文件）时不要求自测。后端：pytest/curl；前端：**仅 Playwright MCP**（browser_navigate → 交互 → browser_snapshot），其他一切方式（curl、脚本、node -e、截图、`open` 命令）均为违规。测试后不调用 browser_close。**Playwright MCP 工具在 deferred tools 列表中，使用前用 ToolSearch 加载。禁止假设工具不可用，禁止用 `open` 命令或让用户手动打开浏览器替代。**
 
 **完成标准**：只有完成和未完成，禁止"基本完成"
 
@@ -258,7 +263,7 @@ DEV_WORKFLOW_PROMPT = (
     "---\n\n"
     "## ⚠️ 代码修改后强制检查（每次修改代码后必须逐条执行）\n\n"
     "修改代码文件后，必须按顺序完成以下检查，**任何一项未完成都不能设阻塞或汇报结果**：\n\n"
-    "1. **运行测试** — 后端 pytest/curl，前端仅 Playwright MCP（navigate→交互→snapshot，不 close）。跳过 = 违规\n"
+    "1. **运行测试** — 后端 pytest/curl，前端仅 Playwright MCP（navigate→交互→snapshot，不 close；工具在 deferred tools 列表中，用 ToolSearch 加载，禁止假设不可用）。跳过 = 违规\n"
     "2. **检查副作用** — grep 改动涉及的函数/变量名，确认其他调用方不受影响\n"
     "3. **新问题处理** — 测试中发现非预期行为：阻塞当前→立即修复再继续；不阻塞→`track create` 记录后继续\n"
     "4. **track update** — 填 solution + files_changed + test_result\n"

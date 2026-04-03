@@ -77,7 +77,12 @@ STEERING_CONTENT = """# AIVectorMemory - 工作規則
 - 使用者中途打斷提出新問題 → `track create` 記錄，再決定優先級
 
 ⛔ GATE：以下 G1-G4 必須全部完成才能進入 H，任何一項未完成禁止設阻塞或匯報結果
-**G1. 執行測試** — 後端 pytest/curl，前端僅 Playwright MCP。跳過此步 = 違規
+**G1. 執行測試** — 根據改動影響範圍選擇測試方式：
+  - 改了前端程式碼 → Playwright MCP（ToolSearch 載入 → browser_navigate → browser_snapshot）
+  - 改了 API 回應格式/欄位且有前端頁面呼叫 → curl 驗證 API + Playwright 驗證頁面
+  - 純後端邏輯無頁面呼叫 → pytest / curl
+  - 不確定是否影響頁面 → 按影響處理，用 Playwright
+  跳過此步 = 違規
 **G2. 檢查副作用** — grep 改動涉及的函數/變數名，確認其他呼叫方不受影響
 **G3. 新問題處理** — 測試中發現非預期行為：阻塞當前 → 立即修復再繼續；不阻塞 → `track create` 記錄後繼續
 **G4. track update** — 填 solution + files_changed + test_result
@@ -201,7 +206,7 @@ STEERING_CONTENT = """# AIVectorMemory - 工作規則
 - **禁止** `lsof -ti:埠號` 不加 ignoreWarning（會被安全檢查攔截）
 - **正確做法**：SQL 寫入 `.sql` 檔案用 `< data/xxx.sql` 執行；Python 驗證腳本寫成 .py 檔案用 `python3 xxx.py` 執行；埠號檢查用 `lsof -ti:埠號` + ignoreWarning:true
 
-**自測**：修改程式碼檔案後，**必須先執行測試驗證再設定阻塞「等待驗證」**。禁止修改程式碼後直接說「等待驗證」而不執行測試。僅修改文件/設定檔（.md/.json/.yaml/.toml/.sh 等非程式碼檔案）時不要求自測。後端：pytest/curl；前端：**僅 Playwright MCP**（browser_navigate → 交互 → browser_snapshot），其他一切方式（curl、腳本、node -e、截圖）均為違規。測試後不呼叫 browser_close。
+**自測**：修改程式碼檔案後，**必須先執行測試驗證再設定阻塞「等待驗證」**。禁止修改程式碼後直接說「等待驗證」而不執行測試。僅修改文件/設定檔（.md/.json/.yaml/.toml/.sh 等非程式碼檔案）時不要求自測。後端：pytest/curl；前端：**僅 Playwright MCP**（browser_navigate → 交互 → browser_snapshot），其他一切方式（curl、腳本、node -e、截圖、`open` 指令）均為違規。測試後不呼叫 browser_close。**Playwright MCP 工具在 deferred tools 列表中，使用前用 ToolSearch 載入。禁止假設工具不可用，禁止用 `open` 指令或讓使用者手動開啟瀏覽器替代。**
 
 **完成標準**：只有完成和未完成，禁止「基本完成」
 

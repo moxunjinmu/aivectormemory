@@ -371,6 +371,16 @@ Ou ajouter env dans la configuration MCP :
 
 ## 📋 Journal des Modifications
 
+### v2.1.9
+
+**Amélioration : Application des règles par Hooks — Bash Guard + Stop Guard + Arbre de décision des tests**
+- 🛡️ Nouveau `bash_guard.sh` (PreToolUse Bash) : bloque `open http` (utiliser Playwright MCP), `python3 -c` multiligne, combinaisons `$()+pipe`, `mysql -e` instructions multiples
+- 🛡️ Nouveau `stop_guard.sh` (Stop hook) : analyse le transcript pour détecter — code modifié sans vérification Playwright + réponse contenant des mots d'« opération manuelle ». L'AI doit utiliser Playwright ou déclarer explicitement « cette modification n'affecte pas les pages frontend »
+- 🎯 Arbre de décision des tests ajouté à la règle G1 (7 langues synchronisées) : choisir la méthode de test selon la portée de l'impact (code frontend→Playwright, API affecte la page→curl+Playwright, backend pur→pytest/curl, incertain→Playwright)
+- 🔧 Suppression de `_cleanup_legacy_playwright` (la réinstallation ne supprime plus la configuration Playwright existante)
+- 🔧 Valeur par défaut d'installation Playwright MCP changée de N à Y
+- 🔧 Règles d'auto-test renforcées : charger Playwright MCP avec ToolSearch avant utilisation, ne jamais supposer que les outils ne sont pas disponibles
+
 ### v2.1.8
 
 **Amélioration : Restauration des Règles de Travail — Étapes de Flux Détaillées + Protection Anti-Omission**

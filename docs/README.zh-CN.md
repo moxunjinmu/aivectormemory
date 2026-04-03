@@ -378,6 +378,16 @@ export HF_ENDPOINT=https://hf-mirror.com
 
 ## 📋 更新日志
 
+### v2.1.9
+
+**增强：Hook 硬性拦截 — Bash Guard + Stop Guard + 测试决策树**
+- 🛡️ 新增 `bash_guard.sh`（PreToolUse Bash）：拦截 `open http`（必须用 Playwright MCP）、多行 `python3 -c`、`$()+管道` 组合、`mysql -e` 多语句
+- 🛡️ 新增 `stop_guard.sh`（Stop hook）：解析 transcript 检测——改了代码没用 Playwright 验证 + 回复含"手动操作"违规词。AI 必须用 Playwright 或明确声明「此改动不影响前端页面」
+- 🎯 G1 测试规则增加决策树（7语言同步）：按改动影响范围选择测试方式（前端代码→Playwright，API 影响页面→curl+Playwright，纯后端→pytest/curl，不确定→Playwright）
+- 🔧 移除 `_cleanup_legacy_playwright`（重新安装不再删除已有的 Playwright 配置）
+- 🔧 Playwright MCP 安装默认值从 N 改为 Y
+- 🔧 自测规则强化：Playwright MCP 使用前需 ToolSearch 加载，禁止假设工具不可用
+
 ### v2.1.8
 
 **增强：工作规则恢复详细版 — 完整工作流步骤 + 防跳过机制**

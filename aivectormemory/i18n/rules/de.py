@@ -77,7 +77,12 @@ Beispiele: "Das ist eine Frage, ich überprüfe den relevanten Code vor der Antw
 - Wenn Benutzer zwischendurch mit neuem Problem unterbricht → `track create` aufzeichnen, dann Priorität entscheiden
 
 ⛔ GATE: G1-G4 müssen ALLE abgeschlossen sein bevor H betreten wird. Blockierung setzen oder Ergebnisse melden mit unvollständigen Schritten = Verstoß
-**G1. Tests ausführen** — Backend: pytest/curl, Frontend: NUR Playwright MCP. Überspringen = Verstoß
+**G1. Tests ausführen** — Testmethode nach Auswirkungsbereich wählen:
+  - Frontend-Code geändert → Playwright MCP (ToolSearch zum Laden → browser_navigate → browser_snapshot)
+  - API-Antwortformat/-felder geändert UND Frontend-Seite ruft sie auf → curl für API + Playwright für Seite
+  - Reine Backend-Logik ohne Seitenaufrufer → pytest / curl
+  - Unsicher ob Seite betroffen → als betroffen behandeln, Playwright verwenden
+  Überspringen = Verstoß
 **G2. Seiteneffekte prüfen** — geänderte Funktions-/Variablennamen greppen, bestätigen dass andere Aufrufer nicht betroffen
 **G3. Neue Probleme behandeln** — unerwartetes Verhalten beim Testen: blockiert aktuelles→sofort beheben und fortfahren; blockiert nicht→`track create` aufzeichnen und fortfahren
 **G4. track update** — solution + files_changed + test_result ausfüllen
@@ -201,7 +206,7 @@ Muss vollständigen Eintrag nach Archivierung zeigen:
 - **Kein** `lsof -ti:Port` ohne ignoreWarning (wird von Sicherheitsprüfung blockiert)
 - **Korrekter Ansatz**: SQL in `.sql`-Datei schreiben und `< data/xxx.sql` verwenden; Python-Verifizierungsskripte als .py-Dateien schreiben und mit `python3 xxx.py` ausführen; `lsof -ti:Port` + ignoreWarning:true für Port-Prüfungen verwenden
 
-**Selbsttest**: Nach Änderungen an Code-Dateien **müssen Sie Tests ausführen, bevor Sie den Blockierungsstatus "Warten auf Überprüfung" setzen**. Sagen Sie nicht "Warten auf Überprüfung" nach Code-Änderungen ohne Tests. Nur Dokumentations-/Konfigurationsdateien (.md/.json/.yaml/.toml/.sh etc.) erfordern keinen Selbsttest. Backend: pytest/curl; Frontend: **NUR Playwright MCP-Tools** (browser_navigate → Interaktion → browser_snapshot), alle anderen Methoden (curl, Skripte, node -e, Screenshots) sind Verstöße. Nach dem Test browser_close nicht aufrufen.
+**Selbsttest**: Nach Änderungen an Code-Dateien **müssen Sie Tests ausführen, bevor Sie den Blockierungsstatus "Warten auf Überprüfung" setzen**. Sagen Sie nicht "Warten auf Überprüfung" nach Code-Änderungen ohne Tests. Nur Dokumentations-/Konfigurationsdateien (.md/.json/.yaml/.toml/.sh etc.) erfordern keinen Selbsttest. Backend: pytest/curl; Frontend: **NUR Playwright MCP-Tools** (browser_navigate → Interaktion → browser_snapshot), alle anderen Methoden (curl, Skripte, node -e, Screenshots, `open`-Befehl) sind Verstöße. Nach dem Test browser_close nicht aufrufen. **Playwright MCP-Tools befinden sich in der Deferred-Tools-Liste — verwenden Sie ToolSearch zum Laden vor der Verwendung. Nehmen Sie niemals an, dass Tools nicht verfügbar sind. Verwenden Sie niemals den `open`-Befehl oder bitten Sie den Benutzer, einen Browser manuell zu öffnen.**
 
 **Abschlussstandard**: nur abgeschlossen oder nicht abgeschlossen, niemals "im Wesentlichen abgeschlossen"
 

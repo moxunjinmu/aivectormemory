@@ -371,6 +371,16 @@ export HF_ENDPOINT=https://hf-mirror.com
 
 ## 📋 更新履歴
 
+### v2.1.9
+
+**強化：Hook によるルール強制 — Bash Guard + Stop Guard + テスト決定木**
+- 🛡️ 新規 `bash_guard.sh`（PreToolUse Bash）：`open http`（Playwright MCP 使用必須）、複数行 `python3 -c`、`$()+パイプ` 組み合わせ、`mysql -e` 複数文をブロック
+- 🛡️ 新規 `stop_guard.sh`（Stop hook）：transcript を解析し検出——コード変更後 Playwright 未使用 + 回答に「手動操作」違反ワード含む。AI は Playwright を使用するか「この変更はフロントエンドページに影響しません」と明示する必要あり
+- 🎯 G1 テストルールに決定木追加（7言語同期）：変更の影響範囲に応じてテスト方法を選択（フロントエンドコード→Playwright、API がページに影響→curl+Playwright、純バックエンド→pytest/curl、不明→Playwright）
+- 🔧 `_cleanup_legacy_playwright` 削除（再インストール時に既存の Playwright 設定を削除しない）
+- 🔧 Playwright MCP インストールデフォルトを N から Y に変更
+- 🔧 セルフテストルール強化：Playwright MCP は使用前に ToolSearch でロード、ツール利用不可と仮定することは禁止
+
 ### v2.1.8
 
 **強化：ワークフロールール復元 — 詳細なワークフローステップ + スキップ防止メカニズム**
