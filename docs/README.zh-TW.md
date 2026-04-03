@@ -371,6 +371,15 @@ export HF_ENDPOINT=https://hf-mirror.com
 
 ## 📋 更新日誌
 
+### v2.1.8
+
+**增強：工作規則恢復詳細版 — 完整工作流程步驟 + 防跳過機制**
+- 📝 恢復精簡前的詳細工作流程步驟（步驟 C/D/E/F/I 含明確 recall 格式、排查檢查點、中途打斷處理）
+- 🛡️ 新增兜底規則：使用者提到否定詞（「不對/不行/沒有/報錯」）→ 預設 track create，AI 不能再自行判斷「設計如此」跳過記錄
+- ⚠️ 所有 11 個章節標題加上 ⚠️ 前綴，提升注意力優先級
+- 🌐 第 1 節統一為 `IDENTITY & TONE`，欄位名用英文 key（Role/Language/Voice/Authority），7 語言同步
+- 🔧 修復 `_write_steering` anchor 以支援靈活的章節標題格式
+
 ### v2.1.7
 
 **修復：Playwright MCP 配置不再強制寫入**

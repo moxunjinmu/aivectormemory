@@ -528,12 +528,13 @@ def _write_steering(filepath: Path, mode: str, ide_name: str = "", include_workf
     specs_path = SPECS_PATH_MAP.get(ide_name, SPECS_PATH_DEFAULT)
     content = raw.replace("{specs_path}", specs_path)
     if include_workflow:
-        # 语言无关：在 "## 1." 章节前插入 workflow prompt
-        anchor = "---\n\n## 1."
+        # 语言无关：在第一个章节标题前插入 workflow prompt
+        anchor = "---\n\n## "
         idx = content.find(anchor)
         if idx != -1:
+            rest = content[idx + len(anchor):]  # "⚠️ IDENTITY..." 或 "⚠️ 1. ..."
             workflow = get_workflow_prompt(lang).strip()
-            content = content[:idx] + f"---\n\n{workflow}\n\n---\n\n## 1." + content[idx + len(anchor):]
+            content = content[:idx] + f"---\n\n{workflow}\n\n---\n\n## " + rest
     if mode == "file":
         START = STEERING_MARKER
         END = "<!-- /aivectormemory-steering -->"

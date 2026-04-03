@@ -371,6 +371,15 @@ O agregar env en la configuración MCP:
 
 ## 📋 Registro de Cambios
 
+### v2.1.8
+
+**Mejora: Restauración de Reglas de Trabajo — Pasos de Flujo Detallados + Mecanismo Anti-Omisión**
+- 📝 Restaurados los pasos detallados del flujo de trabajo de la versión pre-simplificación (pasos C/D/E/F/I con formatos explícitos de recall, puntos de verificación de investigación, manejo de interrupciones)
+- 🛡️ Nueva regla de protección: cuando el usuario menciona palabras negativas ("incorrecto/no funciona/no hay/error") → por defecto `track create` — la IA ya no puede auto-juzgar "es diseño así" y omitir el registro
+- ⚠️ Los 11 encabezados de sección ahora tienen prefijo ⚠️ para mayor prioridad de atención
+- 🌐 Sección 1 unificada a `IDENTITY & TONE` con claves de campo en inglés (Role/Language/Voice/Authority) en los 7 idiomas
+- 🔧 Corregido el ancla de `_write_steering` para soportar formatos flexibles de encabezados
+
 ### v2.1.7
 
 **Corrección: Configuración Playwright MCP Ya No Se Inyecta Forzosamente**

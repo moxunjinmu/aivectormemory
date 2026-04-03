@@ -377,6 +377,15 @@ Or add env to MCP config:
 
 ## 📋 Changelog
 
+### v2.1.8
+
+**Enhancement: Steering Rules Restoration — More Detailed Workflow Steps + Anti-Skip Safeguard**
+- 📝 Restored detailed workflow steps from pre-simplification version (steps C/D/E/F/I with explicit recall formats, investigation checkpoints, interrupt handling)
+- 🛡️ New safeguard rule: when user mentions negative words ("wrong/not working/missing/error"), default to `track create` — AI can no longer self-judge "by design" and skip recording
+- ⚠️ All 11 section headers now prefixed with ⚠️ for higher attention priority
+- 🌐 Section 1 unified to `IDENTITY & TONE` with English field keys (Role/Language/Voice/Authority) across all 7 languages
+- 🔧 Fixed `_write_steering` anchor to support flexible section header formats
+
 ### v2.1.7
 
 **Fix: Playwright MCP Config — No Longer Force-Injected**

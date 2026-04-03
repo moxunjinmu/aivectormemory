@@ -371,6 +371,15 @@ Oder env in der MCP-Konfiguration hinzufügen:
 
 ## 📋 Änderungsprotokoll
 
+### v2.1.8
+
+**Verbesserung: Wiederherstellung der Arbeitsregeln — Detaillierte Workflow-Schritte + Anti-Überspringen-Schutz**
+- 📝 Detaillierte Workflow-Schritte aus der Version vor der Vereinfachung wiederhergestellt (Schritte C/D/E/F/I mit expliziten Recall-Formaten, Untersuchungs-Checkpoints, Unterbrechungsbehandlung)
+- 🛡️ Neue Schutzregel: Wenn der Benutzer negative Wörter erwähnt („falsch/funktioniert nicht/fehlt/Fehler") → standardmäßig `track create` — KI kann nicht mehr „ist so designt" urteilen und Aufzeichnung überspringen
+- ⚠️ Alle 11 Abschnittsüberschriften mit ⚠️-Präfix für höhere Aufmerksamkeitspriorität
+- 🌐 Abschnitt 1 vereinheitlicht zu `IDENTITY & TONE` mit englischen Feldschlüsseln (Role/Language/Voice/Authority) in allen 7 Sprachen
+- 🔧 `_write_steering`-Anker korrigiert zur Unterstützung flexibler Abschnittsüberschriften
+
 ### v2.1.7
 
 **Fix: Playwright MCP-Konfiguration wird nicht mehr erzwungen**

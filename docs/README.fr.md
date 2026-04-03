@@ -371,6 +371,15 @@ Ou ajouter env dans la configuration MCP :
 
 ## 📋 Journal des Modifications
 
+### v2.1.8
+
+**Amélioration : Restauration des Règles de Travail — Étapes de Flux Détaillées + Protection Anti-Omission**
+- 📝 Restauration des étapes détaillées du flux de travail de la version pré-simplification (étapes C/D/E/F/I avec formats recall explicites, points de contrôle d'investigation, gestion des interruptions)
+- 🛡️ Nouvelle règle de protection : lorsque l'utilisateur mentionne des mots négatifs (« incorrect/ne marche pas/manquant/erreur ») → par défaut `track create` — l'IA ne peut plus juger « c'est par conception » et sauter l'enregistrement
+- ⚠️ Les 11 en-têtes de section sont maintenant préfixés par ⚠️ pour une priorité d'attention plus élevée
+- 🌐 Section 1 unifiée en `IDENTITY & TONE` avec des clés de champ en anglais (Role/Language/Voice/Authority) dans les 7 langues
+- 🔧 Correction de l'ancre `_write_steering` pour supporter les formats d'en-têtes flexibles
+
 ### v2.1.7
 
 **Correction : Configuration Playwright MCP Plus Forcée**
