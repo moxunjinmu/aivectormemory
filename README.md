@@ -377,6 +377,11 @@ Or add env to MCP config:
 
 ## 📋 Changelog
 
+### v2.1.10
+
+**Enhancement: Self-correction rule — AI must fix its own mistakes without asking**
+- 📝 Core principle #5 enhanced across all 7 languages: "Your own operational mistakes must be self-corrected — never ask the user whether to fix them"
+
 ### v2.1.9
 
 **Enhancement: Hook-Based Rule Enforcement — Bash Guard + Stop Guard + Test Decision Tree**

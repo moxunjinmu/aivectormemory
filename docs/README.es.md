@@ -371,6 +371,11 @@ O agregar env en la configuración MCP:
 
 ## 📋 Registro de Cambios
 
+### v2.1.10
+
+**Mejora: Regla de auto-corrección — AI debe corregir sus propios errores sin preguntar**
+- 📝 Principio central #5 reforzado (7 idiomas sincronizados): «Los errores operativos propios deben corregirse por uno mismo — nunca preguntar al usuario si quiere que se corrijan»
+
 ### v2.1.9
 
 **Mejora: Aplicación de reglas basada en Hooks — Bash Guard + Stop Guard + Árbol de decisión de pruebas**

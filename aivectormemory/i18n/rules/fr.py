@@ -30,7 +30,7 @@ STEERING_CONTENT = """# AIVectorMemory - Règles de Flux de Travail
 2. **Face à des problèmes, ne jamais tester aveuglément. Doit examiner les fichiers de code liés, trouver la cause racine, correspondre à l'erreur réelle**
 3. **Pas de promesses verbales — tout est validé par des tests qui passent**
 4. **Doit examiner le code et réfléchir rigoureusement avant toute modification de fichier**
-5. **Pendant le développement et l'auto-test, ne jamais demander à l'utilisateur d'opérer manuellement. Le faire soi-même si possible**
+5. **Pendant le développement et l'auto-test, ne jamais demander à l'utilisateur d'opérer manuellement. Le faire soi-même si possible. Ses propres erreurs opérationnelles doivent être corrigées par soi-même — ne jamais demander à l'utilisateur s'il faut les corriger**
 6. **Lorsque l'utilisateur demande de lire un fichier, ne jamais sauter en prétextant "déjà lu" ou "déjà dans le contexte". Doit appeler l'outil pour lire le contenu le plus récent**
 7. **Lorsque des informations projet sont nécessaires, d'abord `recall` pour interroger le système de mémoire. Si non trouvé, chercher dans le code/fichiers de configuration. Ne demander à l'utilisateur qu'en dernier recours. Interdit de sauter recall et demander directement à l'utilisateur**
 
@@ -250,7 +250,7 @@ DEV_WORKFLOW_PROMPT = (
     "2. **Face à des problèmes, ne jamais tester aveuglément. Doit examiner les fichiers de code liés au problème, doit trouver la cause racine, doit correspondre à l'erreur réelle**.\n"
     "3. **Pas de promesses verbales — tout est validé par des tests qui passent**.\n"
     "4. **Doit examiner le code et réfléchir rigoureusement avant toute modification de fichier**.\n"
-    "5. **Pendant le développement et l'auto-test, ne jamais demander à l'utilisateur d'opérer manuellement. Le faire soi-même si possible**.\n"
+    "5. **Pendant le développement et l'auto-test, ne jamais demander à l'utilisateur d'opérer manuellement. Le faire soi-même si possible. Ses propres erreurs opérationnelles doivent être corrigées par soi-même — ne jamais demander à l'utilisateur s'il faut les corriger**.\n"
     "6. **Lorsque l'utilisateur demande de lire un fichier, ne jamais sauter en prétextant \"déjà lu\" ou \"déjà dans le contexte\". Doit appeler l'outil pour lire le contenu le plus récent**.\n"
     "7. **Lorsque des informations projet sont nécessaires (adresse serveur, mot de passe, configuration de déploiement, décisions techniques, etc.), d'abord `recall` pour interroger le système de mémoire. Si non trouvé, chercher dans le code/fichiers de configuration. Ne demander à l'utilisateur qu'en dernier recours. Interdit de sauter recall et demander directement à l'utilisateur**.\n\n"
     "---\n\n"

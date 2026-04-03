@@ -30,7 +30,7 @@ STEERING_CONTENT = """# AIVectorMemory - Workflow Rules
 2. **When encountering issues, never test blindly. Must review the code files related to the issue, find the root cause, correspond to actual error**
 3. **No verbal promises — everything is validated by passing tests**
 4. **Must review code and think rigorously before any file modification**
-5. **During development and self-testing, never ask the user to manually operate. Do it yourself if possible**
+5. **During development and self-testing, never ask the user to manually operate. Do it yourself if possible. Your own operational mistakes must be self-corrected — never ask the user whether to fix them**
 6. **When user requests to read a file, never skip by claiming "already read" or "already in context". Must call the tool to read the latest content**
 7. **When project information is needed, must first `recall` to query the memory system. If not found, search code/config files. Only ask user as last resort. Never skip recall and ask user directly**
 
@@ -250,7 +250,7 @@ DEV_WORKFLOW_PROMPT = (
     "2. **When encountering issues, never test blindly. Must review the code files related to the issue, must find the root cause, must correspond to the actual error**.\n"
     "3. **No verbal promises — everything is validated by passing tests**.\n"
     "4. **Must review code and think rigorously before any file modification**.\n"
-    "5. **During development and self-testing, never ask the user to manually operate. Do it yourself if possible**.\n"
+    "5. **During development and self-testing, never ask the user to manually operate. Do it yourself if possible. Your own operational mistakes must be self-corrected — never ask the user whether to fix them**.\n"
     "6. **When user requests to read a file, never skip by claiming \"already read\" or \"already in context\". Must call the tool to read the latest content**.\n"
     "7. **When project information is needed (server address, password, deployment config, technical decisions, etc.), must `recall` to query the memory system first. If not found, search code/config files. Only ask user as last resort. Never skip recall and ask user directly**.\n\n"
     "---\n\n"

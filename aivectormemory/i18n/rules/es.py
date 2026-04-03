@@ -30,7 +30,7 @@ STEERING_CONTENT = """# AIVectorMemory - Reglas de Flujo de Trabajo
 2. **Al encontrar problemas, nunca testear a ciegas. Debe revisar los archivos de código relacionados, encontrar la causa raíz, corresponder con el error real**
 3. **Sin promesas verbales — todo se valida con pruebas que pasen**
 4. **Debe revisar código y pensar rigurosamente antes de cualquier modificación de archivo**
-5. **Durante desarrollo y auto-pruebas, nunca pedir al usuario que opere manualmente. Hacerlo uno mismo si es posible**
+5. **Durante desarrollo y auto-pruebas, nunca pedir al usuario que opere manualmente. Hacerlo uno mismo si es posible. Los errores operativos propios deben corregirse por uno mismo — nunca preguntar al usuario si quiere que se corrijan**
 6. **Cuando el usuario solicita leer un archivo, nunca saltar alegando "ya leído" o "ya en contexto". Debe llamar la herramienta para leer el contenido más reciente**
 7. **Cuando se necesita información del proyecto, primero debe `recall` para consultar el sistema de memoria. Si no se encuentra, buscar en código/archivos de configuración. Solo preguntar al usuario como último recurso. Prohibido saltar recall y preguntar directamente al usuario**
 
@@ -250,7 +250,7 @@ DEV_WORKFLOW_PROMPT = (
     "2. **Al encontrar problemas, nunca testear a ciegas. Debe revisar los archivos de código relacionados con el problema, debe encontrar la causa raíz, debe corresponder con el error real**.\n"
     "3. **Sin promesas verbales — todo se valida con pruebas que pasen**.\n"
     "4. **Debe revisar código y pensar rigurosamente antes de cualquier modificación de archivo**.\n"
-    "5. **Durante desarrollo y auto-pruebas, nunca pedir al usuario que opere manualmente. Hacerlo uno mismo si es posible**.\n"
+    "5. **Durante desarrollo y auto-pruebas, nunca pedir al usuario que opere manualmente. Hacerlo uno mismo si es posible. Los errores operativos propios deben corregirse por uno mismo — nunca preguntar al usuario si quiere que se corrijan**.\n"
     "6. **Cuando el usuario solicita leer un archivo, nunca saltar alegando \"ya leído\" o \"ya en contexto\". Debe llamar la herramienta para leer el contenido más reciente**.\n"
     "7. **Cuando se necesita información del proyecto (dirección del servidor, contraseña, configuración de despliegue, decisiones técnicas, etc.), primero debe `recall` para consultar el sistema de memoria. Si no se encuentra, buscar en código/archivos de configuración. Solo preguntar al usuario como último recurso. Prohibido saltar recall y preguntar directamente al usuario**.\n\n"
     "---\n\n"

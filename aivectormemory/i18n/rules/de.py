@@ -30,7 +30,7 @@ STEERING_CONTENT = """# AIVectorMemory - Workflow-Regeln
 2. **Bei Problemen niemals blind testen. Muss die Code-Dateien zum Problem überprüfen, Grundursache finden, dem tatsächlichen Fehler entsprechen**
 3. **Keine mündlichen Versprechen — alles wird durch bestandene Tests validiert**
 4. **Muss Code überprüfen und rigoros nachdenken vor jeder Dateiänderung**
-5. **Während Entwicklung und Selbsttest niemals den Benutzer bitten manuell zu operieren. Selbst machen wenn möglich**
+5. **Während Entwicklung und Selbsttest niemals den Benutzer bitten manuell zu operieren. Selbst machen wenn möglich. Eigene Bedienungsfehler müssen selbst korrigiert werden — niemals den Benutzer fragen ob sie behoben werden sollen**
 6. **Wenn der Benutzer das Lesen einer Datei anfordert, niemals mit "bereits gelesen" oder "bereits im Kontext" überspringen. Muss das Werkzeug aufrufen um den neuesten Inhalt zu lesen**
 7. **Wenn Projektinformationen benötigt werden, zuerst `recall` verwenden um das Gedächtnissystem abzufragen. Wenn nicht gefunden, in Code/Konfigurationsdateien suchen. Nur als letztes Mittel den Benutzer fragen. Verboten recall zu überspringen und den Benutzer direkt zu fragen**
 
@@ -250,7 +250,7 @@ DEV_WORKFLOW_PROMPT = (
     "2. **Bei Problemen niemals blind testen. Muss die Code-Dateien zum Problem überprüfen, muss die Grundursache finden, muss dem tatsächlichen Fehler entsprechen**.\n"
     "3. **Keine mündlichen Versprechen — alles wird durch bestandene Tests validiert**.\n"
     "4. **Muss Code überprüfen und rigoros nachdenken vor jeder Dateiänderung**.\n"
-    "5. **Während Entwicklung und Selbsttest niemals den Benutzer bitten manuell zu operieren. Selbst machen wenn möglich**.\n"
+    "5. **Während Entwicklung und Selbsttest niemals den Benutzer bitten manuell zu operieren. Selbst machen wenn möglich. Eigene Bedienungsfehler müssen selbst korrigiert werden — niemals den Benutzer fragen ob sie behoben werden sollen**.\n"
     "6. **Wenn der Benutzer das Lesen einer Datei anfordert, niemals mit \"bereits gelesen\" oder \"bereits im Kontext\" überspringen. Muss das Werkzeug aufrufen um den neuesten Inhalt zu lesen**.\n"
     "7. **Wenn Projektinformationen benötigt werden (Serveradresse, Passwort, Deployment-Konfiguration, technische Entscheidungen usw.), zuerst `recall` verwenden um das Gedächtnissystem abzufragen. Wenn nicht gefunden, in Code/Konfigurationsdateien suchen. Nur als letztes Mittel den Benutzer fragen. Verboten recall zu überspringen und den Benutzer direkt zu fragen**.\n\n"
     "---\n\n"
