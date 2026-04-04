@@ -371,6 +371,13 @@ O agregar env en la configuración MCP:
 
 ## 📋 Registro de Cambios
 
+### v2.2.1
+
+**Hotfix: Eliminado bloqueo duro de git commit/push + Detección de operaciones manuales ampliada**
+- 🐛 bash_guard ya no bloquea git commit/push. Reglas steering + stop_guard
+- 🛡️ stop_guard lista de palabras ampliada
+- 📝 G1-G4 checklist: "ejecutar inmediatamente" añadido
+
 ### v2.2.0
 
 **Mayor: Hooks Universales — 8 IDEs, 7 Idiomas, Multiplataforma, Auto-Actualización**

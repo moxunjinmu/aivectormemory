@@ -377,6 +377,13 @@ Or add env to MCP config:
 
 ## 📋 Changelog
 
+### v2.2.1
+
+**Hotfix: Remove git commit/push hard-block + Expand manual-operation detection**
+- 🐛 Fixed bash_guard blocking `git commit`/`git push` with exit 2 — users couldn't commit even when explicitly requested. Git operations now governed by steering rules + stop_guard post-check only
+- 🛡️ Expanded stop_guard manual-operation word list — shorter substrings (`请用`/`请你`/`验证一下`/`please verify`) to catch AI phrasing variants
+- 📝 Strengthened G1-G4 checklist wording: "execute immediately, don't wait for user reminder"
+
 ### v2.2.0
 
 **Major: Universal Hooks — 8 IDEs, 7 Languages, Cross-Platform, Auto-Upgrade**

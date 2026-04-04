@@ -371,6 +371,13 @@ Oder env in der MCP-Konfiguration hinzufügen:
 
 ## 📋 Änderungsprotokoll
 
+### v2.2.1
+
+**Hotfix: git commit/push Hartblock entfernt + Manuelle-Operationen-Erkennung erweitert**
+- 🐛 bash_guard git commit/push Block entfernt. Steering-Regeln + stop_guard Nachprüfung
+- 🛡️ stop_guard Wortliste erweitert
+- 📝 G1-G4 Checkliste: „Sofort ausführen" hinzugefügt
+
 ### v2.2.0
 
 **Major: Universelle Hooks — 8 IDEs, 7 Sprachen, Plattformübergreifend, Auto-Upgrade**

@@ -19,11 +19,13 @@ FRONTEND_EXTS = {".ts", ".tsx", ".js", ".jsx", ".vue", ".css", ".html", ".svelte
 BACKEND_EXTS = {".py", ".go", ".rs", ".java", ".rb", ".php", ".swift", ".kt"}
 
 MANUAL_WORDS = [
-    "手动", "刷新浏览器", "请用户", "请自行", "你需要打开",
-    "你需要访问", "你需要刷新", "请手动", "用户需要", "请你自己",
-    # English equivalents
-    "manually", "refresh the browser", "please open", "you need to open",
-    "please refresh", "user should",
+    # 中文 — 短子串匹配，覆盖"请用xxx验证"、"请你去刷新"等变体
+    "手动", "请用", "请你", "请自", "你去", "你来",
+    "刷新浏览器", "你需要打开", "你需要访问", "你需要刷新",
+    "用户需要", "验证一下", "打开浏览器", "访问一下",
+    # English — short substrings to catch variants
+    "manually", "please open", "please refresh", "you need to open",
+    "you need to refresh", "user should", "please verify", "go to the browser",
 ]
 
 BYPASS_FRONTEND = "此改动不影响前端"

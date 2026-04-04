@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # AIVectorMemory PreToolUse Hook (Bash)
-# 拦截危险命令：open http / python3 -c 多行 / $(...)+管道 / mysql -e 多语句 / git push / 部署命令
+# 拦截危险命令：open http / python3 -c 多行 / $(...)+管道 / mysql -e 多语句 / 部署命令
+# git commit/push 不在此拦截 — 由 steering 规则约束 + stop_guard 事后兜底
 
 INPUT=$(cat)
 COMMAND=$(python3 -c "import sys,json;d=json.load(sys.stdin);print(d.get('tool_input',{}).get('command',''))" <<< "$INPUT" 2>/dev/null)
@@ -34,19 +35,7 @@ if echo "$COMMAND" | grep -qE 'mysql.*-e\s*["\x27].*;\s*.+;'; then
   exit 2
 fi
 
-# 5. 拦截 git commit（必须先完成测试再提交）
-if echo "$COMMAND" | grep -qE 'git\s+commit'; then
-  echo "⚠️ 禁止自行 git commit。必须先完成自测检查清单（G1-G4）并设阻塞等待用户确认后才能提交。" >&2
-  exit 2
-fi
-
-# 6. 拦截 git push（必须用户确认后才能推送）
-if echo "$COMMAND" | grep -qE 'git\s+push'; then
-  echo "⚠️ 禁止自行 git push。必须先完成自测检查清单并设阻塞等待用户确认，由用户决定是否推送。" >&2
-  exit 2
-fi
-
-# 7. 拦截部署命令（SSH / docker / systemctl / kubectl）
+# 5. 拦截部署命令（不可逆操作，硬阻断）
 if echo "$COMMAND" | grep -qE 'sshpass\s.*\s(deploy|restart|docker|systemctl)|ssh\s.*\s(deploy|restart|docker|systemctl)|docker\s+(compose\s+up|restart)|systemctl\s+restart|kubectl\s+(apply|rollout|set)'; then
   echo "⚠️ 禁止自行部署。必须用户明确指示后才能执行部署操作。" >&2
   exit 2

@@ -371,6 +371,13 @@ Ou ajouter env dans la configuration MCP :
 
 ## 📋 Journal des Modifications
 
+### v2.2.1
+
+**Hotfix : Suppression du blocage dur git commit/push + Détection d'opérations manuelles élargie**
+- 🐛 bash_guard ne bloque plus git commit/push. Règles steering + stop_guard
+- 🛡️ stop_guard liste de mots élargie
+- 📝 G1-G4 checklist : « exécuter immédiatement » ajouté
+
 ### v2.2.0
 
 **Majeur : Hooks Universels — 8 IDEs, 7 Langues, Multiplateforme, Mise à Jour Auto**

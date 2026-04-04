@@ -371,6 +371,13 @@ export HF_ENDPOINT=https://hf-mirror.com
 
 ## 📋 更新日誌
 
+### v2.2.1
+
+**熱修復：移除 git commit/push 硬阻斷 + 擴展手動操作檢測**
+- 🐛 修復 bash_guard 硬阻斷 git commit/push。改為 steering 規則 + stop_guard 兜底
+- 🛡️ stop_guard 手動操作詞表擴展為短子串匹配
+- 📝 G1-G4 檢查清單增加「立即執行」
+
 ### v2.2.0
 
 **重大升級：通用 Hooks — 8 個 IDE、7 語言、跨平台、自動升級**

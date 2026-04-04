@@ -76,16 +76,16 @@ STEERING_CONTENT = """# AIVectorMemory - 工作规则
 - 修复中发现新问题 → `track create` 记录后继续当前问题
 - 用户中途打断提出新问题 → `track create` 记录，再决定优先级
 
-⛔ GATE：以下 G1-G4 必须全部完成才能进入 H，任何一项未完成禁止设阻塞或汇报结果
-**G1. 运行测试** — 根据改动影响范围选择测试方式：
+⛔ GATE：以下 G1-G4 必须全部完成才能进入 H，任何一项未完成禁止设阻塞或汇报结果。**修改代码后立即执行，不要等用户提醒。**
+**G1. 运行测试（立即执行，禁止跳过）** — 根据改动影响范围选择测试方式：
   - 改了前端代码 → Playwright MCP（ToolSearch 加载 → browser_navigate → browser_snapshot）
   - 改了 API 响应格式/字段且有前端页面调用 → curl 验证 API + Playwright 验证页面
   - 纯后端逻辑无页面调用 → pytest / curl
   - 不确定是否影响页面 → 按影响处理，用 Playwright
-  跳过此步 = 违规
-**G2. 检查副作用** — grep 改动涉及的函数/变量名，确认其他调用方不受影响
+  跳过此步 = 违规。**禁止说"请验证"让用户操作，必须自己执行测试。**
+**G2. 检查副作用（立即执行）** — grep 改动涉及的函数/变量名，确认其他调用方不受影响
 **G3. 新问题处理** — 测试中发现非预期行为：阻塞当前 → 立即修复再继续；不阻塞 → `track create` 记录后继续
-**G4. track update** — 填 solution + files_changed + test_result
+**G4. track update（立即执行）** — 填 solution + files_changed + test_result
 ⛔ /GATE
 
 **H. 等待验证** — 仅 G1-G4 全部完成后才能 `status` 设阻塞（block_reason: "修复完成等待验证"或"需要用户决策"）

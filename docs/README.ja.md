@@ -371,6 +371,13 @@ export HF_ENDPOINT=https://hf-mirror.com
 
 ## 📋 更新履歴
 
+### v2.2.1
+
+**ホットフィックス：git commit/push ハードブロック削除 + 手動操作検出拡張**
+- 🐛 bash_guard の git commit/push ブロック削除。steering ルール + stop_guard で管理
+- 🛡️ stop_guard 手動操作ワードリスト拡張
+- 📝 G1-G4 チェックリスト「即時実行」追加
+
 ### v2.2.0
 
 **メジャー：ユニバーサル Hooks — 8 IDE、7 言語、クロスプラットフォーム、自動アップグレード**

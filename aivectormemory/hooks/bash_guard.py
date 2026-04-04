@@ -1,7 +1,7 @@
 """AIVectorMemory PreToolUse Hook (Bash)
 
-拦截危险命令：open http / python3 -c 多行 / $(...)+管道 / mysql -e 多语句
-               / git commit / git push / 部署命令
+拦截危险命令：open http / python3 -c 多行 / $(...)+管道 / mysql -e 多语句 / 部署命令
+git commit/push 不在此拦截 — 由 steering 规则约束 + stop_guard 事后兜底
 
 用法: python3 -m aivectormemory.hooks.bash_guard
 stdin: Claude Code / Cursor / Windsurf / Codex / Copilot / Gemini 传入的 JSON
@@ -36,15 +36,7 @@ def main() -> int:
     if re.search(r"mysql.*-e\s*[\"'].*;\s*.+;", cmd):
         return block(get_message("mysql_multi_blocked"))
 
-    # 5. git commit
-    if re.search(r"git\s+commit", cmd):
-        return block(get_message("git_commit_blocked"))
-
-    # 6. git push
-    if re.search(r"git\s+push", cmd):
-        return block(get_message("git_push_blocked"))
-
-    # 7. 部署命令（SSH / docker / systemctl / kubectl）
+    # 5. 部署命令（不可逆操作，硬阻断）
     deploy_pattern = (
         r"sshpass\s.*\s(deploy|restart|docker|systemctl)"
         r"|ssh\s.*\s(deploy|restart|docker|systemctl)"
