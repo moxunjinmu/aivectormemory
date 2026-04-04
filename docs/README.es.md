@@ -371,6 +371,13 @@ O agregar env en la configuración MCP:
 
 ## 📋 Registro de Cambios
 
+### v2.1.11
+
+**Corrección: Eliminación de memoria en escritorio + Eliminación por lotes en panel web**
+- 🐛 Corregido que la eliminación de memoria en la app de escritorio no funcionaba — reemplazado `confirm()` nativo (no soportado en Wails WebView) con componente Modal personalizado
+- ✨ Añadida interfaz de eliminación por lotes a las páginas de memoria del panel web (proyecto + global) — botón modo lote, selección checkbox, seleccionar todo, eliminación por lotes con confirmación
+- 🌐 Añadidas traducciones de eliminación por lotes en los 7 idiomas
+
 ### v2.1.10
 
 **Mejora: Regla de auto-corrección — AI debe corregir sus propios errores sin preguntar**

@@ -331,6 +331,9 @@ body {
 .memory-card:hover { border-color: var(--border-hover); box-shadow: var(--shadow-card); }
 .memory-card__header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
 .memory-card__header-left { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; min-width: 0; flex: 1; }
+.memory-card__check { width: 16px; height: 16px; cursor: pointer; flex-shrink: 0; accent-color: var(--primary); }
+.memory-card--selected { border-color: var(--primary); background: color-mix(in srgb, var(--primary) 5%, var(--bg-surface)); }
+.batch-bar__select-all { display: flex; align-items: center; gap: 6px; font-size: 13px; cursor: pointer; color: var(--text-secondary); }
 .memory-card__id { font-family: var(--font-mono); font-size: 12px; color: var(--text-muted); background: var(--border-light); padding: 2px 8px; border-radius: 4px; flex-shrink: 0; }
 .memory-card__actions { display: flex; gap: 4px; }
 .memory-card__content { font-size: 13px; line-height: 1.7; color: var(--text-heading); white-space: pre-wrap; word-break: break-all; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; cursor: pointer; transition: all 0.2s ease; }

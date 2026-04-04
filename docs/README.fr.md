@@ -371,6 +371,13 @@ Ou ajouter env dans la configuration MCP :
 
 ## 📋 Journal des Modifications
 
+### v2.1.11
+
+**Correction : Suppression de mémoire bureau + Suppression par lot du tableau de bord web**
+- 🐛 Corrigé la suppression de mémoire non fonctionnelle dans l'app bureau — remplacé `confirm()` natif (non supporté dans Wails WebView) par un composant Modal personnalisé
+- ✨ Ajout de l'interface de suppression par lot aux pages de mémoire du tableau de bord web (projet + global) — bouton mode lot, sélection checkbox, tout sélectionner, suppression par lot avec confirmation
+- 🌐 Ajout des traductions de suppression par lot dans les 7 langues
+
 ### v2.1.10
 
 **Amélioration : Règle d'auto-correction — l'AI doit corriger ses propres erreurs sans demander**

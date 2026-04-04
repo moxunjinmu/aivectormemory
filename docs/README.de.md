@@ -371,6 +371,13 @@ Oder env in der MCP-Konfiguration hinzufügen:
 
 ## 📋 Änderungsprotokoll
 
+### v2.1.11
+
+**Fix: Desktop-Speicher löschen + Web-Dashboard Stapellöschung**
+- 🐛 Desktop-App Speicher löschen funktioniert nicht behoben — natives `confirm()` (nicht unterstützt in Wails WebView) durch benutzerdefinierte Modal-Komponente ersetzt
+- ✨ Stapellösch-UI zum Web-Dashboard Speicherseiten (Projekt + Global) hinzugefügt — Stapelmodus-Button, Checkbox-Auswahl, Alle auswählen, Stapellöschung mit Bestätigung
+- 🌐 Stapellösch-Übersetzungen in allen 7 Sprachen hinzugefügt
+
 ### v2.1.10
 
 **Verbesserung: Selbstkorrektur-Regel — AI muss eigene Fehler selbst beheben**

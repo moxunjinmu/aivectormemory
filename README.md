@@ -377,6 +377,13 @@ Or add env to MCP config:
 
 ## 📋 Changelog
 
+### v2.1.11
+
+**Fix: Desktop memory delete + Web dashboard batch delete**
+- 🐛 Fixed desktop app memory delete not working — replaced native `confirm()` (unsupported in Wails WebView) with custom Modal component
+- ✨ Added batch delete UI to Web dashboard memory pages (project + global) — batch mode button, checkbox selection, select all, batch delete with confirmation
+- 🌐 Added batch delete i18n keys across all 7 languages
+
 ### v2.1.10
 
 **Enhancement: Self-correction rule — AI must fix its own mistakes without asking**

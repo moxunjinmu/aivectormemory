@@ -185,10 +185,17 @@
           <button class="search-clear hidden" id="project-search-clear">&times;</button>
         </div>
         <div class="toolbar-right">
+          <button class="btn btn--secondary btn--sm" id="btn-batch-project" data-i18n="batchMode">批量操作</button>
           <button class="btn btn--secondary btn--sm" id="btn-export" data-i18n="exportBtn">导出</button>
           <button class="btn btn--secondary btn--sm" id="btn-import" data-i18n="importBtn">导入</button>
           <input type="file" id="import-file" accept=".json" style="display:none">
         </div>
+      </div>
+      <div id="project-batch-bar" class="batch-bar" style="display:none">
+        <label class="batch-bar__select-all"><input type="checkbox" id="project-select-all"> <span data-i18n="selectAll">全选</span></label>
+        <span class="batch-bar__info"><span data-i18n="selected">已选</span> <strong id="project-selected-count">0</strong> <span data-i18n="items">条</span></span>
+        <button class="btn btn--danger btn--sm" id="project-batch-delete" data-i18n="batchDelete">批量删除</button>
+        <button class="btn btn--ghost btn--sm" id="project-batch-cancel" data-i18n="cancel">取消</button>
       </div>
       <div id="project-memory-list" class="card-list"></div>
       <div id="project-pager" class="pager"></div>
@@ -204,6 +211,15 @@
           <input type="text" id="user-search" placeholder="搜索全局记忆..." data-i18n-placeholder="searchGlobal" class="search-input">
           <button class="search-clear hidden" id="user-search-clear">&times;</button>
         </div>
+        <div class="toolbar-right">
+          <button class="btn btn--secondary btn--sm" id="btn-batch-user" data-i18n="batchMode">批量操作</button>
+        </div>
+      </div>
+      <div id="user-batch-bar" class="batch-bar" style="display:none">
+        <label class="batch-bar__select-all"><input type="checkbox" id="user-select-all"> <span data-i18n="selectAll">全选</span></label>
+        <span class="batch-bar__info"><span data-i18n="selected">已选</span> <strong id="user-selected-count">0</strong> <span data-i18n="items">条</span></span>
+        <button class="btn btn--danger btn--sm" id="user-batch-delete" data-i18n="batchDelete">批量删除</button>
+        <button class="btn btn--ghost btn--sm" id="user-batch-cancel" data-i18n="cancel">取消</button>
       </div>
       <div id="user-memory-list" class="card-list"></div>
       <div id="user-pager" class="pager"></div>
