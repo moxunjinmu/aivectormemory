@@ -371,6 +371,11 @@ O agregar env en la configuración MCP:
 
 ## 📋 Registro de Cambios
 
+### v2.2.2
+
+**Mejora: Reestructuración de numeración — A-I → 1-19 numeración plana**
+- 📝 19 reglas con numeración plana, 7 idiomas sincronizados
+
 ### v2.2.1
 
 **Hotfix: Eliminado bloqueo duro de git commit/push + Detección de operaciones manuales ampliada**

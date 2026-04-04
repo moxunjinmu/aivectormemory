@@ -371,6 +371,11 @@ Ou ajouter env dans la configuration MCP :
 
 ## 📋 Journal des Modifications
 
+### v2.2.2
+
+**Amélioration : Restructuration de la numérotation — A-I → 1-19 numérotation plate**
+- 📝 19 règles avec numérotation plate, 7 langues synchronisées
+
 ### v2.2.1
 
 **Hotfix : Suppression du blocage dur git commit/push + Détection d'opérations manuelles élargie**

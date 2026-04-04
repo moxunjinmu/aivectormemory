@@ -371,6 +371,11 @@ Oder env in der MCP-Konfiguration hinzufügen:
 
 ## 📋 Änderungsprotokoll
 
+### v2.2.2
+
+**Verbesserung: Regelnummerierung — A-I → 1-19 flache Nummerierung**
+- 📝 19 Regeln mit flacher Nummerierung, 7 Sprachen synchronisiert
+
 ### v2.2.1
 
 **Hotfix: git commit/push Hartblock entfernt + Manuelle-Operationen-Erkennung erweitert**

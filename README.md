@@ -377,6 +377,15 @@ Or add env to MCP config:
 
 ## 📋 Changelog
 
+### v2.2.2
+
+**Enhancement: Rule numbering overhaul — A-I → 1-19 flat numbering**
+- 📝 All 19 rules now use flat numeric numbering (1-19), no more A-I letter substeps
+- 📝 Issue tracking field specs merged into steps 7/8/11.4/13 (removed standalone section)
+- 📝 Self-test duplicate removed from Development Standards (now only in section 11)
+- 📝 G1-G4 checklist strengthened: "execute immediately, don't wait for user reminder"
+- 🌐 All 7 languages synchronized
+
 ### v2.2.1
 
 **Hotfix: Remove git commit/push hard-block + Expand manual-operation detection**
