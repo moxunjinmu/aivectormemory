@@ -377,6 +377,18 @@ Or add env to MCP config:
 
 ## 📋 Changelog
 
+### v2.2.0
+
+**Major: Universal Hooks — 8 IDEs, 7 Languages, Cross-Platform, Auto-Upgrade**
+- 🛡️ Hooks migrated from `.sh` scripts to Python modules (`python3 -m aivectormemory.hooks.xxx`) — cross-platform (macOS/Linux/Windows), auto-upgrades via pip
+- 🛡️ `bash_guard` expanded to 7 rules: + `git commit` blocking + `git push` blocking + deploy command blocking (ssh/docker/kubectl/systemctl)
+- 🛡️ `stop_guard` expanded to 7 checks: + backend test detection (pytest/curl) + grep side-effect check + track update verification + status blocking verification
+- 🌐 All hook error messages now support 7 languages (zh-CN/zh-TW/en/ja/de/fr/es) via `_messages.py`
+- 🔌 **bash_guard deployed to all IDEs**: Cursor (bash matcher), Windsurf (pre_run_command), Kiro (shell preToolUse), Codex CLI, Copilot (VSCode+Cloud), Gemini CLI
+- 🆕 New IDE support: Codex CLI (`.codex/hooks.json`), GitHub Copilot (`.github/hooks/`), Gemini CLI (`.gemini/settings.json`)
+- 🔄 Auto-upgrade: `pip install --upgrade` updates hook logic instantly — no re-install needed
+- ✅ Test suite: 48 → 114 tests (66 hooks tests covering all rules, cross-IDE format compatibility, i18n message validation)
+
 ### v2.1.11
 
 **Fix: Desktop memory delete + Web dashboard batch delete**

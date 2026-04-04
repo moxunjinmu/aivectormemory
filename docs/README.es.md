@@ -371,6 +371,17 @@ O agregar env en la configuración MCP:
 
 ## 📋 Registro de Cambios
 
+### v2.2.0
+
+**Mayor: Hooks Universales — 8 IDEs, 7 Idiomas, Multiplataforma, Auto-Actualización**
+- 🛡️ Hooks migrados de .sh a módulos Python (`python3 -m aivectormemory.hooks.xxx`) — multiplataforma, pip upgrade aplica instantáneamente
+- 🛡️ `bash_guard` expandido a 7 reglas: + bloqueo git commit/push + bloqueo comandos de despliegue
+- 🛡️ `stop_guard` expandido a 7 verificaciones: + tests backend + grep efectos secundarios + track update + status bloqueo
+- 🌐 Todos los mensajes de error de hooks en 7 idiomas
+- 🔌 bash_guard desplegado en todos los IDEs: Cursor, Windsurf, Kiro, Codex CLI, Copilot, Gemini CLI
+- 🆕 Nuevos IDEs soportados: Codex CLI, GitHub Copilot, Gemini CLI
+- ✅ Suite de tests: 48 → 114 tests
+
 ### v2.1.11
 
 **Corrección: Eliminación de memoria en escritorio + Eliminación por lotes en panel web**

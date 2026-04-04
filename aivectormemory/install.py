@@ -31,11 +31,14 @@ IDES = [
      lambda root: root / "AGENTS.md", "append",
      lambda root: root / ".opencode/plugins"),
     ("Codex",          lambda root: root / ".codex/config.toml",       "codex", False,
-     lambda root: root / "AGENTS.md", "append", None),
+     lambda root: root / "AGENTS.md", "append",
+     lambda root: root / ".codex"),
     ("Antigravity",    lambda root: Path.home() / ".gemini/antigravity/mcp_config.json", "basic", True,
-     lambda root: root / "GEMINI.md", "file", None),
+     lambda root: root / "GEMINI.md", "file",
+     lambda root: root / ".gemini"),
     ("Copilot",        lambda root: root / ".github/copilot/mcp.json",  "basic", False,
-     lambda root: root / ".github/copilot-instructions.md", "append", None),
+     lambda root: root / ".github/copilot-instructions.md", "append",
+     lambda root: root / ".github/hooks"),
 ]
 
 RUNNERS = [
@@ -94,7 +97,20 @@ HOOKS_CONFIGS = [
             "when": {"type": "preToolUse", "toolTypes": ["write"]},
             "then": {
                 "type": "runCommand",
-                "command": "",  # 占位，install 时动态填充
+                "command": "python3 -m aivectormemory.hooks.check_track",
+            },
+        },
+    },
+    {
+        "filename": "bash-guard.kiro.hook",
+        "content": {
+            "name": "Bash Guard",
+            "version": "1.0.0",
+            "description": "拦截危险 Bash 命令（git commit/push/部署等）",
+            "when": {"type": "preToolUse", "toolTypes": ["shell"]},
+            "then": {
+                "type": "runCommand",
+                "command": "python3 -m aivectormemory.hooks.bash_guard",
             },
         },
     },
@@ -124,7 +140,7 @@ CLAUDE_CODE_HOOKS_CONFIG = {
                 "hooks": [
                     {
                         "type": "command",
-                        "command": "",  # 占位，install 时动态填充 check_track.sh 路径
+                        "command": "python3 -m aivectormemory.hooks.check_track",
                         "timeout": 10,
                     }
                 ]
@@ -134,7 +150,7 @@ CLAUDE_CODE_HOOKS_CONFIG = {
                 "hooks": [
                     {
                         "type": "command",
-                        "command": "",  # 占位，install 时动态填充 bash_guard.sh 路径
+                        "command": "python3 -m aivectormemory.hooks.bash_guard",
                         "timeout": 5,
                     }
                 ]
@@ -166,7 +182,7 @@ CLAUDE_CODE_HOOKS_CONFIG = {
                 "hooks": [
                     {
                         "type": "command",
-                        "command": "",  # 占位，install 时动态填充 stop_guard.sh 路径
+                        "command": "python3 -m aivectormemory.hooks.stop_guard",
                         "timeout": 15,
                     }
                 ]
@@ -181,8 +197,13 @@ CURSOR_HOOKS_CONFIG = {
         "preToolUse": [
             {
                 "matcher": "edit|write",
-                "command": "",  # 占位，install 时动态填充实际路径
+                "command": "python3 -m aivectormemory.hooks.check_track",
                 "timeout": 10,
+            },
+            {
+                "matcher": "bash",
+                "command": "python3 -m aivectormemory.hooks.bash_guard",
+                "timeout": 5,
             }
         ]
     }
@@ -192,8 +213,61 @@ WINDSURF_HOOKS_CONFIG = {
     "hooks": {
         "pre_write_code": [
             {
-                "command": "",  # 占位，install 时动态填充实际路径
+                "command": "python3 -m aivectormemory.hooks.check_track",
                 "show_output": True,
+            }
+        ],
+        "pre_run_command": [
+            {
+                "command": "python3 -m aivectormemory.hooks.bash_guard",
+                "show_output": True,
+            }
+        ]
+    }
+}
+
+CODEX_HOOKS_CONFIG = {
+    "hooks": {
+        "PreToolUse": [
+            {
+                "matcher": "Edit|Write",
+                "hooks": [{"type": "command", "command": "python3 -m aivectormemory.hooks.check_track", "timeout": 10}]
+            },
+            {
+                "matcher": "Bash",
+                "hooks": [{"type": "command", "command": "python3 -m aivectormemory.hooks.bash_guard", "timeout": 5}]
+            }
+        ],
+        "Stop": [
+            {
+                "hooks": [{"type": "command", "command": "python3 -m aivectormemory.hooks.stop_guard", "timeout": 15}]
+            }
+        ]
+    }
+}
+
+COPILOT_HOOKS_CONFIG = {
+    "hooks": {
+        "PreToolUse": [
+            {"type": "command", "command": "python3 -m aivectormemory.hooks.check_track", "timeout": 10},
+            {"type": "command", "command": "python3 -m aivectormemory.hooks.bash_guard", "timeout": 5}
+        ],
+        "Stop": [
+            {"type": "command", "command": "python3 -m aivectormemory.hooks.stop_guard", "timeout": 15}
+        ]
+    }
+}
+
+GEMINI_HOOKS_CONFIG = {
+    "hooks": {
+        "BeforeTool": [
+            {
+                "matcher": "write_file|create_file|edit_file|apply_diff",
+                "hooks": [{"type": "command", "command": "python3 -m aivectormemory.hooks.check_track"}]
+            },
+            {
+                "matcher": "run_shell_command",
+                "hooks": [{"type": "command", "command": "python3 -m aivectormemory.hooks.bash_guard"}]
             }
         ]
     }
@@ -277,15 +351,12 @@ def _copy_stop_guard_script(target_dir: Path) -> tuple[Path, bool]:
     return _copy_hook_script(_stop_guard_script_path(), target_dir, "stop_guard.sh")
 
 
-def _build_claude_code_hooks(check_script_path: str, inject_script_path: str, compact_recovery_path: str, bash_guard_path: str = "", stop_guard_path: str = "") -> dict:
-    """构建 Claude Code hooks 配置，填充实际脚本路径"""
+def _build_claude_code_hooks(inject_script_path: str, compact_recovery_path: str) -> dict:
+    """构建 Claude Code hooks 配置，填充 inject/compact 脚本路径（其余用 python3 -m）"""
     import copy
     cfg = copy.deepcopy(CLAUDE_CODE_HOOKS_CONFIG)
-    cfg["hooks"]["PreToolUse"][0]["hooks"][0]["command"] = check_script_path
-    cfg["hooks"]["PreToolUse"][1]["hooks"][0]["command"] = bash_guard_path
     cfg["hooks"]["UserPromptSubmit"][0]["hooks"][0]["command"] = inject_script_path
     cfg["hooks"]["SessionStart"][0]["hooks"][0]["command"] = compact_recovery_path
-    cfg["hooks"]["Stop"][0]["hooks"][0]["command"] = stop_guard_path
     return cfg
 
 
@@ -331,28 +402,34 @@ echo "{footer}"
     return dst, True
 
 
+def _clean_old_hook_scripts(script_dir: Path) -> list[str]:
+    """清理旧的 .sh hook 脚本（迁移到 python3 -m 后不再需要）"""
+    results = []
+    for name in ["check_track.sh", "bash_guard.sh", "stop_guard.sh"]:
+        old = script_dir / name
+        if old.exists():
+            old.unlink()
+            results.append(f"✓ 已清理  旧脚本: {name} (迁移到 python3 -m)")
+    return results
+
+
 def _write_claude_code_hooks(hooks_dir: Path, lang: str | None = None) -> list[str]:
     """写入 Claude Code hooks 到 .claude/settings.json"""
     results = []
     hooks_dir.mkdir(parents=True, exist_ok=True)
     script_dir = hooks_dir / "hooks"
-    # 复制 check_track.sh
-    check_path, check_changed = _copy_check_track_script(script_dir)
-    results.append(f"{'✓ 已同步' if check_changed else '- 无变更'}  Script: .claude/hooks/check_track.sh")
-    # 复制 bash_guard.sh
-    bash_guard_path, bash_guard_changed = _copy_bash_guard_script(script_dir)
-    results.append(f"{'✓ 已同步' if bash_guard_changed else '- 无变更'}  Script: .claude/hooks/bash_guard.sh")
-    # 复制 stop_guard.sh
-    stop_guard_path, stop_guard_changed = _copy_stop_guard_script(script_dir)
-    results.append(f"{'✓ 已同步' if stop_guard_changed else '- 无变更'}  Script: .claude/hooks/stop_guard.sh")
+    # 清理旧 .sh 脚本
+    results.extend(_clean_old_hook_scripts(script_dir))
     # 生成 inject-workflow-rules.sh
     inject_path, inject_changed = _write_inject_workflow_script(script_dir, lang=lang)
     results.append(f"{'✓ 已同步' if inject_changed else '- 无变更'}  Script: .claude/hooks/inject-workflow-rules.sh")
     # 生成 compact-recovery.sh
     compact_path, compact_changed = _write_compact_recovery_script(script_dir, lang=lang)
     results.append(f"{'✓ 已同步' if compact_changed else '- 无变更'}  Script: .claude/hooks/compact-recovery.sh")
+    # Hooks 使用 python3 -m（无需复制脚本）
+    results.append("- python3 -m  check_track / bash_guard / stop_guard（pip 自动更新）")
     # 构建配置
-    new_hooks_cfg = _build_claude_code_hooks(str(check_path), str(inject_path), str(compact_path), str(bash_guard_path), str(stop_guard_path))
+    new_hooks_cfg = _build_claude_code_hooks(str(inject_path), str(compact_path))
     filepath = hooks_dir / "settings.json"
     config = {}
     if filepath.exists():
@@ -392,24 +469,16 @@ def _write_claude_code_hooks(hooks_dir: Path, lang: str | None = None) -> list[s
     return results
 
 
-def _build_cursor_hooks(script_path: str) -> dict:
-    """构建 Cursor hooks 配置，填充实际脚本路径"""
-    import copy
-    cfg = copy.deepcopy(CURSOR_HOOKS_CONFIG)
-    cfg["hooks"]["preToolUse"][0]["command"] = script_path
-    return cfg
-
-
 def _write_cursor_hooks(hooks_dir: Path) -> list[str]:
     """写入 Cursor hooks 到 .cursor/hooks.json"""
     results = []
     hooks_dir.mkdir(parents=True, exist_ok=True)
-    # 复制检查脚本
+    # 清理旧脚本
     script_dir = hooks_dir / "hooks"
-    script_path, script_changed = _copy_check_track_script(script_dir)
-    results.append(f"{'✓ 已同步' if script_changed else '- 无变更'}  Script: .cursor/hooks/check_track.sh")
-    # 构建配置
-    new_cfg = _build_cursor_hooks(str(script_path))
+    results.extend(_clean_old_hook_scripts(script_dir))
+    # 直接使用 CURSOR_HOOKS_CONFIG（已内联 python3 -m 命令）
+    import copy
+    new_cfg = copy.deepcopy(CURSOR_HOOKS_CONFIG)
     filepath = hooks_dir / "hooks.json"
     config = {}
     if filepath.exists():
@@ -434,24 +503,16 @@ def _write_cursor_hooks(hooks_dir: Path) -> list[str]:
     return results
 
 
-def _build_windsurf_hooks(script_path: str) -> dict:
-    """构建 Windsurf hooks 配置，填充实际脚本路径"""
-    import copy
-    cfg = copy.deepcopy(WINDSURF_HOOKS_CONFIG)
-    cfg["hooks"]["pre_write_code"][0]["command"] = script_path
-    return cfg
-
-
 def _write_windsurf_hooks(hooks_dir: Path) -> list[str]:
     """写入 Windsurf hooks 到 .windsurf/hooks.json"""
     results = []
     hooks_dir.mkdir(parents=True, exist_ok=True)
-    # 复制检查脚本
+    # 清理旧脚本
     script_dir = hooks_dir / "hooks"
-    script_path, script_changed = _copy_check_track_script(script_dir)
-    results.append(f"{'✓ 已同步' if script_changed else '- 无变更'}  Script: .windsurf/hooks/check_track.sh")
-    # 构建配置
-    new_cfg = _build_windsurf_hooks(str(script_path))
+    results.extend(_clean_old_hook_scripts(script_dir))
+    # 直接使用 WINDSURF_HOOKS_CONFIG（已内联 python3 -m 命令）
+    import copy
+    new_cfg = copy.deepcopy(WINDSURF_HOOKS_CONFIG)
     filepath = hooks_dir / "hooks.json"
     config = {}
     if filepath.exists():
@@ -461,14 +522,16 @@ def _write_windsurf_hooks(hooks_dir: Path) -> list[str]:
             config = {}
     existing_hooks = config.get("hooks", {})
     new_hooks = new_cfg["hooks"]
-    changed = existing_hooks.get("pre_write_code") != new_hooks.get("pre_write_code")
+    hook_keys = ["pre_write_code", "pre_run_command"]
+    changed = any(existing_hooks.get(k) != new_hooks.get(k) for k in hook_keys)
     if changed:
         config.setdefault("hooks", {})
-        config["hooks"]["pre_write_code"] = new_hooks["pre_write_code"]
+        for k in hook_keys:
+            config["hooks"][k] = new_hooks[k]
         filepath.write_text(json.dumps(config, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-        results.append("✓ 已生成  Hook: .windsurf/hooks.json (pre_write_code)")
+        results.append(f"✓ 已生成  Hook: .windsurf/hooks.json ({' + '.join(hook_keys)})")
     else:
-        results.append("- 无变更  Hook: .windsurf/hooks.json (pre_write_code)")
+        results.append(f"- 无变更  Hook: .windsurf/hooks.json ({' + '.join(hook_keys)})")
     return results
 
 
@@ -515,16 +578,13 @@ def _write_hooks(hooks_dir: Path, lang: str = None) -> list[str]:
     import copy
     results = []
     hooks_dir.mkdir(parents=True, exist_ok=True)
-    # 复制 check_track.sh 到 hooks 目录
-    script_path, script_changed = _copy_check_track_script(hooks_dir)
-    results.append(f"{'✓ 已同步' if script_changed else '- 无变更'}  Script: check_track.sh")
+    # 清理旧 .sh 脚本
+    results.extend(_clean_old_hook_scripts(hooks_dir))
     for hook in HOOKS_CONFIGS:
         content = copy.deepcopy(hook["content"])
-        # 动态填充
+        # 动态填充 prompt（command 已内联 python3 -m）
         if hook["filename"] == "dev-workflow-check.kiro.hook":
             content["then"]["prompt"] = get_workflow_prompt(lang)
-        elif hook["filename"] == "pre-tool-use-check.kiro.hook":
-            content["then"]["command"] = str(script_path)
         filepath = hooks_dir / hook["filename"]
         new_content = json.dumps(content, indent=2, ensure_ascii=False) + "\n"
         if filepath.exists():
@@ -535,6 +595,48 @@ def _write_hooks(hooks_dir: Path, lang: str = None) -> list[str]:
         filepath.write_text(new_content, encoding="utf-8")
         results.append(f"✓ 已生成  Hook: {hook['filename']}")
     return results
+
+
+def _write_json_hooks(hooks_dir: Path, hooks_cfg: dict, filename: str, hook_keys: list[str], label: str) -> list[str]:
+    """通用 JSON hooks 写入函数（Codex / Copilot / Gemini）"""
+    import copy
+    results = []
+    hooks_dir.mkdir(parents=True, exist_ok=True)
+    new_cfg = copy.deepcopy(hooks_cfg)
+    filepath = hooks_dir / filename
+    config = {}
+    if filepath.exists():
+        try:
+            config = json.loads(filepath.read_text("utf-8"))
+        except (json.JSONDecodeError, OSError):
+            config = {}
+    existing_hooks = config.get("hooks", {})
+    new_hooks = new_cfg["hooks"]
+    changed = any(existing_hooks.get(k) != new_hooks.get(k) for k in hook_keys)
+    if changed:
+        config.setdefault("hooks", {})
+        for k in hook_keys:
+            config["hooks"][k] = new_hooks[k]
+        filepath.write_text(json.dumps(config, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+        results.append(f"✓ 已生成  Hook: {label}/{filename} ({' + '.join(hook_keys)})")
+    else:
+        results.append(f"- 无变更  Hook: {label}/{filename}")
+    return results
+
+
+def _write_codex_hooks(hooks_dir: Path) -> list[str]:
+    """写入 Codex CLI hooks 到 .codex/hooks.json"""
+    return _write_json_hooks(hooks_dir, CODEX_HOOKS_CONFIG, "hooks.json", ["PreToolUse", "Stop"], ".codex")
+
+
+def _write_copilot_hooks(hooks_dir: Path) -> list[str]:
+    """写入 Copilot hooks 到 .github/hooks/aivectormemory.json"""
+    return _write_json_hooks(hooks_dir, COPILOT_HOOKS_CONFIG, "aivectormemory.json", ["PreToolUse", "Stop"], ".github/hooks")
+
+
+def _write_gemini_hooks(hooks_dir: Path) -> list[str]:
+    """写入 Gemini CLI hooks — 合并到 .gemini/settings.json 的 hooks 段"""
+    return _write_json_hooks(hooks_dir, GEMINI_HOOKS_CONFIG, "settings.json", ["BeforeTool"], ".gemini")
 
 
 SPECS_PATH_MAP = {
@@ -882,6 +984,12 @@ def run_install(project_dir: str | None = None):
                 hook_results = _write_cursor_hooks(hooks_dir)
             elif hooks_dir_str.endswith(".windsurf"):
                 hook_results = _write_windsurf_hooks(hooks_dir)
+            elif hooks_dir_str.endswith(".codex"):
+                hook_results = _write_codex_hooks(hooks_dir)
+            elif hooks_dir_str.endswith(".github/hooks"):
+                hook_results = _write_copilot_hooks(hooks_dir)
+            elif hooks_dir_str.endswith(".gemini"):
+                hook_results = _write_gemini_hooks(hooks_dir)
             else:
                 hook_results = _write_hooks(hooks_dir, lang=selected_lang)
             for r in hook_results:
@@ -1012,7 +1120,7 @@ def _remove_steering(filepath: Path, mode: str) -> list[str]:
 def _remove_kiro_hooks(hooks_dir: Path) -> list[str]:
     """移除 Kiro hooks"""
     results = []
-    targets = ["dev-workflow-check.kiro.hook", "pre-tool-use-check.kiro.hook", "check_track.sh"]
+    targets = ["dev-workflow-check.kiro.hook", "pre-tool-use-check.kiro.hook", "bash-guard.kiro.hook", "check_track.sh"]
     for name in targets:
         f = hooks_dir / name
         if f.exists() and _safe_unlink(f):
@@ -1121,9 +1229,10 @@ def _remove_windsurf_hooks(hooks_dir: Path) -> list[str]:
     except (json.JSONDecodeError, OSError):
         return results
     changed = False
-    if "pre_write_code" in config.get("hooks", {}):
-        del config["hooks"]["pre_write_code"]
-        changed = True
+    for key in ["pre_write_code", "pre_run_command"]:
+        if key in config.get("hooks", {}):
+            del config["hooks"][key]
+            changed = True
     if not config.get("hooks"):
         config.pop("hooks", None)
     if changed:
@@ -1144,12 +1253,77 @@ def _remove_opencode_plugins(plugins_dir: Path) -> list[str]:
     return results
 
 
+def _remove_codex_hooks(hooks_dir: Path) -> list[str]:
+    """移除 Codex CLI hooks"""
+    results = []
+    filepath = hooks_dir / "hooks.json"
+    if not filepath.exists():
+        return results
+    try:
+        config = json.loads(filepath.read_text("utf-8"))
+    except (json.JSONDecodeError, OSError):
+        return results
+    changed = False
+    for key in ["PreToolUse", "Stop"]:
+        if key in config.get("hooks", {}):
+            del config["hooks"][key]
+            changed = True
+    if not config.get("hooks"):
+        config.pop("hooks", None)
+    if changed:
+        if config:
+            filepath.write_text(json.dumps(config, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+        else:
+            _safe_unlink(filepath)
+        results.append("✓ 已清理  .codex/hooks.json")
+    return results
+
+
+def _remove_copilot_hooks(hooks_dir: Path) -> list[str]:
+    """移除 Copilot hooks"""
+    results = []
+    filepath = hooks_dir / "aivectormemory.json"
+    if filepath.exists() and _safe_unlink(filepath):
+        results.append("✓ 已删除  Hook: .github/hooks/aivectormemory.json")
+    if hooks_dir.exists() and not any(hooks_dir.iterdir()):
+        hooks_dir.rmdir()
+    return results
+
+
+def _remove_gemini_hooks(hooks_dir: Path) -> list[str]:
+    """移除 Gemini CLI hooks"""
+    results = []
+    filepath = hooks_dir / "settings.json"
+    if not filepath.exists():
+        return results
+    try:
+        config = json.loads(filepath.read_text("utf-8"))
+    except (json.JSONDecodeError, OSError):
+        return results
+    changed = False
+    if "BeforeTool" in config.get("hooks", {}):
+        del config["hooks"]["BeforeTool"]
+        changed = True
+    if not config.get("hooks"):
+        config.pop("hooks", None)
+    if changed:
+        if config:
+            filepath.write_text(json.dumps(config, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+        else:
+            _safe_unlink(filepath)
+        results.append("✓ 已清理  .gemini/settings.json (hooks)")
+    return results
+
+
 _HOOKS_REMOVER_BY_SUFFIX = {
     ".kiro/hooks":        _remove_kiro_hooks,
     ".claude":            _remove_claude_code_hooks,
     ".cursor":            _remove_cursor_hooks,
     ".windsurf":          _remove_windsurf_hooks,
     ".opencode/plugins":  _remove_opencode_plugins,
+    ".codex":             _remove_codex_hooks,
+    ".github/hooks":      _remove_copilot_hooks,
+    ".gemini":            _remove_gemini_hooks,
 }
 
 

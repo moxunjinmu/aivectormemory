@@ -371,6 +371,17 @@ export HF_ENDPOINT=https://hf-mirror.com
 
 ## 📋 更新日誌
 
+### v2.2.0
+
+**重大升級：通用 Hooks — 8 個 IDE、7 語言、跨平台、自動升級**
+- 🛡️ Hooks 從 .sh 腳本遷移到 Python 模組（`python3 -m aivectormemory.hooks.xxx`）— 跨平台，pip 升級自動生效
+- 🛡️ `bash_guard` 擴展到 7 條規則：+ git commit/push 攔截 + 部署命令攔截
+- 🛡️ `stop_guard` 擴展到 7 項檢查：+ 後端測試 + grep 副作用 + track update + status 阻塞
+- 🌐 所有 hook 錯誤訊息支持 7 種語言
+- 🔌 bash_guard 部署到所有 IDE：Cursor、Windsurf、Kiro、Codex CLI、Copilot、Gemini CLI
+- 🆕 新增 IDE 支持：Codex CLI、GitHub Copilot、Gemini CLI
+- ✅ 測試套件：48 → 114 個測試
+
 ### v2.1.11
 
 **修復：桌面端記憶刪除 + Web 看板批量刪除**
