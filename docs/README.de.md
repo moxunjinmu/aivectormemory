@@ -291,32 +291,19 @@ AIVectorMemory ist die Speicherschicht. Verwende Steering-Regeln, um der KI mitz
 ```markdown
 # AIVectorMemory - Workflow-Regeln
 
-## 1. Neuer Sitzungsstart (in Reihenfolge ausführen)
+## ⚠️ Nachrichtentyp-Klassifizierung
+Klassifizieren → Smalltalk: direkt antworten; Problem/Bug: track create → Problemverfolgungsfluss; Mehrstufige Funktion: Spec-Fluss
 
-1. `recall` (tags: ["Projektwissen"], scope: "project", top_k: 100) Projektwissen laden
-2. `recall` (tags: ["preference"], scope: "user", top_k: 20) Benutzereinstellungen laden
-3. `status` (ohne state-Parameter) Sitzungsstatus lesen
-4. Blockiert → berichten und warten; Nicht blockiert → Verarbeitungsfluss starten
+## ⚠️ Problemverfolgungsfluss
+1. track create → 2. Untersuchen (recall + Code prüfen) → 3. Lösung vorstellen, Blockierung setzen
+→ 4. Benutzer bestätigt, Code ändern → 5. Tests ausführen + grep Nebenwirkungen → 6. track update
+→ 7. Blockierung setzen zur Verifizierung → 8. Benutzer bestätigt, track archive
 
-## 2. Nachrichtenverarbeitungsfluss
+## ⚠️ Aufgabenverwaltungsfluss (Spec)
+1. track create → 2. Spec-Verzeichnis erstellen → 3. requirements.md → 4. design.md → 5. tasks.md
+→ 6. task batch_create → 7. Unteraufgaben der Reihe nach ausführen → 8. Vollständiger Selbsttest, Blockierung setzen
 
-- Schritt A: `status` Status lesen, bei Blockierung warten
-- Schritt B: Nachrichtentyp klassifizieren (Chat/Korrektur/Präferenz/Code-Problem)
-- Schritt C: `track create` Problem erfassen
-- Schritt D: Untersuchen (`recall` Fehler suchen + Code prüfen + Ursache finden)
-- Schritt E: Plan dem Benutzer vorstellen, Blockierung setzen für Bestätigung
-- Schritt F: Code ändern (vor Änderungen `recall` Fehler prüfen)
-- Schritt G: Tests zur Verifizierung ausführen
-- Schritt H: Blockierung setzen für Benutzerverifizierung
-- Schritt I: Benutzer bestätigt → `track archive` + Blockierung aufheben
-
-## 3. Blockierungsregeln
-
-Bei Planvorschlägen oder Verifizierungswartung muss `status({ is_blocked: true })` gesetzt werden.
-Nur nach expliziter Benutzerbestätigung aufheben. Niemals selbst aufheben.
-
-## 4-9. Problemverfolgung / Code-Prüfung / Spec-Aufgabenverwaltung / Erinnerungsqualität / Werkzeugübersicht / Entwicklungsstandards
-
+## ⚠️ Blockierungsregeln / Selbsttest-Standards / Entwicklungsstandards
 (Vollständige Regeln werden automatisch von `run install` generiert)
 ```
 

@@ -298,32 +298,19 @@ AIVectorMemory 是存储层，通过 Steering 规则告诉 AI **何时、如何*
 ```markdown
 # AIVectorMemory - 工作规则
 
-## 1. 新会话启动（必须按顺序执行）
+## ⚠️ 消息类型判断
+分类 → 闲聊：直接回复；问题/bug：track create → 问题追踪流程；多步骤功能：Spec 流程
 
-1. `recall`（tags: ["项目知识"], scope: "project", top_k: 100）加载项目知识
-2. `recall`（tags: ["preference"], scope: "user", top_k: 20）加载用户偏好
-3. `status`（不传 state）读取会话状态
-4. 有阻塞 → 汇报并等待；无阻塞 → 进入处理流程
+## ⚠️ 问题追踪流程
+1. track create → 2. 排查（recall + 查看代码）→ 3. 说明方案，设阻塞
+→ 4. 用户确认，修改代码 → 5. 运行测试 + grep 副作用 → 6. track update
+→ 7. 设阻塞等待验证 → 8. 用户确认，track archive
 
-## 2. 收到消息后的处理流程
+## ⚠️ 任务管理流程（Spec）
+1. track create → 2. 创建 spec 目录 → 3. requirements.md → 4. design.md → 5. tasks.md
+→ 6. task batch_create → 7. 按顺序执行子任务 → 8. 全量自测，设阻塞
 
-- 步骤 A：`status` 读取状态，有阻塞则等待
-- 步骤 B：判断消息类型（闲聊/纠正/偏好/代码问题）
-- 步骤 C：`track create` 记录问题
-- 步骤 D：排查（`recall` 查踩坑 + 查看代码 + 找根因）
-- 步骤 E：向用户说明方案，设阻塞等确认
-- 步骤 F：修改代码（修改前 `recall` 查踩坑）
-- 步骤 G：运行测试验证
-- 步骤 H：设阻塞等待用户验证
-- 步骤 I：用户确认 → `track archive` + 清阻塞
-
-## 3. 阻塞规则
-
-提方案等确认、修复完等验证时必须 `status({ is_blocked: true })`。
-用户明确确认后才能清除阻塞，禁止自行清除。
-
-## 4-9. 问题追踪 / 代码检查 / Spec 任务管理 / 记忆质量 / 工具速查 / 开发规范
-
+## ⚠️ 阻塞规则 / 自测标准 / 开发规范
 （完整规则由 `run install` 自动生成）
 ```
 

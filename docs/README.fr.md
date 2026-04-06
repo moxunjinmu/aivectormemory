@@ -291,32 +291,19 @@ L'exécution de `run install` génère automatiquement les règles Steering et l
 ```markdown
 # AIVectorMemory - Règles de Workflow
 
-## 1. Démarrage de Nouvelle Session (exécuter dans l'ordre)
+## ⚠️ Classification du Type de Message
+Classifier → discussion : répondre directement ; problème/bug : track create → flux de suivi des problèmes ; fonctionnalité multi-étapes : flux Spec
 
-1. `recall` (tags: ["connaissance-projet"], scope: "project", top_k: 100) charger les connaissances du projet
-2. `recall` (tags: ["preference"], scope: "user", top_k: 20) charger les préférences utilisateur
-3. `status` (sans paramètre state) lire l'état de la session
-4. Bloqué → signaler et attendre ; Non bloqué → entrer dans le flux de traitement
+## ⚠️ Flux de Suivi des Problèmes
+1. track create → 2. investiguer (recall + examiner le code) → 3. présenter la solution, bloquer
+→ 4. utilisateur confirme, modifier le code → 5. exécuter les tests + grep effets secondaires → 6. track update
+→ 7. bloquer pour vérification → 8. utilisateur confirme, track archive
 
-## 2. Flux de Traitement des Messages
+## ⚠️ Flux de Gestion des Tâches (Spec)
+1. track create → 2. créer le répertoire spec → 3. requirements.md → 4. design.md → 5. tasks.md
+→ 6. task batch_create → 7. exécuter les sous-tâches dans l'ordre → 8. auto-test complet, bloquer
 
-- Étape A : `status` lire l'état, attendre si bloqué
-- Étape B : Classifier le type de message (discussion/correction/préférence/problème de code)
-- Étape C : `track create` enregistrer le problème
-- Étape D : Investiguer (`recall` chercher les erreurs + examiner le code + trouver la cause racine)
-- Étape E : Présenter le plan à l'utilisateur, bloquer en attente de confirmation
-- Étape F : Modifier le code (`recall` vérifier les erreurs avant modification)
-- Étape G : Exécuter les tests pour vérifier
-- Étape H : Bloquer en attente de vérification utilisateur
-- Étape I : Utilisateur confirme → `track archive` + débloquer
-
-## 3. Règles de Blocage
-
-Doit `status({ is_blocked: true })` lors de propositions de plans ou d'attente de vérification.
-Débloquer uniquement après confirmation explicite de l'utilisateur. Jamais d'auto-déblocage.
-
-## 4-9. Suivi des Problèmes / Vérification du Code / Gestion Spec/Tâches / Qualité Mémoire / Référence Outils / Standards de Développement
-
+## ⚠️ Règles de Blocage / Standards d'Auto-test / Standards de Développement
 (Règles complètes générées automatiquement par `run install`)
 ```
 

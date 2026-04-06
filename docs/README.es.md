@@ -291,32 +291,19 @@ Ejecutar `run install` genera automáticamente las reglas Steering y la configur
 ```markdown
 # AIVectorMemory - Reglas de Flujo de Trabajo
 
-## 1. Inicio de Nueva Sesión (ejecutar en orden)
+## ⚠️ Clasificación del Tipo de Mensaje
+Clasificar → chat casual: responder directamente; problema/bug: track create → flujo de seguimiento de problemas; función multi-paso: flujo Spec
 
-1. `recall` (tags: ["conocimiento-proyecto"], scope: "project", top_k: 100) cargar conocimiento del proyecto
-2. `recall` (tags: ["preference"], scope: "user", top_k: 20) cargar preferencias del usuario
-3. `status` (sin parámetro state) leer estado de sesión
-4. Bloqueado → reportar y esperar; No bloqueado → entrar al flujo de procesamiento
+## ⚠️ Flujo de Seguimiento de Problemas
+1. track create → 2. investigar (recall + revisar código) → 3. presentar solución, establecer bloqueo
+→ 4. usuario confirma, modificar código → 5. ejecutar pruebas + grep efectos secundarios → 6. track update
+→ 7. establecer bloqueo para verificación → 8. usuario confirma, track archive
 
-## 2. Flujo de Procesamiento de Mensajes
+## ⚠️ Flujo de Gestión de Tareas (Spec)
+1. track create → 2. crear directorio spec → 3. requirements.md → 4. design.md → 5. tasks.md
+→ 6. task batch_create → 7. ejecutar subtareas en orden → 8. auto-test completo, establecer bloqueo
 
-- Paso A: `status` leer estado, esperar si bloqueado
-- Paso B: Clasificar tipo de mensaje (chat/corrección/preferencia/problema de código)
-- Paso C: `track create` registrar problema
-- Paso D: Investigar (`recall` buscar errores + revisar código + encontrar causa raíz)
-- Paso E: Presentar plan al usuario, establecer bloqueo esperando confirmación
-- Paso F: Modificar código (`recall` buscar errores antes de cambios)
-- Paso G: Ejecutar pruebas para verificar
-- Paso H: Establecer bloqueo esperando verificación del usuario
-- Paso I: Usuario confirma → `track archive` + desbloquear
-
-## 3. Reglas de Bloqueo
-
-Debe `status({ is_blocked: true })` al proponer planes o esperar verificación.
-Solo desbloquear tras confirmación explícita del usuario. Nunca auto-desbloquear.
-
-## 4-9. Seguimiento de Problemas / Verificación de Código / Gestión Spec/Tareas / Calidad de Memoria / Referencia de Herramientas / Estándares de Desarrollo
-
+## ⚠️ Reglas de Bloqueo / Estándares de Auto-test / Estándares de Desarrollo
 (Reglas completas generadas automáticamente por `run install`)
 ```
 
