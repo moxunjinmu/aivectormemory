@@ -377,6 +377,16 @@ Or add env to MCP config:
 
 ## 📋 Changelog
 
+### v2.2.3
+
+**Enhancement: Rules restructure — streamlined workflow with clear flow separation**
+- 📝 Restructured from 19 numbered sections to 9 clean topic-based sections (no numbering)
+- 📝 Separated Issue Tracking flow (8 steps) and Task Management / Spec flow (8 steps)
+- 📝 Added Self-Test Standards as standalone section with clear test method selection
+- 📝 Hooks injection (inject-workflow-rules.sh) streamlined — removed IDE Safety, post-edit checklist, violation examples
+- 📝 check_track hook: non-code files (.md/.sh/.json/.yaml etc.) now bypass track-issue check
+- 🌐 All 7 languages synchronized
+
 ### v2.2.2
 
 **Enhancement: Rule numbering overhaul — A-I → 1-19 flat numbering**

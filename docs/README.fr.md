@@ -371,6 +371,16 @@ Ou ajouter env dans la configuration MCP :
 
 ## 📋 Journal des Modifications
 
+### v2.2.3
+
+**Amélioration : Restructuration des règles — workflow simplifié avec séparation claire des flux**
+- 📝 Restructuration de 19 sections numérotées en 9 sections thématiques (sans numérotation)
+- 📝 Flux de suivi des problèmes (8 étapes) et flux de gestion des tâches / Spec (8 étapes) séparés
+- 📝 Standards d'auto-test ajoutés en section autonome avec sélection claire de la méthode de test
+- 📝 Injection Hooks (inject-workflow-rules.sh) simplifiée — sécurité IDE, checklist post-édition et exemples de violations supprimés
+- 📝 Hook check_track : les fichiers non-code (.md/.sh/.json/.yaml etc.) contournent la vérification de suivi des problèmes
+- 🌐 Les 7 langues synchronisées
+
 ### v2.2.2
 
 **Amélioration : Restructuration de la numérotation — A-I → 1-19 numérotation plate**

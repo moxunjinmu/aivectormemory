@@ -1,7 +1,9 @@
 """AIVectorMemory PreToolUse Hook (Edit|Write)
 
-检查1：当前项目是否有活跃的 track issue（没有则阻断文件修改）
+检查1：当前项目是否有活跃的 track issue（没有则阻断代码文件修改）
 检查2：如果活跃 issue 关联了 spec 任务且有待执行子任务，必须有 in_progress 的子任务
+
+非代码文件（.md/.sh/.json/.yaml/.toml/.css/.html/.txt/.cfg/.ini/.env/.sql 等）直接放行。
 
 用法: python3 -m aivectormemory.hooks.check_track
 stdin: JSON（tool_input.file_path 等）
@@ -15,6 +17,15 @@ from pathlib import Path
 from aivectormemory.hooks._common import read_stdin, get_project_dir, block
 from aivectormemory.hooks._messages import get_message
 
+# 非代码文件扩展名，直接放行
+NON_CODE_EXTS = {
+    ".md", ".sh", ".bash", ".zsh", ".fish",
+    ".json", ".yaml", ".yml", ".toml", ".cfg", ".ini", ".env",
+    ".txt", ".csv", ".log", ".sql",
+    ".html", ".css", ".svg", ".xml",
+    ".dockerfile", ".gitignore", ".editorconfig",
+}
+
 
 def _db_path() -> Path:
     return Path.home() / ".aivectormemory" / "memory.db"
@@ -25,13 +36,26 @@ def _query_one(conn: sqlite3.Connection, sql: str, params: tuple) -> str | None:
     return str(row[0]) if row else None
 
 
+def _get_file_path(data: dict) -> str:
+    """从 stdin JSON 中提取文件路径"""
+    tool_input = data.get("tool_input", {})
+    return tool_input.get("file_path", "") or tool_input.get("path", "")
+
+
 def main() -> int:
     db = _db_path()
     if not db.exists():
         return 0  # 首次使用，放行
 
-    _ = read_stdin()  # 消费 stdin（部分 IDE 要求读完）
+    data = read_stdin()
     project_dir = get_project_dir()
+
+    # 检查文件扩展名，非代码文件直接放行
+    file_path = _get_file_path(data)
+    if file_path:
+        ext = Path(file_path).suffix.lower()
+        if ext in NON_CODE_EXTS or not ext:
+            return 0
 
     try:
         conn = sqlite3.connect(str(db))

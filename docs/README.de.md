@@ -371,6 +371,16 @@ Oder env in der MCP-Konfiguration hinzufügen:
 
 ## 📋 Änderungsprotokoll
 
+### v2.2.3
+
+**Verbesserung: Regelstruktur neu organisiert — optimierter Workflow mit klarer Flusstrennung**
+- 📝 Von 19 nummerierten Abschnitten zu 9 themenbasierten Abschnitten umstrukturiert (ohne Nummerierung)
+- 📝 Issue-Tracking-Ablauf (8 Schritte) und Aufgabenverwaltung / Spec-Ablauf (8 Schritte) klar getrennt
+- 📝 Selbsttest-Standards als eigenständiger Abschnitt mit klarer Testmethoden-Auswahl hinzugefügt
+- 📝 Hooks-Injektion (inject-workflow-rules.sh) vereinfacht — IDE-Sicherheit, Post-Edit-Checkliste und Verstoßbeispiele entfernt
+- 📝 check_track-Hook: Nicht-Code-Dateien (.md/.sh/.json/.yaml etc.) überspringen die Issue-Tracking-Prüfung
+- 🌐 Alle 7 Sprachen synchronisiert
+
 ### v2.2.2
 
 **Verbesserung: Regelnummerierung — A-I → 1-19 flache Nummerierung**
