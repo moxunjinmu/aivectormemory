@@ -9,7 +9,7 @@
 </p>
 <h1 align="center">AIVectorMemory</h1>
 <p align="center">
-  <strong>Give your AI coding assistant a memory — Cross-session persistent memory MCP Server</strong>
+  <strong>More than memory — Memory + Issue Tracking + Task Management, an all-in-one AI development workflow engine</strong>
 </p>
 <p align="center">
   <a href="https://pypi.org/project/aivectormemory/"><img src="https://img.shields.io/pypi/v/aivectormemory?color=blue&label=PyPI" alt="PyPI"></a>
@@ -20,24 +20,34 @@
 
 ---
 
-> **Still using CLAUDE.md / MEMORY.md as memory?** This Markdown-file memory approach has fatal flaws: the file keeps growing, injecting everything into every session and burning massive tokens; content only supports keyword matching — search "database timeout" and you won't find "MySQL connection pool pitfall"; sharing one file across projects causes cross-contamination; there's no task tracking, so dev progress lives entirely in your head; not to mention the 200-line truncation, manual maintenance, and inability to deduplicate or merge.
+> **Other AI memory tools (mem0, Cline Memory Bank, etc.) only do one thing: store and retrieve memories.** AI remembers the context, then what? Bugs go untracked, dev tasks go unmanaged, progress is lost when switching sessions, and rules you wrote get ignored anyway. Memory is just the starting point, not the finish line.
 >
-> **AIVectorMemory is a fundamentally different approach.** Local vector database storage with semantic search for precise recall (matches even when wording differs), on-demand retrieval that loads only relevant memories (token usage drops 50%+), automatic multi-project isolation with zero interference, and built-in issue tracking + task management that lets AI fully automate your dev workflow. All data is permanently stored on your machine — zero cloud dependency, never lost when switching sessions or IDEs.
+> **AIVectorMemory is the only MCP Server that combines memory, issue tracking, and task management in one.** Semantic search with precise recall (search "database timeout" and find "MySQL connection pool pitfall"), built-in `track` issue tracking + `task` task management so AI runs the full dev workflow automatically, `status` cross-session state sync that never loses progress, and Hooks that enforce your workflow rules. One-click install across 10 IDEs, all data stored locally with zero cloud dependency.
 
 ## ✨ Core Features
 
+
+**What others don't have:**
+
+| Unique Capability | Description | Does mem0 / Cline MB have it? |
+|-------------------|-------------|-------------------------------|
+| 🔗 **Issue Tracking (track)** | Bug found → investigate → fix → test → archive, full lifecycle management | ❌ Neither has it |
+| 📋 **Task Management (task)** | requirements → design → tasks, multi-step requirements auto-split and executed | ❌ Neither has it |
+| 📡 **Cross-Session State (status)** | Block state, current task, progress — never lost when switching sessions | ❌ Neither has it |
+| 🛡️ **Hooks Rule Enforcement** | bash_guard / stop_guard / check_track, hard-block rule violations | ❌ Neither has it |
+
+**Core capabilities also leading:**
+
 | Feature | Description |
 |---------|-------------|
-| 🧠 **Cross-Session Memory** | Your AI finally remembers your project — pitfalls, decisions, conventions all persist across sessions |
-| 🔍 **Semantic Search** | No need to recall exact wording — search "database timeout" and find "MySQL connection pool issue" |
-| 💰 **Save 50%+ Tokens** | Stop copy-pasting project context every conversation. Semantic retrieval on demand, no more bulk injection |
-| 🔗 **Task-Driven Dev** | Issue tracking → task breakdown → status sync → linked archival. AI manages the full dev workflow |
-| 📊 **Desktop App + Web Dashboard** | Native desktop app (macOS/Windows/Linux) + Web dashboard, visual management for memories and tasks, 3D vector network reveals knowledge connections at a glance |
-| 🏠 **Fully Local** | Zero cloud dependency. ONNX local inference, no API Key, data never leaves your machine |
-| 🔌 **All IDEs** | Cursor / Kiro / Claude Code / Windsurf / VSCode / OpenCode / Trae / Codex — one-click install, works out of the box |
-| 📁 **Multi-Project Isolation** | One DB for all projects, auto-isolated with zero interference, seamless project switching |
-| 🔄 **Smart Dedup** | Similarity > 0.95 auto-merges updates, keeping your memory store clean — never gets messy over time |
-| 🌐 **7 Languages** | 简体中文 / 繁體中文 / English / Español / Deutsch / Français / 日本語, full-stack i18n for dashboard + Steering rules |
+| 🧠 **Cross-Session Memory** | Pitfalls, decisions, conventions — all persist across sessions |
+| 🔍 **Semantic Search** | Vector similarity matching, precise recall even with different wording |
+| 💰 **Save 50%+ Tokens** | On-demand retrieval loads only relevant memories, no more bulk injection |
+| 🏠 **Fully Local** | ONNX local inference, zero cloud dependency, data never leaves your machine |
+| 🔌 **10 IDEs** | Cursor / Kiro / Claude Code / Windsurf / VSCode / Copilot / OpenCode / Trae / Codex / Gemini CLI |
+| 📊 **Desktop App + Web Dashboard** | Visual management for memories and tasks, 3D vector network reveals knowledge connections |
+| 🔄 **Smart Dedup** | Similarity > 0.95 auto-merges, memory store stays clean forever |
+| 🌐 **7 Languages** | 简体中文 / 繁體中文 / English / Español / Deutsch / Français / 日本語 |
 
 <p align="center">
   QQ群：1085682431 &nbsp;|&nbsp; 微信：changhuibiz<br>
@@ -103,10 +113,10 @@ pip install --upgrade aivectormemory
 
 # Navigate to your project directory, one-click IDE setup
 cd /path/to/your/project
-run install
+avmrun install
 ```
 
-`run install` interactively guides you to select your IDE, auto-generating MCP config, Steering rules, and Hooks — no manual setup needed.
+`avmrun install` interactively guides you to select your IDE, auto-generating MCP config, Steering rules, and Hooks — no manual setup needed.
 
 > **macOS users note**:
 > - If you get `externally-managed-environment` error, add `--break-system-packages`
@@ -250,9 +260,9 @@ Auto-extracts and stores user preferences at end of each conversation, smart ded
 ## 📊 Web Dashboard
 
 ```bash
-run web --port 9080
-run web --port 9080 --quiet          # Suppress request logs
-run web --port 9080 --quiet --daemon  # Run in background (macOS/Linux)
+avmrun web --port 9080
+avmrun web --port 9080 --quiet          # Suppress request logs
+avmrun web --port 9080 --quiet --daemon  # Run in background (macOS/Linux)
 ```
 
 Visit `http://localhost:9080` in your browser. Default username `admin`, password `admin123` (can be changed in settings after first login).
@@ -278,7 +288,7 @@ Visit `http://localhost:9080` in your browser. Default username `admin`, passwor
 
 AIVectorMemory is the storage layer. Use Steering rules to tell AI **when and how** to call these tools.
 
-Running `run install` auto-generates Steering rules and Hooks config — no manual setup needed.
+Running `avmrun install` auto-generates Steering rules and Hooks config — no manual setup needed.
 
 | IDE | Steering Location | Hooks |
 |-----|------------------|-------|
@@ -310,7 +320,7 @@ Classify → casual chat: reply directly; issue/bug: track create → Issue Trac
 → 6. task batch_create → 7. execute subtasks in order → 8. full self-test, set block
 
 ## ⚠️ Blocking Rules / Self-Test Standards / Development Standards
-(Full rules auto-generated by `run install`)
+(Full rules auto-generated by `avmrun install`)
 ```
 
 </details>
@@ -497,7 +507,7 @@ Or add env to MCP config:
 - 🔗 Relation expansion: tag overlap ≥ 2 builds related links, 1-hop expansion surfaces connected memories
 - 📝 Auto-summary: long memories (>500 chars) get summaries, brief mode returns summaries to save tokens
 - 🧹 Code cleanup: removed 15 dead code items, refactored 7 duplicate patterns into shared utilities
-- ❌ `run uninstall` — cleanly removes all IDE configurations (MCP, steering, hooks, permissions) while preserving memory data
+- ❌ `avmrun uninstall` — cleanly removes all IDE configurations (MCP, steering, hooks, permissions) while preserving memory data
 
 ### v2.0.9
 
@@ -512,7 +522,7 @@ Or add env to MCP config:
 ### v2.0.8
 
 **New: Playwright Browser Testing Built-in**
-- 🎭 `run install` now automatically configures Playwright browser testing — AI can open a real browser to verify frontend changes instead of guessing
+- 🎭 `avmrun install` now automatically configures Playwright browser testing — AI can open a real browser to verify frontend changes instead of guessing
 - 🎭 Uses a dedicated test browser (Chrome for Testing) that won't interfere with your personal browser tabs
 - 🔑 Simplified permission setup — no more manual permission popups for common tools
 - 📏 Updated AI rules across all 7 languages to enforce proper browser testing behavior
@@ -521,7 +531,7 @@ Or add env to MCP config:
 
 **Enhancement: More IDE Support**
 - 🖥️ Added support for Antigravity and GitHub Copilot IDEs
-- 🔑 `run install` now auto-configures tool permissions, reducing manual setup
+- 🔑 `avmrun install` now auto-configures tool permissions, reducing manual setup
 - 📏 Streamlined AI self-testing rules
 
 ### v2.0.6

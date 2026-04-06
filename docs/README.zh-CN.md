@@ -9,7 +9,7 @@
 </p>
 <h1 align="center">AIVectorMemory</h1>
 <p align="center">
-  <strong>给 AI 编程助手装上记忆 — 跨会话持久化记忆 MCP Server</strong>
+  <strong>不只是记忆 — 记忆 + 问题追踪 + 任务管理，三合一 AI 开发工作流引擎</strong>
 </p>
 <p align="center">
   <a href="https://pypi.org/project/aivectormemory/"><img src="https://img.shields.io/pypi/v/aivectormemory?color=blue&label=PyPI" alt="PyPI"></a>
@@ -20,25 +20,34 @@
 
 ---
 
-> **你还在用 CLAUDE.md / MEMORY.md 当记忆？** 这类 Markdown 文件记忆模式有致命缺陷：文件越写越大，每次会话全量注入吃掉大量 Token；内容只能关键词匹配，搜"数据库超时"找不到"MySQL 连接池踩坑"；多项目共用一个文件互相污染；没有任务追踪，开发进度全靠人脑记；更别提 200 行截断、手动维护、无法去重合并这些日常痛点了。
+> **市面上的 AI 记忆工具（mem0、Cline Memory Bank 等）只做一件事：存取记忆。** AI 记住了上下文，然后呢？遇到 bug 没有追踪，开发任务没有管理，换个会话进度全丢，规则写了一堆 AI 照样不遵守。记忆只是起点，不是终点。
 >
-> **AIVectorMemory 是完全不同的方案。** 本地向量数据库存储，语义搜索精准召回（用词不同也能匹配），按需检索只加载相关记忆（Token 消耗直降 50%+），多项目自动隔离互不干扰，内置问题追踪 + 任务管理让 AI 全自动管理开发流程。所有数据永久保存在你的电脑上，零云依赖，换会话、换 IDE 都不丢。
+> **AIVectorMemory 是唯一把记忆、问题追踪、任务管理三合一的 MCP Server。** 语义搜索精准召回（搜"数据库超时"能找到"MySQL 连接池踩坑"），内置 `track` 问题追踪 + `task` 任务管理让 AI 全自动跑完开发流程，`status` 跨会话状态同步不丢进度，Hooks 强制执行工作规则。10 个 IDE 一键安装，所有数据本地存储零云依赖。
 
 ## ✨ 核心特性
 
 
+**别人没有的：**
+
+| 独有能力 | 说明 | mem0 / Cline MB 有吗？ |
+|---------|------|----------------------|
+| 🔗 **问题追踪（track）** | 发现 bug → 排查 → 修复 → 测试 → 归档，完整生命周期管理 | ❌ 都没有 |
+| 📋 **任务管理（task）** | requirements → design → tasks，多步骤需求自动拆分执行 | ❌ 都没有 |
+| 📡 **跨会话状态（status）** | 阻塞状态、当前任务、进度，换会话不丢 | ❌ 都没有 |
+| 🛡️ **Hooks 规则强制** | bash_guard / stop_guard / check_track，硬拦截违规操作 | ❌ 都没有 |
+
+**基础能力同样领先：**
+
 | 特性 | 说明 |
 |------|------|
-| 🧠 **跨会话记忆** | 踩过的坑、做过的决策、定下的规范，换个会话照样记得，AI 终于不再失忆 |
-| 🔍 **语义搜索** | 向量相似度匹配，搜"数据库超时"就能找到"MySQL 连接池踩坑"，用词不同也能精准召回 |
-| 💰 **省 50%+ Token** | 语义检索按需召回，告别每次对话复制粘贴项目背景的全量上下文注入 |
-| 🔗 **任务驱动开发** | 问题追踪 → 任务拆分 → 状态同步 → 联动归档，AI 全自动管理完整开发流程 |
-| 📊 **桌面端 + Web 看板** | 原生桌面应用（macOS/Windows/Linux）+ Web 看板，可视化管理记忆和任务，3D 向量网络一眼看清知识关联 |
-| 🏠 **完全本地** | 零依赖云服务，ONNX 本地推理，无需 API Key，数据不出你的电脑 |
-| 🔌 **全 IDE 通吃** | Cursor / Kiro / Claude Code / Windsurf / VSCode / OpenCode / Trae / Codex — 一键安装，开箱即用 |
-| 📁 **多项目隔离** | 一个 DB 管所有项目，自动隔离互不干扰，切换项目无感知 |
-| 🔄 **智能去重** | 相似度 > 0.95 自动合并更新，记忆库永远干净，不会越用越乱 |
-| 🌐 **7 语言支持** | 简体中文 / 繁體中文 / English / Español / Deutsch / Français / 日本語，看板 + Steering 全栈国际化 |
+| 🧠 **跨会话记忆** | 踩过的坑、做过的决策、定下的规范，换会话照样记得 |
+| 🔍 **语义搜索** | 向量相似度匹配，用词不同也能精准召回 |
+| 💰 **省 50%+ Token** | 按需检索只加载相关记忆，告别全量注入 |
+| 🏠 **完全本地** | ONNX 本地推理，零云依赖，数据不出电脑 |
+| 🔌 **10 个 IDE** | Cursor / Kiro / Claude Code / Windsurf / VSCode / Copilot / OpenCode / Trae / Codex / Gemini CLI |
+| 📊 **桌面端 + Web 看板** | 可视化管理记忆和任务，3D 向量网络看清知识关联 |
+| 🔄 **智能去重** | 相似度 > 0.95 自动合并，记忆库永远干净 |
+| 🌐 **7 语言** | 简体中文 / 繁體中文 / English / Español / Deutsch / Français / 日本語 |
 
 <p align="center">
   QQ群：1085682431 &nbsp;|&nbsp; 微信：changhuibiz<br>
@@ -104,10 +113,10 @@ pip install --upgrade aivectormemory
 
 # 进入你的项目目录，一键配置 IDE
 cd /path/to/your/project
-run install
+avmrun install
 ```
 
-`run install` 会交互式引导你选择 IDE，自动生成 MCP 配置、Steering 规则和 Hooks，无需手动编写。
+`avmrun install` 会交互式引导你选择 IDE，自动生成 MCP 配置、Steering 规则和 Hooks，无需手动编写。
 
 > **macOS 用户注意**：
 > - 遇到 `externally-managed-environment` 错误，加 `--break-system-packages`
@@ -251,9 +260,9 @@ extra_tags   (string[])  额外标签
 ## 📊 Web 看板
 
 ```bash
-run web --port 9080
-run web --port 9080 --quiet          # 屏蔽请求日志
-run web --port 9080 --quiet --daemon  # 后台运行（macOS/Linux）
+avmrun web --port 9080
+avmrun web --port 9080 --quiet          # 屏蔽请求日志
+avmrun web --port 9080 --quiet --daemon  # 后台运行（macOS/Linux）
 ```
 
 浏览器访问 `http://localhost:9080`，默认用户名 `admin`，密码 `admin123`（首次登录后可在设置中修改）。
@@ -279,7 +288,7 @@ run web --port 9080 --quiet --daemon  # 后台运行（macOS/Linux）
 
 AIVectorMemory 是存储层，通过 Steering 规则告诉 AI **何时、如何**调用这些工具。
 
-运行 `run install` 会自动生成 Steering 规则和 Hooks 配置，无需手动编写。
+运行 `avmrun install` 会自动生成 Steering 规则和 Hooks 配置，无需手动编写。
 
 | IDE | Steering 位置 | Hooks |
 |-----|--------------|-------|
@@ -311,7 +320,7 @@ AIVectorMemory 是存储层，通过 Steering 规则告诉 AI **何时、如何*
 → 6. task batch_create → 7. 按顺序执行子任务 → 8. 全量自测，设阻塞
 
 ## ⚠️ 阻塞规则 / 自测标准 / 开发规范
-（完整规则由 `run install` 自动生成）
+（完整规则由 `avmrun install` 自动生成）
 ```
 
 </details>
@@ -498,7 +507,7 @@ export HF_ENDPOINT=https://hf-mirror.com
 - 🔗 关系扩展：标签重叠 ≥ 2 自动建立关联，1 跳扩展发现相关记忆
 - 📝 自动摘要：长记忆（>500 字）生成摘要，brief 模式返回摘要节省 token
 - 🧹 代码清理：删除 15 项死代码，7 项重复代码重构为公共函数
-- ❌ `run uninstall` — 一键清理所有 IDE 配置（MCP、规则、hooks、权限），保留记忆数据
+- ❌ `avmrun uninstall` — 一键清理所有 IDE 配置（MCP、规则、hooks、权限），保留记忆数据
 
 ### v2.0.9
 
@@ -513,7 +522,7 @@ export HF_ENDPOINT=https://hf-mirror.com
 ### v2.0.8
 
 **新功能：内置 Playwright 浏览器测试**
-- 🎭 `run install` 现在自动配置 Playwright 浏览器测试 — AI 可以打开真实浏览器验证前端变更
+- 🎭 `avmrun install` 现在自动配置 Playwright 浏览器测试 — AI 可以打开真实浏览器验证前端变更
 - 🎭 使用独立的测试浏览器（Chrome for Testing），不会影响你的个人浏览器标签页
 - 🔑 简化权限配置 — 常用工具不再弹出权限确认
 - 📏 7 种语言 AI 规则全部更新，强制规范浏览器测试行为
@@ -522,7 +531,7 @@ export HF_ENDPOINT=https://hf-mirror.com
 
 **增强：更多 IDE 支持**
 - 🖥️ 新增 Antigravity 和 GitHub Copilot IDE 支持
-- 🔑 `run install` 自动配置工具权限，减少手动设置
+- 🔑 `avmrun install` 自动配置工具权限，减少手动设置
 - 📏 精简 AI 自测规则
 
 ### v2.0.6

@@ -5,7 +5,7 @@
 </p>
 <h1 align="center">AIVectorMemory</h1>
 <p align="center">
-  <strong>Dale memoria a tu asistente de IA — Servidor MCP de memoria persistente entre sesiones</strong>
+  <strong>Más que memoria — Memoria + Seguimiento de problemas + Gestión de tareas, un motor de flujo de trabajo de desarrollo IA todo en uno</strong>
 </p>
 <p align="center">
   <a href="https://pypi.org/project/aivectormemory/"><img src="https://img.shields.io/pypi/v/aivectormemory?color=blue&label=PyPI" alt="PyPI"></a>
@@ -15,23 +15,34 @@
 </p>
 ---
 
-> **¿Sigues usando CLAUDE.md / MEMORY.md como memoria?** Este enfoque de memoria basado en archivos Markdown tiene defectos fatales: el archivo crece sin parar, inyectando todo en cada sesión y consumiendo una enorme cantidad de tokens; el contenido solo permite búsqueda por palabras clave — buscar "timeout de base de datos" no encuentra "error en pool de conexiones MySQL"; compartir un archivo entre proyectos causa contaminación cruzada; no hay seguimiento de tareas, así que el progreso del desarrollo depende solo de tu cabeza; sin mencionar el truncamiento a 200 líneas, el mantenimiento manual y la imposibilidad de deduplicar o fusionar.
+> **Otras herramientas de memoria IA (mem0, Cline Memory Bank, etc.) solo hacen una cosa: almacenar y recuperar memorias.** La IA recuerda el contexto, ¿y luego qué? Los bugs no se rastrean, las tareas de desarrollo no se gestionan, al cambiar de sesión se pierde todo el progreso, y las reglas que escribiste la IA las ignora igual. La memoria es solo el punto de partida, no la meta.
 >
-> **AIVectorMemory es un enfoque completamente diferente.** Almacenamiento en base de datos vectorial local con búsqueda semántica para recuperación precisa (coincide aunque las palabras sean diferentes), recuperación bajo demanda que solo carga memorias relevantes (consumo de tokens baja un 50%+), aislamiento multi-proyecto automático sin interferencia, y seguimiento de problemas + gestión de tareas integrado que permite a la IA automatizar completamente tu flujo de desarrollo. Todos los datos se guardan permanentemente en tu máquina — cero dependencia de la nube, nunca se pierden al cambiar de sesión o de IDE.
+> **AIVectorMemory es el único servidor MCP que combina memoria, seguimiento de problemas y gestión de tareas en uno.** Búsqueda semántica con recuperación precisa (buscar "timeout de base de datos" encuentra "error en pool de conexiones MySQL"), `track` seguimiento de problemas + `task` gestión de tareas integrados para que la IA ejecute automáticamente todo el flujo de desarrollo, `status` para sincronización de estado entre sesiones sin perder progreso, y Hooks para imponer las reglas de workflow. Instalación con un clic en 10 IDEs, todos los datos almacenados localmente sin dependencia de la nube.
 
 ## ✨ Características Principales
 
+
+**Lo que otros no tienen:**
+
+| Capacidad Única | Descripción | ¿Lo tiene mem0 / Cline MB? |
+|-----------------|-------------|----------------------------|
+| 🔗 **Seguimiento de problemas (track)** | Bug encontrado → investigación → corrección → prueba → archivado, gestión completa del ciclo de vida | ❌ Ninguno lo tiene |
+| 📋 **Gestión de tareas (task)** | requirements → design → tasks, requisitos multi-paso se dividen y ejecutan automáticamente | ❌ Ninguno lo tiene |
+| 📡 **Estado entre sesiones (status)** | Estado de bloqueo, tarea actual, progreso — nunca se pierde al cambiar de sesión | ❌ Ninguno lo tiene |
+| 🛡️ **Hooks aplicación de reglas** | bash_guard / stop_guard / check_track, bloqueo duro de violaciones de reglas | ❌ Ninguno lo tiene |
+
+**Capacidades básicas también líderes:**
+
 | Característica | Descripción |
 |----------------|-------------|
-| 🧠 **Memoria Entre Sesiones** | Tu IA por fin recuerda tu proyecto — errores encontrados, decisiones tomadas, convenciones establecidas, todo persiste entre sesiones |
-| 🔍 **Búsqueda Semántica** | No necesitas recordar las palabras exactas — busca "timeout de base de datos" y encuentra "error en pool de conexiones MySQL" |
-| 💰 **Ahorro 50%+ Tokens** | Deja de copiar y pegar el contexto del proyecto en cada conversación. Recuperación semántica bajo demanda, adiós a la inyección masiva |
-| 🔗 **Dev Dirigido por Tareas** | Seguimiento de problemas → desglose de tareas → sincronización de estados → archivado vinculado. La IA gestiona todo el flujo de desarrollo |
-| 📊 **Panel Web** | Gestión visual de todas las memorias y tareas, red vectorial 3D para ver conexiones de conocimiento de un vistazo |
-| 🏠 **Completamente Local** | Cero dependencia de la nube. Inferencia local ONNX, sin API Key, los datos nunca salen de tu máquina |
-| 🔌 **Todos los IDEs** | Cursor / Kiro / Claude Code / Windsurf / VSCode / OpenCode / Trae / Codex — instalación con un clic, listo para usar |
-| 📁 **Aislamiento Multi-Proyecto** | Una sola BD para todos los proyectos, aislamiento automático sin interferencia, cambio de proyecto transparente |
-| 🔄 **Deduplicación Inteligente** | Similitud > 0.95 fusiona automáticamente, la base de memorias siempre limpia — nunca se desordena con el uso |
+| 🧠 **Memoria Entre Sesiones** | Errores, decisiones, convenciones — todo persiste entre sesiones |
+| 🔍 **Búsqueda Semántica** | Coincidencia por similitud vectorial, recuperación precisa incluso con diferentes palabras |
+| 💰 **Ahorro 50%+ Tokens** | Recuperación bajo demanda, solo carga memorias relevantes, adiós a la inyección masiva |
+| 🏠 **Completamente Local** | Inferencia local ONNX, cero dependencia de la nube, los datos nunca salen de tu máquina |
+| 🔌 **10 IDEs** | Cursor / Kiro / Claude Code / Windsurf / VSCode / Copilot / OpenCode / Trae / Codex / Gemini CLI |
+| 📊 **App de Escritorio + Panel Web** | Gestión visual de memorias y tareas, red vectorial 3D para ver conexiones de conocimiento |
+| 🔄 **Deduplicación Inteligente** | Similitud > 0.95 fusiona automáticamente, la base de memorias siempre limpia |
+| 🌐 **7 Idiomas** | 简体中文 / 繁體中文 / English / Español / Deutsch / Français / 日本語 |
 
 <p align="center">
   QQ群：1085682431 &nbsp;|&nbsp; 微信：changhuibiz<br>
@@ -79,10 +90,10 @@ pip install --upgrade aivectormemory
 
 # Ir al directorio de tu proyecto, configuración IDE con un clic
 cd /path/to/your/project
-run install
+avmrun install
 ```
 
-`run install` te guía interactivamente para seleccionar tu IDE, generando automáticamente la configuración MCP, reglas Steering y Hooks — sin configuración manual.
+`avmrun install` te guía interactivamente para seleccionar tu IDE, generando automáticamente la configuración MCP, reglas Steering y Hooks — sin configuración manual.
 
 > **Usuarios de macOS**:
 > - Si aparece el error `externally-managed-environment`, agrega `--break-system-packages`
@@ -226,9 +237,9 @@ Extrae y almacena automáticamente las preferencias del usuario al final de cada
 ## 📊 Panel Web
 
 ```bash
-run web --port 9080
-run web --port 9080 --quiet          # Suprimir logs de solicitudes
-run web --port 9080 --quiet --daemon  # Ejecutar en segundo plano (macOS/Linux)
+avmrun web --port 9080
+avmrun web --port 9080 --quiet          # Suprimir logs de solicitudes
+avmrun web --port 9080 --quiet --daemon  # Ejecutar en segundo plano (macOS/Linux)
 ```
 
 Visita `http://localhost:9080` en tu navegador. Usuario predeterminado `admin`, contraseña `admin123` (se puede cambiar en la configuración después del primer inicio de sesión).
@@ -272,7 +283,7 @@ Visita `http://localhost:9080` en tu navegador. Usuario predeterminado `admin`, 
 
 AIVectorMemory es la capa de almacenamiento. Usa reglas Steering para indicar a la IA **cuándo y cómo** llamar estas herramientas.
 
-Ejecutar `run install` genera automáticamente las reglas Steering y la configuración de Hooks, sin necesidad de escribirlas manualmente.
+Ejecutar `avmrun install` genera automáticamente las reglas Steering y la configuración de Hooks, sin necesidad de escribirlas manualmente.
 
 | IDE | Ubicación de Steering | Hooks |
 |-----|----------------------|-------|
@@ -304,7 +315,7 @@ Clasificar → chat casual: responder directamente; problema/bug: track create �
 → 6. task batch_create → 7. ejecutar subtareas en orden → 8. auto-test completo, establecer bloqueo
 
 ## ⚠️ Reglas de Bloqueo / Estándares de Auto-test / Estándares de Desarrollo
-(Reglas completas generadas automáticamente por `run install`)
+(Reglas completas generadas automáticamente por `avmrun install`)
 ```
 
 </details>
@@ -486,7 +497,7 @@ O agregar env en la configuración MCP:
 - 🔗 Expansión de relaciones: superposición de etiquetas ≥ 2 crea enlaces relacionados, expansión de 1 salto descubre memorias conectadas
 - 📝 Auto-resumen: memorias largas (>500 caracteres) obtienen resúmenes, el modo brief devuelve resúmenes para ahorrar tokens
 - 🧹 Limpieza de código: eliminados 15 elementos de código muerto, 7 patrones duplicados refactorizados en utilidades compartidas
-- ❌ `run uninstall` — elimina limpiamente todas las configuraciones IDE (MCP, steering, hooks, permisos) preservando los datos de memoria
+- ❌ `avmrun uninstall` — elimina limpiamente todas las configuraciones IDE (MCP, steering, hooks, permisos) preservando los datos de memoria
 
 ### v2.0.9
 
@@ -501,7 +512,7 @@ O agregar env en la configuración MCP:
 ### v2.0.8
 
 **Nuevo: Pruebas de Navegador Playwright Integradas**
-- 🎭 `run install` ahora configura automáticamente las pruebas de navegador Playwright — la IA puede abrir un navegador real para verificar cambios en el frontend
+- 🎭 `avmrun install` ahora configura automáticamente las pruebas de navegador Playwright — la IA puede abrir un navegador real para verificar cambios en el frontend
 - 🎭 Usa un navegador de pruebas dedicado (Chrome for Testing) que no interferirá con tus pestañas personales
 - 🔑 Configuración de permisos simplificada — sin más popups de permisos para herramientas comunes
 - 📏 Reglas de IA actualizadas en los 7 idiomas para imponer el comportamiento correcto de pruebas de navegador
@@ -510,7 +521,7 @@ O agregar env en la configuración MCP:
 
 **Mejora: Más Soporte de IDEs**
 - 🖥️ Soporte añadido para Antigravity y GitHub Copilot IDEs
-- 🔑 `run install` configura automáticamente los permisos de herramientas
+- 🔑 `avmrun install` configura automáticamente los permisos de herramientas
 - 📏 Reglas de auto-prueba de IA simplificadas
 
 ### v2.0.6
@@ -686,7 +697,7 @@ O agregar env en la configuración MCP:
 
 - 🛡️ Hook PreToolUse: verificación obligatoria de track issue antes de Edit/Write, rechazo si no hay issues activos (Claude Code / Kiro / OpenCode)
 - 🔌 Plugin de OpenCode actualizado al formato SDK `@opencode-ai/plugin` (hook tool.execute.before)
-- 🔧 `run install` despliega automáticamente check_track.sh con inyección dinámica de ruta
+- 🔧 `avmrun install` despliega automáticamente check_track.sh con inyección dinámica de ruta
 - 🐛 Corrección de incompatibilidad `row.get()` con `sqlite3.Row` en issue_repo archive/delete
 - 🐛 Corrección de condición de carrera de session_id: lectura del último valor desde DB antes de incrementar
 - 🐛 Validación de formato de fecha de track (YYYY-MM-DD) + validación de tipo issue_id
@@ -700,7 +711,7 @@ O agregar env en la configuración MCP:
 
 - 🔇 Panel Web: parámetro `--quiet` para suprimir logs de solicitudes
 - 🔄 Panel Web: parámetro `--daemon` para ejecución en segundo plano (macOS/Linux)
-- 🔧 Corrección de generación de configuración MCP en `run install` (sys.executable + campos completos)
+- 🔧 Corrección de generación de configuración MCP en `avmrun install` (sys.executable + campos completos)
 - 📋 Seguimiento de problemas CRUD y archivo (Panel Web agregar/editar/archivar/eliminar + asociación de memorias)
 - 👆 Clic en cualquier parte de la fila para abrir modal de edición (memorias/problemas/etiquetas)
 - 🔒 Reglas de bloqueo aplicadas en continuaciones de sesión/transferencias de contexto (requiere reconfirmación)

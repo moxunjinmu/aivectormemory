@@ -5,7 +5,7 @@
 </p>
 <h1 align="center">AIVectorMemory</h1>
 <p align="center">
-  <strong>AIコーディングアシスタントに記憶を — セッション間永続記憶MCPサーバー</strong>
+  <strong>記憶だけじゃない — 記憶 + 問題追跡 + タスク管理、オールインワン AI 開発ワークフローエンジン</strong>
 </p>
 <p align="center">
   <a href="https://pypi.org/project/aivectormemory/"><img src="https://img.shields.io/pypi/v/aivectormemory?color=blue&label=PyPI" alt="PyPI"></a>
@@ -15,23 +15,34 @@
 </p>
 ---
 
-> **まだ CLAUDE.md / MEMORY.md を記憶として使っていますか？** この Markdown ファイル記憶方式には致命的な欠陥があります：ファイルは膨らみ続け、毎回のセッションで全量注入して大量のトークンを消費；内容はキーワード検索しかできず、「データベースタイムアウト」で検索しても「MySQL コネクションプールの落とし穴」は見つからない；複数プロジェクトで1つのファイルを共有すると相互汚染；タスク追跡がなく、開発進捗は頭の中だけ；200行での切り捨て、手動メンテナンス、重複排除や統合ができないという日常的な問題も。
+> **市場のAI記憶ツール（mem0、Cline Memory Bankなど）は一つのことしかしません：記憶の保存と呼び出し。** AIがコンテキストを覚えた、それで？バグは追跡されず、開発タスクは管理されず、セッションを切り替えると進捗は全部消え、ルールを書いてもAIは守らない。記憶はスタート地点であって、ゴールではありません。
 >
-> **AIVectorMemory はまったく異なるアプローチです。** ローカルベクトルデータベースに保存し、セマンティック検索で的確に呼び出し（言葉が違っても一致）、オンデマンド検索で関連する記憶だけを読み込み（トークン消費を50%+削減）、マルチプロジェクトを自動隔離して干渉ゼロ、内蔵の問題追跡 + タスク管理で AI が開発フロー全体を自動管理。すべてのデータはあなたのマシンに永久保存 — クラウド依存ゼロ、セッションや IDE を切り替えても失われません。
+> **AIVectorMemoryは記憶・問題追跡・タスク管理を三位一体にした唯一のMCP Serverです。** セマンティック検索で的確に呼び出し（「データベースタイムアウト」で検索すれば「MySQLコネクションプールの落とし穴」が見つかる）、内蔵の `track` 問題追跡 + `task` タスク管理でAIが開発フロー全体を自動実行、`status` でセッション間の状態を同期し進捗を失わない、Hooksでワークフロールールを強制執行。10のIDEにワンクリックインストール、全データはローカル保存でクラウド依存ゼロ。
 
 ## ✨ 主な機能
 
+
+**他にはない機能：**
+
+| 独自機能 | 説明 | mem0 / Cline MB にある？ |
+|---------|------|------------------------|
+| 🔗 **問題追跡（track）** | バグ発見 → 調査 → 修正 → テスト → アーカイブ、完全なライフサイクル管理 | ❌ どちらもなし |
+| 📋 **タスク管理（task）** | requirements → design → tasks、複数ステップの要件を自動分割・実行 | ❌ どちらもなし |
+| 📡 **セッション間状態（status）** | ブロック状態、現在のタスク、進捗 — セッション切り替えでも失われない | ❌ どちらもなし |
+| 🛡️ **Hooks ルール強制** | bash_guard / stop_guard / check_track、ルール違反をハードブロック | ❌ どちらもなし |
+
+**基本能力も業界をリード：**
+
 | 機能 | 説明 |
 |------|------|
-| 🧠 **クロスセッション記憶** | AIがついにプロジェクトを覚えてくれる — 踏んだ地雷、下した決定、決めた規約、セッションが変わっても忘れない |
-| 🔍 **セマンティック検索** | 原文の書き方を覚えていなくてOK —「データベースタイムアウト」で検索すれば「MySQLコネクションプール問題」が見つかる |
-| 💰 **50%+トークン節約** | 毎回プロジェクト背景をコピペする必要なし。セマンティック検索でオンデマンド呼び出し、一括注入とはお別れ |
-| 🔗 **タスク駆動開発** | 問題追跡 → タスク分割 → ステータス同期 → 連動アーカイブ。AIが開発フロー全体を自動管理 |
-| 📊 **Webダッシュボード** | すべての記憶とタスクを視覚的に管理、3Dベクトルネットワークで知識の繋がりが一目瞭然 |
-| 🏠 **完全ローカル** | クラウド依存ゼロ。ONNXローカル推論、APIキー不要、データはマシンから出ない |
-| 🔌 **全IDE対応** | Cursor / Kiro / Claude Code / Windsurf / VSCode / OpenCode / Trae / Codex — ワンクリックインストール、すぐ使える |
-| 📁 **マルチプロジェクト分離** | 1つのDBで全プロジェクト管理、自動分離で干渉なし、プロジェクト切り替えもシームレス |
-| 🔄 **スマート重複排除** | 類似度 > 0.95 で自動マージ更新、記憶ストアは常にクリーン — 使い続けても散らからない |
+| 🧠 **クロスセッション記憶** | 踏んだ地雷、下した決定、決めた規約、セッションが変わっても忘れない |
+| 🔍 **セマンティック検索** | ベクトル類似度マッチング、表現が違っても的確に呼び出し |
+| 💰 **50%+トークン節約** | オンデマンド検索で関連記憶のみ読み込み、一括注入とはお別れ |
+| 🏠 **完全ローカル** | ONNXローカル推論、クラウド依存ゼロ、データはマシンから出ない |
+| 🔌 **10のIDE** | Cursor / Kiro / Claude Code / Windsurf / VSCode / Copilot / OpenCode / Trae / Codex / Gemini CLI |
+| 📊 **デスクトップ + Webダッシュボード** | 記憶とタスクを視覚的に管理、3Dベクトルネットワークで知識の繋がりが一目瞭然 |
+| 🔄 **スマート重複排除** | 類似度 > 0.95 で自動マージ、記憶ストアは常にクリーン |
+| 🌐 **7言語** | 简体中文 / 繁體中文 / English / Español / Deutsch / Français / 日本語 |
 
 <p align="center">
   QQ群：1085682431 &nbsp;|&nbsp; 微信：changhuibiz<br>
@@ -79,10 +90,10 @@ pip install --upgrade aivectormemory
 
 # プロジェクトディレクトリに移動し、ワンクリックで IDE を設定
 cd /path/to/your/project
-run install
+avmrun install
 ```
 
-`run install` は対話式で IDE を選択し、MCP 設定・Steering ルール・Hooks を自動生成します。手動設定は不要です。
+`avmrun install` は対話式で IDE を選択し、MCP 設定・Steering ルール・Hooks を自動生成します。手動設定は不要です。
 
 > **macOS ユーザーへの注意**：
 > - `externally-managed-environment` エラーが出た場合は `--break-system-packages` を追加してください
@@ -226,9 +237,9 @@ extra_tags   (string[])  追加タグ
 ## 📊 Webダッシュボード
 
 ```bash
-run web --port 9080
-run web --port 9080 --quiet          # リクエストログを非表示
-run web --port 9080 --quiet --daemon  # バックグラウンド実行（macOS/Linux）
+avmrun web --port 9080
+avmrun web --port 9080 --quiet          # リクエストログを非表示
+avmrun web --port 9080 --quiet --daemon  # バックグラウンド実行（macOS/Linux）
 ```
 
 ブラウザで `http://localhost:9080` にアクセス。デフォルトユーザー名 `admin`、パスワード `admin123`（初回ログイン後に設定で変更可能）。
@@ -272,7 +283,7 @@ run web --port 9080 --quiet --daemon  # バックグラウンド実行（macOS/L
 
 AIVectorMemoryはストレージ層です。Steeringルールを使ってAIに**いつ、どのように**ツールを呼び出すかを指示します。
 
-`run install` を実行すると、Steeringルールとフック設定が自動生成されます。手動設定は不要です。
+`avmrun install` を実行すると、Steeringルールとフック設定が自動生成されます。手動設定は不要です。
 
 | IDE | Steeringの場所 | Hooks |
 |-----|---------------|-------|
@@ -304,7 +315,7 @@ AIVectorMemoryはストレージ層です。Steeringルールを使ってAIに**
 → 6. task batch_create → 7. サブタスクを順番に実行 → 8. 全体自己テスト、ブロック設定
 
 ## ⚠️ ブロッキングルール / 自己テスト基準 / 開発規範
-（完全なルールは `run install` で自動生成）
+（完全なルールは `avmrun install` で自動生成）
 ```
 
 </details>
@@ -486,7 +497,7 @@ export HF_ENDPOINT=https://hf-mirror.com
 - 🔗 関係拡張：タグ重複 ≥ 2 で関連リンクを自動構築、1ホップ拡張で関連メモリを発見
 - 📝 自動要約：長いメモリ（>500文字）に要約を生成、brief モードで要約を返しトークン節約
 - 🧹 コードクリーンアップ：15件のデッドコード削除、7件の重複パターンを共通ユーティリティにリファクタリング
-- ❌ `run uninstall` — すべての IDE 設定（MCP、ステアリング、フック、権限）をクリーンに削除、メモリデータは保持
+- ❌ `avmrun uninstall` — すべての IDE 設定（MCP、ステアリング、フック、権限）をクリーンに削除、メモリデータは保持
 
 ### v2.0.9
 
@@ -501,7 +512,7 @@ export HF_ENDPOINT=https://hf-mirror.com
 ### v2.0.8
 
 **新機能：Playwright ブラウザテスト内蔵**
-- 🎭 `run install` で Playwright ブラウザテストを自動設定 — AI が実際のブラウザを開いてフロントエンドの変更を検証可能に
+- 🎭 `avmrun install` で Playwright ブラウザテストを自動設定 — AI が実際のブラウザを開いてフロントエンドの変更を検証可能に
 - 🎭 専用テストブラウザ（Chrome for Testing）を使用、個人のブラウザタブに影響なし
 - 🔑 権限設定を簡素化 — よく使うツールの権限確認ポップアップを削減
 - 📏 7 言語の AI ルールを更新、ブラウザテスト動作を強制規範化
@@ -510,7 +521,7 @@ export HF_ENDPOINT=https://hf-mirror.com
 
 **強化：より多くの IDE サポート**
 - 🖥️ Antigravity と GitHub Copilot IDE のサポートを追加
-- 🔑 `run install` でツール権限を自動設定、手動設定を削減
+- 🔑 `avmrun install` でツール権限を自動設定、手動設定を削減
 - 📏 AI セルフテストルールを簡素化
 
 ### v2.0.6
@@ -686,7 +697,7 @@ export HF_ENDPOINT=https://hf-mirror.com
 
 - 🛡️ PreToolUse Hook：Edit/Write 前に track issue を強制チェック、アクティブな問題がなければ実行拒否（Claude Code / Kiro / OpenCode 対応）
 - 🔌 OpenCode プラグインを `@opencode-ai/plugin` SDK 形式にアップグレード（tool.execute.before hook）
-- 🔧 `run install` で check_track.sh スクリプトを自動デプロイ、パスを動的に注入
+- 🔧 `avmrun install` で check_track.sh スクリプトを自動デプロイ、パスを動的に注入
 - 🐛 issue_repo archive/delete の `row.get()` が `sqlite3.Row` と非互換な問題を修正
 - 🐛 session_id を DB から最新値を読み取ってからインクリメント、マルチインスタンス競合を回避
 - 🐛 track date パラメータ形式バリデーション（YYYY-MM-DD）+ issue_id 型バリデーション
@@ -700,7 +711,7 @@ export HF_ENDPOINT=https://hf-mirror.com
 
 - 🔇 Web ダッシュボード `--quiet` パラメータでリクエストログを非表示
 - 🔄 Web ダッシュボード `--daemon` パラメータでバックグラウンド実行（macOS/Linux）
-- 🔧 `run install` MCP 設定生成の修正（sys.executable + 完全なフィールド）
+- 🔧 `avmrun install` MCP 設定生成の修正（sys.executable + 完全なフィールド）
 - 📋 問題追跡の CRUD とアーカイブ（Web ダッシュボード 追加/編集/アーカイブ/削除 + 記憶関連付け）
 - 👆 リスト行の任意の場所をクリックで編集モーダルを表示（記憶/問題/タグ）
 - 🔒 セッション継続/コンテキスト転送時にブロッキングルールを強制適用（再確認が必要）

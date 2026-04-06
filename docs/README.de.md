@@ -5,7 +5,7 @@
 </p>
 <h1 align="center">AIVectorMemory</h1>
 <p align="center">
-  <strong>Gib deinem KI-Programmierassistenten ein Gedächtnis — Sitzungsübergreifender persistenter Speicher MCP Server</strong>
+  <strong>Mehr als Gedächtnis — Gedächtnis + Issue-Tracking + Aufgabenverwaltung, eine All-in-One KI-Entwicklungsworkflow-Engine</strong>
 </p>
 <p align="center">
   <a href="https://pypi.org/project/aivectormemory/"><img src="https://img.shields.io/pypi/v/aivectormemory?color=blue&label=PyPI" alt="PyPI"></a>
@@ -15,23 +15,34 @@
 </p>
 ---
 
-> **Nutzt du immer noch CLAUDE.md / MEMORY.md als Gedächtnis?** Dieser Markdown-Datei-Ansatz hat fatale Schwächen: Die Datei wird immer größer, jede Sitzung injiziert alles und verbraucht massiv Tokens; Inhalte unterstützen nur Stichwortsuche — suche „Datenbank-Timeout" und du findest nicht „MySQL Connection Pool Fallstrick"; eine Datei für mehrere Projekte führt zu gegenseitiger Kontamination; es gibt kein Aufgaben-Tracking, der Entwicklungsfortschritt existiert nur in deinem Kopf; ganz zu schweigen von der 200-Zeilen-Kürzung, manueller Pflege und der Unmöglichkeit, Duplikate zu erkennen oder zusammenzuführen.
+> **Andere KI-Gedächtnistools (mem0, Cline Memory Bank usw.) machen nur eines: Erinnerungen speichern und abrufen.** Die KI merkt sich den Kontext — und dann? Bugs werden nicht verfolgt, Entwicklungsaufgaben nicht verwaltet, beim Sitzungswechsel geht der Fortschritt verloren, und Regeln, die du geschrieben hast, werden trotzdem ignoriert. Gedächtnis ist nur der Startpunkt, nicht das Ziel.
 >
-> **AIVectorMemory ist ein grundlegend anderer Ansatz.** Lokale Vektordatenbank-Speicherung mit semantischer Suche für präzisen Abruf (findet Übereinstimmungen auch bei unterschiedlicher Wortwahl), bedarfsgesteuerter Abruf lädt nur relevante Erinnerungen (Token-Verbrauch sinkt um 50%+), automatische Multi-Projekt-Isolation ohne Interferenz, und integriertes Problem-Tracking + Aufgabenverwaltung, die der KI ermöglicht, deinen Entwicklungsworkflow vollständig zu automatisieren. Alle Daten werden dauerhaft auf deinem Rechner gespeichert — null Cloud-Abhängigkeit, nichts geht verloren beim Wechsel von Sitzungen oder IDEs.
+> **AIVectorMemory ist der einzige MCP Server, der Gedächtnis, Issue-Tracking und Aufgabenverwaltung vereint.** Semantische Suche mit präzisem Abruf (suche „Datenbank-Timeout" und finde „MySQL Connection Pool Fallstrick"), integriertes `track` Issue-Tracking + `task` Aufgabenverwaltung, damit die KI den gesamten Entwicklungsablauf automatisch durchführt, `status` für sitzungsübergreifende Zustandssynchronisation ohne Fortschrittsverlust, und Hooks zur Durchsetzung von Workflow-Regeln. Ein-Klick-Installation für 10 IDEs, alle Daten lokal gespeichert ohne Cloud-Abhängigkeit.
 
 ## ✨ Kernfunktionen
 
+
+**Was andere nicht haben:**
+
+| Einzigartige Fähigkeit | Beschreibung | Hat mem0 / Cline MB das? |
+|------------------------|-------------|--------------------------|
+| 🔗 **Issue-Tracking (track)** | Bug gefunden → Untersuchung → Fix → Test → Archivierung, vollständiges Lifecycle-Management | ❌ Keines von beiden |
+| 📋 **Aufgabenverwaltung (task)** | requirements → design → tasks, mehrstufige Anforderungen automatisch aufgeteilt und ausgeführt | ❌ Keines von beiden |
+| 📡 **Sitzungsübergreifender Status (status)** | Blockierungsstatus, aktuelle Aufgabe, Fortschritt — beim Sitzungswechsel nichts verloren | ❌ Keines von beiden |
+| 🛡️ **Hooks Regeldurchsetzung** | bash_guard / stop_guard / check_track, harte Blockierung von Regelverstößen | ❌ Keines von beiden |
+
+**Grundlegende Fähigkeiten ebenfalls führend:**
+
 | Funktion | Beschreibung |
 |----------|-------------|
-| 🧠 **Sitzungsübergreifendes Gedächtnis** | Deine KI erinnert sich endlich an dein Projekt — Fehler, Entscheidungen, Konventionen bleiben über Sessions hinweg erhalten |
-| 🔍 **Semantische Suche** | Kein exakter Wortlaut nötig — suche „Datenbank-Timeout" und finde „MySQL Connection Pool Problem" |
-| 💰 **50%+ Tokens sparen** | Schluss mit Copy-Paste des Projektkontexts in jeder Konversation. Semantischer Abruf bei Bedarf statt Masseninjektion |
-| 🔗 **Aufgabengesteuertes Dev** | Problem-Tracking → Aufgabenzerlegung → Status-Sync → verknüpfte Archivierung. KI verwaltet den gesamten Dev-Workflow |
-| 📊 **Web-Dashboard** | Visuelle Verwaltung aller Erinnerungen und Aufgaben, 3D-Vektornetzwerk zeigt Wissensverbindungen auf einen Blick |
-| 🏠 **Vollständig Lokal** | Null Cloud-Abhängigkeit. ONNX lokale Inferenz, kein API Key, Daten verlassen nie deinen Rechner |
-| 🔌 **Alle IDEs** | Cursor / Kiro / Claude Code / Windsurf / VSCode / OpenCode / Trae / Codex — Ein-Klick-Installation, sofort einsatzbereit |
-| 📁 **Multi-Projekt-Isolation** | Eine DB für alle Projekte, automatisch isoliert ohne Interferenz, nahtloser Projektwechsel |
-| 🔄 **Intelligente Deduplizierung** | Ähnlichkeit > 0.95 führt automatisch zusammen, Wissensspeicher bleibt sauber — wird nie unübersichtlich |
+| 🧠 **Sitzungsübergreifendes Gedächtnis** | Fehler, Entscheidungen, Konventionen — bleiben über Sessions hinweg erhalten |
+| 🔍 **Semantische Suche** | Vektor-Ähnlichkeitsabgleich, präziser Abruf auch bei unterschiedlicher Wortwahl |
+| 💰 **50%+ Tokens sparen** | Bedarfsgesteuerter Abruf lädt nur relevante Erinnerungen, Schluss mit Masseninjektion |
+| 🏠 **Vollständig Lokal** | ONNX lokale Inferenz, null Cloud-Abhängigkeit, Daten verlassen nie deinen Rechner |
+| 🔌 **10 IDEs** | Cursor / Kiro / Claude Code / Windsurf / VSCode / Copilot / OpenCode / Trae / Codex / Gemini CLI |
+| 📊 **Desktop-App + Web-Dashboard** | Visuelle Verwaltung von Erinnerungen und Aufgaben, 3D-Vektornetzwerk zeigt Wissensverbindungen |
+| 🔄 **Intelligente Deduplizierung** | Ähnlichkeit > 0.95 führt automatisch zusammen, Wissensspeicher bleibt sauber |
+| 🌐 **7 Sprachen** | 简体中文 / 繁體中文 / English / Español / Deutsch / Français / 日本語 |
 
 <p align="center">
   QQ群：1085682431 &nbsp;|&nbsp; 微信：changhuibiz<br>
@@ -79,10 +90,10 @@ pip install --upgrade aivectormemory
 
 # In dein Projektverzeichnis wechseln, Ein-Klick-IDE-Setup
 cd /path/to/your/project
-run install
+avmrun install
 ```
 
-`run install` führt dich interaktiv durch die IDE-Auswahl und generiert automatisch MCP-Konfiguration, Steering-Regeln und Hooks — kein manuelles Setup nötig.
+`avmrun install` führt dich interaktiv durch die IDE-Auswahl und generiert automatisch MCP-Konfiguration, Steering-Regeln und Hooks — kein manuelles Setup nötig.
 
 > **macOS-Benutzer beachten**:
 > - Bei `externally-managed-environment` Fehler: `--break-system-packages` hinzufügen
@@ -226,9 +237,9 @@ Extrahiert und speichert automatisch Benutzerpräferenzen am Ende jeder Konversa
 ## 📊 Web-Dashboard
 
 ```bash
-run web --port 9080
-run web --port 9080 --quiet          # Anfrage-Logs unterdrücken
-run web --port 9080 --quiet --daemon  # Im Hintergrund ausführen (macOS/Linux)
+avmrun web --port 9080
+avmrun web --port 9080 --quiet          # Anfrage-Logs unterdrücken
+avmrun web --port 9080 --quiet --daemon  # Im Hintergrund ausführen (macOS/Linux)
 ```
 
 Besuche `http://localhost:9080` im Browser. Standardbenutzername `admin`, Passwort `admin123` (kann nach der ersten Anmeldung in den Einstellungen geändert werden).
@@ -272,7 +283,7 @@ Besuche `http://localhost:9080` im Browser. Standardbenutzername `admin`, Passwo
 
 AIVectorMemory ist die Speicherschicht. Verwende Steering-Regeln, um der KI mitzuteilen, **wann und wie** sie diese Tools aufrufen soll.
 
-`run install` generiert automatisch Steering-Regeln und Hooks-Konfiguration — kein manuelles Setup nötig.
+`avmrun install` generiert automatisch Steering-Regeln und Hooks-Konfiguration — kein manuelles Setup nötig.
 
 | IDE | Steering-Pfad | Hooks |
 |-----|--------------|-------|
@@ -304,7 +315,7 @@ Klassifizieren → Smalltalk: direkt antworten; Problem/Bug: track create → Pr
 → 6. task batch_create → 7. Unteraufgaben der Reihe nach ausführen → 8. Vollständiger Selbsttest, Blockierung setzen
 
 ## ⚠️ Blockierungsregeln / Selbsttest-Standards / Entwicklungsstandards
-(Vollständige Regeln werden automatisch von `run install` generiert)
+(Vollständige Regeln werden automatisch von `avmrun install` generiert)
 ```
 
 </details>
@@ -486,7 +497,7 @@ Oder env in der MCP-Konfiguration hinzufügen:
 - 🔗 Beziehungserweiterung: Tag-Überlappung ≥ 2 erstellt automatisch Verknüpfungen, 1-Hop-Erweiterung findet verwandte Erinnerungen
 - 📝 Auto-Zusammenfassung: Lange Erinnerungen (>500 Zeichen) erhalten Zusammenfassungen, Brief-Modus gibt Zusammenfassungen zurück um Token zu sparen
 - 🧹 Code-Bereinigung: 15 tote Code-Elemente entfernt, 7 duplizierte Muster in gemeinsame Utilities refaktorisiert
-- ❌ `run uninstall` — Entfernt sauber alle IDE-Konfigurationen (MCP, Steering, Hooks, Berechtigungen) unter Beibehaltung der Speicherdaten
+- ❌ `avmrun uninstall` — Entfernt sauber alle IDE-Konfigurationen (MCP, Steering, Hooks, Berechtigungen) unter Beibehaltung der Speicherdaten
 
 ### v2.0.9
 
@@ -501,7 +512,7 @@ Oder env in der MCP-Konfiguration hinzufügen:
 ### v2.0.8
 
 **Neu: Integrierter Playwright Browser-Test**
-- 🎭 `run install` konfiguriert jetzt automatisch Playwright Browser-Tests — KI kann einen echten Browser öffnen um Frontend-Änderungen zu überprüfen
+- 🎭 `avmrun install` konfiguriert jetzt automatisch Playwright Browser-Tests — KI kann einen echten Browser öffnen um Frontend-Änderungen zu überprüfen
 - 🎭 Verwendet einen dedizierten Testbrowser (Chrome for Testing), der Ihre persönlichen Browser-Tabs nicht beeinträchtigt
 - 🔑 Vereinfachte Berechtigungskonfiguration — keine Berechtigungs-Popups mehr für gängige Tools
 - 📏 KI-Regeln in allen 7 Sprachen aktualisiert um korrektes Browser-Testverhalten durchzusetzen
@@ -510,7 +521,7 @@ Oder env in der MCP-Konfiguration hinzufügen:
 
 **Verbesserung: Mehr IDE-Unterstützung**
 - 🖥️ Unterstützung für Antigravity und GitHub Copilot IDEs hinzugefügt
-- 🔑 `run install` konfiguriert Tool-Berechtigungen automatisch
+- 🔑 `avmrun install` konfiguriert Tool-Berechtigungen automatisch
 - 📏 KI-Selbsttest-Regeln vereinfacht
 
 ### v2.0.6
@@ -686,7 +697,7 @@ Oder env in der MCP-Konfiguration hinzufügen:
 
 - 🛡️ PreToolUse Hook: Erzwungene Track-Issue-Prüfung vor Edit/Write, Ablehnung ohne aktive Issues (Claude Code / Kiro / OpenCode)
 - 🔌 OpenCode-Plugin auf `@opencode-ai/plugin` SDK-Format aktualisiert (tool.execute.before Hook)
-- 🔧 `run install` deployt check_track.sh automatisch mit dynamischer Pfadinjektion
+- 🔧 `avmrun install` deployt check_track.sh automatisch mit dynamischer Pfadinjektion
 - 🐛 issue_repo archive/delete `row.get()` Inkompatibilität mit `sqlite3.Row` behoben
 - 🐛 session_id Race-Condition behoben: Neuester Wert aus DB lesen vor Inkrementierung
 - 🐛 Track date Formatvalidierung (YYYY-MM-DD) + issue_id Typvalidierung hinzugefügt
@@ -700,7 +711,7 @@ Oder env in der MCP-Konfiguration hinzufügen:
 
 - 🔇 Web-Dashboard `--quiet` Parameter zum Unterdrücken von Anfrage-Logs
 - 🔄 Web-Dashboard `--daemon` Parameter für Hintergrundausführung (macOS/Linux)
-- 🔧 `run install` MCP-Konfigurationsgenerierung behoben (sys.executable + vollständige Felder)
+- 🔧 `avmrun install` MCP-Konfigurationsgenerierung behoben (sys.executable + vollständige Felder)
 - 📋 Issue-Tracking CRUD & Archivierung (Web-Dashboard Hinzufügen/Bearbeiten/Archivieren/Löschen + Erinnerungsverknüpfung)
 - 👆 Klick auf beliebige Stelle in Listenzeile öffnet Bearbeitungs-Modal (Erinnerungen/Issues/Tags)
 - 🔒 Blockierungsregeln bei Sitzungsfortsetzungen/Kontexttransfers erzwungen (erneute Bestätigung erforderlich)

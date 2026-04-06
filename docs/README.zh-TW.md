@@ -5,7 +5,7 @@
 </p>
 <h1 align="center">AIVectorMemory</h1>
 <p align="center">
-  <strong>為 AI 程式助手裝上記憶 — 跨會話持久化記憶 MCP Server</strong>
+  <strong>不只是記憶 — 記憶 + 問題追蹤 + 任務管理，三合一 AI 開發工作流引擎</strong>
 </p>
 <p align="center">
   <a href="https://pypi.org/project/aivectormemory/"><img src="https://img.shields.io/pypi/v/aivectormemory?color=blue&label=PyPI" alt="PyPI"></a>
@@ -15,23 +15,34 @@
 </p>
 ---
 
-> **你還在用 CLAUDE.md / MEMORY.md 當記憶？** 這類 Markdown 檔案記憶模式有致命缺陷：檔案越寫越大，每次會話全量注入吃掉大量 Token；內容只能關鍵詞匹配，搜「資料庫逾時」找不到「MySQL 連線池踩坑」；多專案共用一個檔案互相污染；沒有任務追蹤，開發進度全靠人腦記；更別提 200 行截斷、手動維護、無法去重合併這些日常痛點了。
+> **市面上的 AI 記憶工具（mem0、Cline Memory Bank 等）只做一件事：存取記憶。** AI 記住了上下文，然後呢？遇到 bug 沒有追蹤，開發任務沒有管理，換個會話進度全丟，規則寫了一堆 AI 照樣不遵守。記憶只是起點，不是終點。
 >
-> **AIVectorMemory 是完全不同的方案。** 本地向量資料庫儲存，語義搜尋精準召回（用詞不同也能匹配），按需檢索只載入相關記憶（Token 消耗直降 50%+），多專案自動隔離互不干擾，內建問題追蹤 + 任務管理讓 AI 全自動管理開發流程。所有資料永久保存在你的電腦上，零雲端依賴，換會話、換 IDE 都不丟。
+> **AIVectorMemory 是唯一把記憶、問題追蹤、任務管理三合一的 MCP Server。** 語義搜尋精準召回（搜「資料庫逾時」能找到「MySQL 連線池踩坑」），內建 `track` 問題追蹤 + `task` 任務管理讓 AI 全自動跑完開發流程，`status` 跨會話狀態同步不丟進度，Hooks 強制執行工作規則。10 個 IDE 一鍵安裝，所有資料本地儲存零雲端依賴。
 
 ## ✨ 核心特性
 
+
+**別人沒有的：**
+
+| 獨有能力 | 說明 | mem0 / Cline MB 有嗎？ |
+|---------|------|----------------------|
+| 🔗 **問題追蹤（track）** | 發現 bug → 排查 → 修復 → 測試 → 歸檔，完整生命週期管理 | ❌ 都沒有 |
+| 📋 **任務管理（task）** | requirements → design → tasks，多步驟需求自動拆分執行 | ❌ 都沒有 |
+| 📡 **跨會話狀態（status）** | 阻塞狀態、當前任務、進度，換會話不丟 | ❌ 都沒有 |
+| 🛡️ **Hooks 規則強制** | bash_guard / stop_guard / check_track，硬攔截違規操作 | ❌ 都沒有 |
+
+**基礎能力同樣領先：**
+
 | 特性 | 說明 |
 |------|------|
-| 🧠 **跨會話記憶** | AI 終於能記住你的專案了 — 踩過的坑、做過的決策、定下的規範，換個會話照樣記得 |
-| 🔍 **語義搜尋** | 不用記原文怎麼寫的，搜「資料庫逾時」就能找到「MySQL 連線池踩坑」 |
-| 💰 **省 50%+ Token** | 不再每次對話都複製貼上專案背景，語義檢索按需召回，告別全量上下文注入 |
-| 🔗 **任務驅動開發** | 問題追蹤 → 任務拆分 → 狀態同步 → 聯動歸檔，AI 自動管理完整開發流程 |
-| 📊 **Web 看板** | 視覺化管理所有記憶和任務，3D 向量網路一眼看清知識關聯 |
-| 🏠 **完全本地** | 零依賴雲端服務，ONNX 本地推理，無需 API Key，資料不出你的電腦 |
-| 🔌 **全 IDE 通吃** | Cursor / Kiro / Claude Code / Windsurf / VSCode / OpenCode / Trae / Codex — 一鍵安裝，開箱即用 |
-| 📁 **多專案隔離** | 一個 DB 管所有專案，自動隔離互不干擾，切換專案無感知 |
-| 🔄 **智慧去重** | 相似度 > 0.95 自動合併更新，記憶庫永遠乾淨，不會越用越亂 |
+| 🧠 **跨會話記憶** | 踩過的坑、做過的決策、定下的規範，換會話照樣記得 |
+| 🔍 **語義搜尋** | 向量相似度匹配，用詞不同也能精準召回 |
+| 💰 **省 50%+ Token** | 按需檢索只載入相關記憶，告別全量注入 |
+| 🏠 **完全本地** | ONNX 本地推理，零雲端依賴，資料不出電腦 |
+| 🔌 **10 個 IDE** | Cursor / Kiro / Claude Code / Windsurf / VSCode / Copilot / OpenCode / Trae / Codex / Gemini CLI |
+| 📊 **桌面端 + Web 看板** | 視覺化管理記憶和任務，3D 向量網路看清知識關聯 |
+| 🔄 **智慧去重** | 相似度 > 0.95 自動合併，記憶庫永遠乾淨 |
+| 🌐 **7 語言** | 簡體中文 / 繁體中文 / English / Español / Deutsch / Français / 日本語 |
 
 <p align="center">
   QQ群：1085682431 &nbsp;|&nbsp; 微信：changhuibiz<br>
@@ -79,10 +90,10 @@ pip install --upgrade aivectormemory
 
 # 進入你的專案目錄，一鍵配置 IDE
 cd /path/to/your/project
-run install
+avmrun install
 ```
 
-`run install` 會互動式引導你選擇 IDE，自動生成 MCP 配置、Steering 規則和 Hooks，無需手動編寫。
+`avmrun install` 會互動式引導你選擇 IDE，自動生成 MCP 配置、Steering 規則和 Hooks，無需手動編寫。
 
 > **macOS 使用者注意**：
 > - 遇到 `externally-managed-environment` 錯誤，加 `--break-system-packages`
@@ -226,9 +237,9 @@ extra_tags   (string[])  額外標籤
 ## 📊 Web 看板
 
 ```bash
-run web --port 9080
-run web --port 9080 --quiet          # 屏蔽請求日誌
-run web --port 9080 --quiet --daemon  # 背景執行（macOS/Linux）
+avmrun web --port 9080
+avmrun web --port 9080 --quiet          # 屏蔽請求日誌
+avmrun web --port 9080 --quiet --daemon  # 背景執行（macOS/Linux）
 ```
 
 瀏覽器存取 `http://localhost:9080`，預設用戶名 `admin`，密碼 `admin123`（首次登入後可在設定中修改）
@@ -272,7 +283,7 @@ run web --port 9080 --quiet --daemon  # 背景執行（macOS/Linux）
 
 AIVectorMemory 是儲存層，透過 Steering 規則告訴 AI **何時、如何**呼叫這些工具。
 
-執行 `run install` 會自動產生 Steering 規則和 Hooks 設定，無需手動編寫。
+執行 `avmrun install` 會自動產生 Steering 規則和 Hooks 設定，無需手動編寫。
 
 | IDE | Steering 位置 | Hooks |
 |-----|--------------|-------|
@@ -304,7 +315,7 @@ AIVectorMemory 是儲存層，透過 Steering 規則告訴 AI **何時、如何*
 → 6. task batch_create → 7. 按順序執行子任務 → 8. 全量自測，設阻塞
 
 ## ⚠️ 阻塞規則 / 自測標準 / 開發規範
-（完整規則由 `run install` 自動產生）
+（完整規則由 `avmrun install` 自動產生）
 ```
 
 </details>
@@ -486,7 +497,7 @@ export HF_ENDPOINT=https://hf-mirror.com
 - 🔗 關係擴展：標籤重疊 ≥ 2 自動建立關聯，1 跳擴展發現相關記憶
 - 📝 自動摘要：長記憶（>500 字）產生摘要，brief 模式回傳摘要節省 token
 - 🧹 程式碼清理：刪除 15 項死碼，7 項重複程式碼重構為共用函式
-- ❌ `run uninstall` — 一鍵清理所有 IDE 設定（MCP、規則、hooks、權限），保留記憶資料
+- ❌ `avmrun uninstall` — 一鍵清理所有 IDE 設定（MCP、規則、hooks、權限），保留記憶資料
 
 ### v2.0.9
 
@@ -501,7 +512,7 @@ export HF_ENDPOINT=https://hf-mirror.com
 ### v2.0.8
 
 **新功能：內建 Playwright 瀏覽器測試**
-- 🎭 `run install` 現在自動配置 Playwright 瀏覽器測試 — AI 可以開啟真實瀏覽器驗證前端變更
+- 🎭 `avmrun install` 現在自動配置 Playwright 瀏覽器測試 — AI 可以開啟真實瀏覽器驗證前端變更
 - 🎭 使用獨立的測試瀏覽器（Chrome for Testing），不會影響你的個人瀏覽器分頁
 - 🔑 簡化權限配置 — 常用工具不再彈出權限確認
 - 📏 7 種語言 AI 規則全部更新，強制規範瀏覽器測試行為
@@ -510,7 +521,7 @@ export HF_ENDPOINT=https://hf-mirror.com
 
 **增強：更多 IDE 支援**
 - 🖥️ 新增 Antigravity 和 GitHub Copilot IDE 支援
-- 🔑 `run install` 自動配置工具權限，減少手動設定
+- 🔑 `avmrun install` 自動配置工具權限，減少手動設定
 - 📏 精簡 AI 自測規則
 
 ### v2.0.6
@@ -686,7 +697,7 @@ export HF_ENDPOINT=https://hf-mirror.com
 
 - 🛡️ PreToolUse Hook：Edit/Write 前強制檢查 track issue，無活躍問題則拒絕執行（Claude Code / Kiro / OpenCode 三端支援）
 - 🔌 OpenCode 外掛升級為 `@opencode-ai/plugin` SDK 格式（tool.execute.before hook）
-- 🔧 `run install` 自動部署 check_track.sh 檢查腳本並動態填充路徑
+- 🔧 `avmrun install` 自動部署 check_track.sh 檢查腳本並動態填充路徑
 - 🐛 issue_repo archive/delete 中 `row.get()` 對 `sqlite3.Row` 不相容修復
 - 🐛 session_id 從 DB 讀取最新值再遞增，避免多實例競態
 - 🐛 track date 參數格式校驗（YYYY-MM-DD）+ issue_id 類型校驗
@@ -700,7 +711,7 @@ export HF_ENDPOINT=https://hf-mirror.com
 
 - 🔇 Web 看板 `--quiet` 參數屏蔽請求日誌
 - 🔄 Web 看板 `--daemon` 參數背景執行（macOS/Linux）
-- 🔧 `run install` MCP 配置生成修復（sys.executable + 完整欄位）
+- 🔧 `avmrun install` MCP 配置生成修復（sys.executable + 完整欄位）
 - 📋 問題追蹤增刪改歸檔（Web 看板新增/編輯/歸檔/刪除 + 記憶關聯）
 - 👆 所有列表頁點擊行任意位置彈出編輯彈窗（記憶/問題/標籤）
 - 🔒 會話延續/上下文轉移時阻塞規則強制生效（跨會話必須重新確認）
