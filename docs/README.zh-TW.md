@@ -369,6 +369,13 @@ export HF_ENDPOINT=https://hf-mirror.com
 
 ## 📋 更新日誌
 
+### v2.2.6
+
+**規則同步：DEV_WORKFLOW_PROMPT 與 STEERING_CONTENT 完全對齊**
+- 📝 DEV_WORKFLOW_PROMPT 補充「禁止」行、「按對應流程執行」行
+- 📝 核心原則從縮寫版恢復完整版，補充「怎麼做（執行標準）」section
+- 🌐 7 語言檔案全部同步
+
 ### v2.2.5
 
 **重構：核心原則精簡 + 執行標準 + 移除 check_track hook**

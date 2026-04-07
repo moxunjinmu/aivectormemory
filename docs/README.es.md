@@ -369,6 +369,13 @@ O agregar env en la configuración MCP:
 
 ## 📋 Registro de Cambios
 
+### v2.2.6
+
+**Sincronización de reglas: DEV_WORKFLOW_PROMPT completamente alineado con STEERING_CONTENT**
+- 📝 Añadida línea «Prohibido», añadida línea «seguir el flujo correspondiente»
+- 📝 Principios fundamentales restaurados a versión completa, añadida sección «Cómo ejecutar (estándares de ejecución)»
+- 🌐 Los 7 archivos de idiomas sincronizados
+
 ### v2.2.5
 
 **Refactorización: Principios fundamentales simplificados + estándares de ejecución + eliminación del hook check_track**

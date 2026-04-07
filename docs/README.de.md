@@ -369,6 +369,13 @@ Oder env in der MCP-Konfiguration hinzufügen:
 
 ## 📋 Änderungsprotokoll
 
+### v2.2.6
+
+**Regelsynchronisierung: DEV_WORKFLOW_PROMPT vollständig mit STEERING_CONTENT abgeglichen**
+- 📝 Zeile „Verboten" hinzugefügt, Zeile „dem entsprechenden Ablauf folgen" hinzugefügt
+- 📝 Kernprinzipien von Kurzfassung auf Vollversion wiederhergestellt, Abschnitt „Wie ausführen (Ausführungsstandards)" hinzugefügt
+- 🌐 Alle 7 Sprachdateien synchronisiert
+
 ### v2.2.5
 
 **Refactoring: Kernprinzipien gestrafft + Ausführungsstandards + check_track-Hook entfernt**

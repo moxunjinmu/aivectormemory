@@ -369,6 +369,13 @@ export HF_ENDPOINT=https://hf-mirror.com
 
 ## 📋 更新履歴
 
+### v2.2.6
+
+**ルール同期：DEV_WORKFLOW_PROMPT を STEERING_CONTENT と完全に整合**
+- 📝 DEV_WORKFLOW_PROMPT に「禁止」行、「対応するフローに従って実行」行を追加
+- 📝 コア原則を省略版から完全版に復元、「どう実行するか（実行基準）」section を追加
+- 🌐 7 言語ファイルすべて同期
+
 ### v2.2.5
 
 **リファクタリング：コア原則の精簡 + 実行基準 + check_track hook 削除**

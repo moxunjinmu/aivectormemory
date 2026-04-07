@@ -374,6 +374,13 @@ Or add env to MCP config:
 
 ## 📋 Changelog
 
+### v2.2.6
+
+**Rules sync: DEV_WORKFLOW_PROMPT fully aligned with STEERING_CONTENT**
+- 📝 DEV_WORKFLOW_PROMPT: added "Forbidden" line, "follow corresponding flow" line
+- 📝 Core principles restored from abbreviated to full version, added "How to execute (execution standards)" section
+- 🌐 All 7 language files synchronized
+
 ### v2.2.5
 
 **Refactor: Core principles streamlined + execution standards + remove check_track hook**

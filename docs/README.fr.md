@@ -369,6 +369,13 @@ Ou ajouter env dans la configuration MCP :
 
 ## 📋 Journal des Modifications
 
+### v2.2.6
+
+**Synchronisation des règles : DEV_WORKFLOW_PROMPT entièrement aligné avec STEERING_CONTENT**
+- 📝 Ajout de la ligne « Interdit », ajout de la ligne « suivre le flux correspondant »
+- 📝 Principes fondamentaux restaurés en version complète, ajout de la section « Comment exécuter (standards d'exécution) »
+- 🌐 Les 7 fichiers de langues synchronisés
+
 ### v2.2.5
 
 **Refactorisation : Principes fondamentaux simplifiés + standards d'exécution + suppression du hook check_track**
