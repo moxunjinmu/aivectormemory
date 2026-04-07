@@ -369,6 +369,15 @@ Ou ajouter env dans la configuration MCP :
 
 ## 📋 Journal des Modifications
 
+### v2.2.5
+
+**Refactorisation : Principes fondamentaux simplifiés + standards d'exécution + suppression du hook check_track**
+- 📝 Principes fondamentaux réduits de 11 à 9 — colmatage des failles, blocage des voies de contournement
+- 📝 Ajout du bloc de standards d'exécution « Comment faire » : vérification = appeler l'outil, trouver la cause racine = afficher la correspondance, test réussi = montrer la sortie brute, recall doit précéder les opérations non-code
+- 🛡️ Suppression du hook preToolUse check_track (l'interception erronée des opérations Write poussait l'IA à contourner via Bash)
+- 🛡️ Description de bash_guard corrigée (ne trompe plus l'IA en lui faisant croire que le déploiement est bloqué)
+- 🌐 Les 7 langues synchronisées
+
 ### v2.2.3
 
 **Amélioration : Restructuration des règles — workflow simplifié avec séparation claire des flux**

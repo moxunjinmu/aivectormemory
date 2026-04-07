@@ -374,6 +374,15 @@ Or add env to MCP config:
 
 ## 📋 Changelog
 
+### v2.2.5
+
+**Refactor: Core principles streamlined + execution standards + remove check_track hook**
+- 📝 Core principles reduced from 11 to 9 — patching loopholes, blocking bypass paths
+- 📝 Added "How to Do It" execution standards block: verify = call tools, find root cause = output correspondence, test passed = show raw output, recall must precede non-code operations
+- 🛡️ Removed check_track preToolUse hook (false interception of Write operations caused AI to bypass via Bash)
+- 🛡️ bash_guard description corrected (no longer misleads AI into thinking deployment is blocked)
+- 🌐 All 7 languages synchronized
+
 ### v2.2.3
 
 **Enhancement: Rules restructure — streamlined workflow with clear flow separation**

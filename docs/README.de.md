@@ -369,6 +369,15 @@ Oder env in der MCP-Konfiguration hinzufügen:
 
 ## 📋 Änderungsprotokoll
 
+### v2.2.5
+
+**Refactoring: Kernprinzipien gestrafft + Ausführungsstandards + check_track-Hook entfernt**
+- 📝 Kernprinzipien von 11 auf 9 reduziert — Schlupflöcher geschlossen, Umgehungswege blockiert
+- 📝 „Wie umsetzen"-Ausführungsstandards-Block hinzugefügt: Verifizierung = Tool aufrufen, Ursache finden = Zuordnung ausgeben, Test bestanden = Rohausgabe zeigen, recall muss vor Nicht-Code-Operationen erfolgen
+- 🛡️ check_track preToolUse-Hook entfernt (Fehlinterzeption von Write-Operationen führte dazu, dass die KI über Bash umging)
+- 🛡️ bash_guard-Description korrigiert (die KI wird nicht mehr irregeführt, dass Deployment blockiert ist)
+- 🌐 Alle 7 Sprachen synchronisiert
+
 ### v2.2.3
 
 **Verbesserung: Regelstruktur neu organisiert — optimierter Workflow mit klarer Flusstrennung**

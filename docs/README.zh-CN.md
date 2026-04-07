@@ -374,6 +374,15 @@ export HF_ENDPOINT=https://hf-mirror.com
 
 ## 📋 更新日志
 
+### v2.2.5
+
+**重构：核心原则精简 + 执行标准 + 移除 check_track hook**
+- 📝 核心原则从 11 条精简为 9 条，补漏洞、堵绕过口
+- 📝 新增「怎么做」执行标准块：验证=调用工具、找根因=输出对应关系、测试通过=展示原始输出、recall 必须先于非代码操作
+- 🛡️ 移除 check_track preToolUse hook（误拦截 Write 操作导致 AI 用 Bash 绕过）
+- 🛡️ bash_guard description 修正（不再误导 AI 认为部署被阻止）
+- 🌐 7 语言同步
+
 ### v2.2.3
 
 **优化：规则结构重组 — 精简工作流，清晰分离流程**
