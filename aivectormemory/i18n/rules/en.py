@@ -29,10 +29,22 @@ STEERING_CONTENT = """# AIVectorMemory - Workflow Rules
 1. **Verify before any operation, never assume, never rely on memory**
 2. **Never test blindly — review the code files, find root cause, match actual error**
 3. **No verbal promises — everything validated by passing tests**
-4. **Review code and think rigorously before any file modification**
-5. **Run tests and verify yourself. Fix your own mistakes — never ask user whether to fix**
-6. **When user requests to read a file, re-read with tool — never skip claiming "already read"**
-7. **When project info needed, `recall` memory system first → search code/config → ask user only as last resort**
+4. **Analyze complete impact chain and list all affected areas before any modification.** Only start after confirming all affected areas are accounted for. Never work piecemeal.
+5. **Never ask the user to operate manually during development/testing — do it yourself. Fix your own mistakes immediately, never ask the user whether to fix them**
+6. **When the user asks to read a file, never skip by claiming "already read" or "already in context" — always re-invoke the tool to read the latest content**
+7. **When project information is needed, always `recall` the memory system first, then search code/config if not found, only ask the user as a last resort. Never skip recall and ask the user directly**
+8. **Completeness checks are AI's responsibility, not the user's.** After completing a task, verify completeness yourself by searching code, grepping related references, and running tests, then report results directly. Only block for user confirmation on solution choices, architecture decisions, or requirement trade-offs. Never ask the user "anything missing?" or "need additions?" — that pushes verification work onto the user.
+9. **When a tool is intercepted by a hook, investigate the interception reason and try to solve the root problem first — never switch to another tool to bypass it.** For example, if Write is intercepted, don't just use Bash cat/heredoc without investigating — check why the hook intercepted, fix the issue, then retry.
+
+**⚠️ How to execute (execution standards for core principles):**
+
+- **Verify = invoke tools** (Read/grep/Bash), not mental reasoning. Must Read the target file in the current turn before modifying it
+- **Find root cause = output the correspondence**: before modifying, must write out "error message → corresponding code line → why it errors → why the fix resolves it"
+- **Tests passing = show raw output**: after modification, must run tests and show key output. Never conclude with "fixed" or "should work now"
+- **Impact chain = grep search evidence**: use grep to search modified functions/fields/table names and list all references, not rely on thinking
+- **Mistake correction = code + data + verification**: code logic fixed + data affected by wrong logic fixed + verify data is correct. Never say "should be correct now" or "new data will be right"
+- **Completeness report = list verification process**: when reporting, state what commands were run, which files were checked, not just "verified"
+- **Multi-stage tasks execute continuously**: confirmed plan's subsequent stages proceed directly, never pause between stages to ask "shall I continue?"
 
 ---
 
@@ -151,10 +163,12 @@ DEV_WORKFLOW_PROMPT = (
     "1. **Verify before any operation, never assume, never rely on memory**\n"
     "2. **Review code files, find root cause, match actual error**\n"
     "3. **Everything validated by passing tests**\n"
-    "4. **Review code and think rigorously before any file modification**\n"
-    "5. **Run tests yourself, fix your own mistakes**\n"
-    "6. **When user requests to read a file, re-read with tool**\n"
-    "7. **When project info needed, `recall` memory system first → search code/config → ask user only as last resort**\n\n"
+    "4. **Analyze complete impact chain and list all affected areas before modification. Never work piecemeal**\n"
+    "5. **Run tests yourself, fix your own mistakes immediately, never ask user whether to fix**\n"
+    "6. **When user asks to read a file, never skip claiming \"already read\" — always re-read latest content**\n"
+    "7. **Need project info? recall memory system first, then search code, only ask user as last resort**\n"
+    "8. **Completeness checks are AI's responsibility. Verify and report results yourself. Never push verification onto user. Only block for solution/architecture decisions**\n"
+    "9. **Tool intercepted by hook? Investigate cause and fix root problem first, never switch tools to bypass**\n\n"
     "⚠️ Full rules in CLAUDE.md — must be strictly followed."
 )
 

@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AIVectorMemory — 给 AI 装上完整的大脑</title>
+  <meta name="description" content="不只是记忆 — 记忆 + 问题追踪 + 任务管理，三合一 AI 开发工作流引擎。唯一具备 track + task + status + hooks 的 MCP Server。">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            heading: ['Space Grotesk', 'sans-serif'],
+            body: ['DM Sans', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            warm: '#FFFCF7',
+            surface: '#F9F8F3',
+            border: '#E8E6E1',
+            muted: '#6B6B6B',
+            cta: '#2563EB',
+            'cta-hover': '#1d4ed8',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { font-family: 'DM Sans', sans-serif; color: #191919; background: #FFFCF7; }
+    h1, h2, h3, h4, h5, h6 { font-family: 'Space Grotesk', sans-serif; }
+    code, pre, .font-mono { font-family: 'JetBrains Mono', monospace; }
+
+    .reveal {
+      opacity: 0; transform: translateY(20px);
+      transition: opacity 0.6s cubic-bezier(0.16,1,0.3,1), transform 0.6s cubic-bezier(0.16,1,0.3,1);
+    }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+    .reveal-d1 { transition-delay: 80ms; }
+    .reveal-d2 { transition-delay: 160ms; }
+    .reveal-d3 { transition-delay: 240ms; }
+
+    .card {
+      background: #fff; border: 1px solid #E8E6E1; border-radius: 16px;
+      transition: box-shadow 0.2s ease, border-color 0.2s ease;
+    }
+    .card:hover { box-shadow: 0 8px 24px rgba(0,0,0,0.06); border-color: #D4D4D2; }
+
+    .browser-frame {
+      border-radius: 16px; overflow: hidden; border: 1px solid #E8E6E1;
+      box-shadow: 0 32px 64px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.04);
+    }
+    .browser-bar {
+      background: #F9F8F3; padding: 14px 18px;
+      display: flex; align-items: center; gap: 8px; border-bottom: 1px solid #E8E6E1;
+    }
+    .dot { width: 10px; height: 10px; border-radius: 50%; }
+
+    .desktop-frame {
+      border-radius: 16px; overflow: hidden; border: 1px solid #E8E6E1;
+      box-shadow: 0 32px 64px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.04);
+    }
+
+    .terminal {
+      background: #1a1a2e; border-radius: 16px; overflow: hidden;
+      box-shadow: 0 32px 64px rgba(0,0,0,0.1);
+    }
+
+    .tag {
+      font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+      padding: 4px 10px; border-radius: 999px;
+    }
+
+    .section-label {
+      font-size: 13px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #2563EB;
+    }
+
+    .t-check { color: #2563EB; }
+    .t-x { color: #D4D4D2; }
+
+    .hero-title { font-size: clamp(2.5rem, 5.5vw, 4rem); line-height: 1.08; letter-spacing: -0.03em; font-weight: 800; }
+
+    /* Notion-style feature card with colored top accent */
+    .feature-card { position: relative; overflow: hidden; }
+    .feature-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
+    }
+    .feature-card-red::before { background: #DC2626; }
+    .feature-card-blue::before { background: #2563EB; }
+    .feature-card-cyan::before { background: #0891B2; }
+    .feature-card-amber::before { background: #D97706; }
+
+    /* Logo marquee */
+    .logo-track {
+      display: flex; gap: 48px; align-items: center;
+      animation: marquee 30s linear infinite;
+    }
+    @keyframes marquee {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+    .logo-track:hover { animation-play-state: paused; }
+
+    @media (prefers-reduced-motion: reduce) {
+      .reveal { opacity: 1; transform: none; transition: none; }
+      .card { transition: none; }
+      .logo-track { animation: none; }
+    }
+  </style>
+</head>
+
+<body class="antialiased overflow-x-hidden">
+
+  <!-- ===== NAV ===== -->
+  <nav class="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl bg-warm/80 border-b border-border">
+    <div class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+      <a href="#" class="flex items-center gap-2.5 cursor-pointer">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#191919" stroke-width="2">
+          <circle cx="12" cy="8" r="3"/><circle cx="6" cy="18" r="2.5"/><circle cx="18" cy="18" r="2.5"/>
+          <line x1="12" y1="11" x2="7" y2="16" stroke-width="1.5"/><line x1="12" y1="11" x2="17" y2="16" stroke-width="1.5"/>
+          <line x1="8.5" y1="18" x2="15.5" y2="18" stroke-width="1.5"/>
+        </svg>
+        <span class="font-heading font-bold text-lg">AIVectorMemory</span>
+      </a>
+      <div class="hidden md:flex items-center gap-8 text-sm text-muted">
+        <a href="#features" class="hover:text-[#191919] transition-colors cursor-pointer">核心优势</a>
+        <a href="#dashboard" class="hover:text-[#191919] transition-colors cursor-pointer">数据看板</a>
+        <a href="#download" class="hover:text-[#191919] transition-colors cursor-pointer">下载</a>
+        <a href="#install" class="hover:text-[#191919] transition-colors cursor-pointer">安装</a>
+      </div>
+      <div class="flex items-center gap-3">
+        <a href="https://github.com/Edlineas/aivectormemory" target="_blank" rel="noopener"
+          class="hidden sm:flex items-center gap-1.5 text-sm text-muted hover:text-[#191919] transition-colors cursor-pointer">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+          GitHub
+        </a>
+        <a href="#install" class="bg-cta hover:bg-cta-hover text-white text-sm font-semibold px-5 py-2.5 rounded-full transition-colors cursor-pointer">
+          快速安装
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ===== HERO ===== -->
+  <section class="pt-36 pb-16 px-6">
+    <div class="max-w-3xl mx-auto text-center">
+      <div class="reveal inline-flex items-center gap-2 bg-surface border border-border rounded-full px-4 py-1.5 text-sm text-muted mb-10">
+        <span class="w-2 h-2 bg-cta rounded-full"></span>
+        v2.2.3 · Open Source · Apache 2.0
+      </div>
+      <h1 class="reveal hero-title font-heading text-[#191919] mb-7">
+        给 AI 装上<br class="sm:hidden">完整的大脑
+      </h1>
+      <p class="reveal text-lg sm:text-xl text-muted max-w-xl mx-auto leading-relaxed mb-4">
+        不只是记忆 —
+        <span class="text-[#191919] font-semibold">记忆</span> +
+        <span class="text-[#191919] font-semibold">问题追踪</span> +
+        <span class="text-[#191919] font-semibold">任务管理</span>
+      </p>
+      <p class="reveal text-base text-[#9B9B9B] mb-12">
+        三合一 AI 开发工作流引擎 · 10 IDE 支持 · 100% 本地运行
+      </p>
+      <div class="reveal flex flex-col sm:flex-row items-center justify-center gap-4 mb-8">
+        <a href="#install" class="group bg-cta hover:bg-cta-hover text-white font-semibold px-8 py-3.5 rounded-full transition-colors cursor-pointer flex items-center gap-2">
+          快速安装
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="transition-transform group-hover:translate-x-0.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+        <a href="https://github.com/Edlineas/aivectormemory" target="_blank" rel="noopener"
+          class="group border border-border hover:border-[#D4D4D2] hover:bg-surface text-[#191919] font-semibold px-8 py-3.5 rounded-full transition-all cursor-pointer flex items-center gap-2">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+          Star on GitHub
+        </a>
+      </div>
+    </div>
+
+    <!-- Trust logos -->
+    <div class="reveal max-w-3xl mx-auto text-center mb-16">
+      <p class="text-xs text-[#9B9B9B] uppercase tracking-widest font-semibold mb-6">Trusted by developers using</p>
+      <div class="flex flex-wrap items-center justify-center gap-x-10 gap-y-4 text-muted opacity-60">
+        <span class="font-heading font-bold text-base">Cursor</span>
+        <span class="font-heading font-bold text-base">Claude Code</span>
+        <span class="font-heading font-bold text-base">VSCode</span>
+        <span class="font-heading font-bold text-base">Windsurf</span>
+        <span class="font-heading font-bold text-base">Kiro</span>
+        <span class="font-heading font-bold text-base">Copilot</span>
+      </div>
+    </div>
+
+    <!-- Hero screenshot -->
+    <div class="reveal max-w-5xl mx-auto">
+      <div class="browser-frame">
+        <div class="browser-bar">
+          <div class="flex gap-1.5">
+            <span class="dot bg-[#FF5F57]"></span>
+            <span class="dot bg-[#FEBC2E]"></span>
+            <span class="dot bg-[#28C840]"></span>
+          </div>
+          <div class="flex-1 ml-4">
+            <div class="bg-white rounded-md px-3 py-1 text-xs text-[#9B9B9B] max-w-xs mx-auto text-center font-mono border border-border">localhost:9080</div>
+          </div>
+        </div>
+        <img src="docs/dashboard-overview.png" alt="AIVectorMemory Web Dashboard" class="w-full block">
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== UNIQUE FEATURES ===== -->
+  <section id="features" class="py-28 px-6 bg-surface">
+    <div class="max-w-6xl mx-auto">
+      <div class="text-center mb-16">
+        <p class="reveal section-label mb-3">WHY AIVECTORMEMORY</p>
+        <h2 class="reveal text-3xl md:text-[2.5rem] font-heading font-extrabold leading-tight mb-5">别人做记忆，我们做工作流</h2>
+        <p class="reveal text-muted text-lg max-w-2xl mx-auto leading-relaxed">
+          其他记忆工具只管存取。AIVectorMemory 让 AI 自动管理完整开发流程。
+        </p>
+      </div>
+
+      <!-- Bento: 1 wide + 1 wide, then 2 standard -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <!-- Issue Tracking -->
+        <div class="reveal card feature-card feature-card-red p-8 md:p-10 cursor-pointer">
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-11 h-11 bg-red-50 rounded-xl flex items-center justify-center">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#DC2626" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+            </div>
+            <span class="tag bg-red-50 text-red-600">独有</span>
+          </div>
+          <h3 class="font-heading text-xl font-bold mb-3">问题追踪 <span class="text-[#9B9B9B] font-mono text-sm font-normal">track</span></h3>
+          <p class="text-muted leading-relaxed mb-6">发现 bug → 排查根因 → 修复 → 测试 → 归档。完整生命周期管理，AI 自动记录每一步进展，归档后自动提取经验。</p>
+          <!-- Mini terminal illustration -->
+          <div class="bg-[#1a1a2e] rounded-xl p-4 font-mono text-xs leading-relaxed">
+            <div class="text-blue-400">$ <span class="text-white/80">track create "登录页500错误"</span></div>
+            <div class="text-green-400 mt-1">✓ 已创建问题 #42</div>
+            <div class="text-blue-400 mt-1">$ <span class="text-white/80">track update --root-cause "..."</span></div>
+            <div class="text-green-400 mt-1">✓ 已更新根因分析</div>
+          </div>
+        </div>
+
+        <!-- Task Management -->
+        <div class="reveal reveal-d1 card feature-card feature-card-blue p-8 md:p-10 cursor-pointer">
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-11 h-11 bg-blue-50 rounded-xl flex items-center justify-center">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+            </div>
+            <span class="tag bg-blue-50 text-blue-600">独有</span>
+          </div>
+          <h3 class="font-heading text-xl font-bold mb-3">任务管理 <span class="text-[#9B9B9B] font-mono text-sm font-normal">task</span></h3>
+          <p class="text-muted leading-relaxed mb-6">需求 → 设计 → 拆分子任务 → 逐个执行。多步骤新功能自动拆分，按顺序执行，进度实时同步。</p>
+          <!-- Task list illustration -->
+          <div class="bg-surface rounded-xl p-4 text-sm space-y-2.5">
+            <div class="flex items-center gap-2.5"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#16A34A" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg><span class="line-through text-[#9B9B9B]">T1 设计数据库 schema</span></div>
+            <div class="flex items-center gap-2.5"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#16A34A" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg><span class="line-through text-[#9B9B9B]">T2 实现 API 端点</span></div>
+            <div class="flex items-center gap-2.5"><div class="w-[18px] h-[18px] rounded border-2 border-cta flex items-center justify-center"><div class="w-2 h-2 bg-cta rounded-sm"></div></div><span class="font-medium">T3 前端页面开发</span><span class="text-xs text-cta font-semibold">进行中</span></div>
+            <div class="flex items-center gap-2.5"><div class="w-[18px] h-[18px] rounded border-2 border-border"></div><span class="text-muted">T4 集成测试</span></div>
+          </div>
+        </div>
+
+        <!-- Cross-Session State -->
+        <div class="reveal reveal-d2 card feature-card feature-card-cyan p-8 md:p-10 cursor-pointer">
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-11 h-11 bg-cyan-50 rounded-xl flex items-center justify-center">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0891B2" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+            </div>
+            <span class="tag bg-cyan-50 text-cyan-700">独有</span>
+          </div>
+          <h3 class="font-heading text-xl font-bold mb-3">跨会话状态 <span class="text-[#9B9B9B] font-mono text-sm font-normal">status</span></h3>
+          <p class="text-muted leading-relaxed mb-6">阻塞状态、当前任务、待办事项、最近变更——切换会话永不丢失。新会话自动恢复上下文。</p>
+          <!-- Status card illustration -->
+          <div class="bg-surface rounded-xl p-4 text-sm space-y-2">
+            <div class="flex justify-between"><span class="text-muted">当前任务</span><span class="font-medium">#300 官网重设计</span></div>
+            <div class="flex justify-between"><span class="text-muted">阻塞状态</span><span class="text-amber-600 font-medium">等待确认</span></div>
+            <div class="flex justify-between"><span class="text-muted">活跃问题</span><span class="font-medium">3 个</span></div>
+            <div class="flex justify-between"><span class="text-muted">待办任务</span><span class="font-medium">12 / 15 完成</span></div>
+          </div>
+        </div>
+
+        <!-- Hooks -->
+        <div class="reveal reveal-d3 card feature-card feature-card-amber p-8 md:p-10 cursor-pointer">
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-11 h-11 bg-amber-50 rounded-xl flex items-center justify-center">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            </div>
+            <span class="tag bg-amber-50 text-amber-700">独有</span>
+          </div>
+          <h3 class="font-heading text-xl font-bold mb-3">Hooks 规则执行 <span class="text-[#9B9B9B] font-mono text-sm font-normal">hooks</span></h3>
+          <p class="text-muted leading-relaxed mb-6">bash_guard 拦截危险命令、stop_guard 阻断违规回复、check_track 强制问题记录。硬阻断，不靠 AI 自觉。</p>
+          <!-- Hook block illustration -->
+          <div class="bg-[#1a1a2e] rounded-xl p-4 font-mono text-xs leading-relaxed">
+            <div class="text-blue-400">$ <span class="text-white/80">rm -rf /important-data</span></div>
+            <div class="text-red-400 mt-1 font-bold">✗ BLOCKED by bash_guard</div>
+            <div class="text-red-400/70 text-[11px] mt-0.5">危险命令已拦截，需要用户手动执行</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== COMPARISON TABLE ===== -->
+  <section id="comparison" class="py-28 px-6">
+    <div class="max-w-4xl mx-auto">
+      <div class="text-center mb-14">
+        <p class="reveal section-label mb-3">COMPARISON</p>
+        <h2 class="reveal text-3xl md:text-[2.5rem] font-heading font-extrabold leading-tight mb-5">功能对比</h2>
+        <p class="reveal text-muted text-lg">与主流 AI 记忆工具的全面对比</p>
+      </div>
+
+      <div class="reveal card overflow-hidden">
+        <table class="w-full border-collapse text-sm">
+          <thead>
+            <tr class="border-b-2 border-border bg-surface">
+              <th class="text-left text-muted font-medium py-4 pl-6 pr-4">功能</th>
+              <th class="text-center py-4 px-4"><span class="text-cta font-bold text-base">AIVectorMemory</span></th>
+              <th class="text-center text-[#9B9B9B] font-medium py-4 px-4">mem0</th>
+              <th class="text-center text-[#9B9B9B] font-medium py-4 px-4">Cline MB</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="border-b border-border/50 hover:bg-surface/50 transition-colors">
+              <td class="py-3.5 pl-6 pr-4">记忆存取</td>
+              <td class="text-center py-3.5 px-4"><svg class="inline t-check" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg></td>
+              <td class="text-center py-3.5 px-4"><svg class="inline t-check" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg></td>
+              <td class="text-center py-3.5 px-4"><svg class="inline t-check" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg></td>
+            </tr>
+            <tr class="border-b border-border/50 hover:bg-surface/50 transition-colors">
+              <td class="py-3.5 pl-6 pr-4">语义搜索</td>
+              <td class="text-center py-3.5 px-4"><svg class="inline t-check" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg></td>
+              <td class="text-center py-3.5 px-4"><svg class="inline t-check" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg></td>
+              <td class="text-center py-3.5 px-4"><svg class="inline t-x" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg></td>
+            </tr>
+            <tr class="border-b border-border/50 bg-blue-50/30 hover:bg-blue-50/50 transition-colors">
+              <td class="py-3.5 pl-6 pr-4 font-semibold">问题追踪</td>
+              <td class="text-center py-3.5 px-4"><svg class="inline t-check" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg></td>
+              <td class="text-center py-3.5 px-4"><svg class="inline t-x" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg></td>
+              <td class="text-center py-3.5 px-4"><svg class="inline t-x" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg></td>
+            </tr>
+            <tr class="border-b border-border/50 bg-blue-50/30 hover:bg-blue-50/50 transition-colors">
+              <td class="py-3.5 pl-6 pr-4 font-semibold">任务管理</td>
+              <td class="text-center py-3.5 px-4"><svg class="inline t-check" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg></td>
+              <td class="text-center py-3.5 px-4"><svg class="inline t-x" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg></td>
+              <td class="text-center py-3.5 px-4"><svg class="inline t-x" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg></td>
+            </tr>
+            <tr class="border-b border-border/50 bg-blue-50/30 hover:bg-blue-50/50 transition-colors">
+              <td class="py-3.5 pl-6 pr-4 font-semibold">跨会话状态</td>
+              <td class="text-center py-3.5 px-4"><svg class="inline t-check" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg></td>
+              <td class="text-center py-3.5 px-4"><svg class="inline t-x" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg></td>
+              <td class="text-center py-3.5 px-4"><svg class="inline t-x" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg></td>
+            </tr>
+            <tr class="border-b border-border/50 bg-blue-50/30 hover:bg-blue-50/50 transition-colors">
+              <td class="py-3.5 pl-6 pr-4 font-semibold">Hooks 规则执行</td>
+              <td class="text-center py-3.5 px-4"><svg class="inline t-check" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg></td>
+              <td class="text-center py-3.5 px-4"><svg class="inline t-x" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg></td>
+              <td class="text-center py-3.5 px-4"><svg class="inline t-x" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg></td>
+            </tr>
+            <tr class="border-b border-border/50 hover:bg-surface/50 transition-colors">
+              <td class="py-3.5 pl-6 pr-4">100% 本地</td>
+              <td class="text-center py-3.5 px-4"><svg class="inline t-check" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg></td>
+              <td class="text-center py-3.5 px-4"><svg class="inline t-x" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg></td>
+              <td class="text-center py-3.5 px-4"><svg class="inline t-check" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg></td>
+            </tr>
+            <tr class="border-b border-border/50 hover:bg-surface/50 transition-colors">
+              <td class="py-3.5 pl-6 pr-4">Web 数据看板</td>
+              <td class="text-center py-3.5 px-4"><svg class="inline t-check" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg></td>
+              <td class="text-center py-3.5 px-4"><svg class="inline t-x" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg></td>
+              <td class="text-center py-3.5 px-4"><svg class="inline t-x" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg></td>
+            </tr>
+            <tr class="border-b border-border/50 hover:bg-surface/50 transition-colors">
+              <td class="py-3.5 pl-6 pr-4">桌面应用</td>
+              <td class="text-center py-3.5 px-4"><svg class="inline t-check" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg></td>
+              <td class="text-center py-3.5 px-4"><svg class="inline t-x" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg></td>
+              <td class="text-center py-3.5 px-4"><svg class="inline t-x" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg></td>
+            </tr>
+            <tr class="hover:bg-surface/50 transition-colors">
+              <td class="py-3.5 pl-6 pr-4">多语言支持</td>
+              <td class="text-center py-3.5 px-4 text-cta font-bold">7 语言</td>
+              <td class="text-center py-3.5 px-4 text-[#9B9B9B]">1</td>
+              <td class="text-center py-3.5 px-4 text-[#9B9B9B]">1</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== WEB DASHBOARD ===== -->
+  <section id="dashboard" class="py-28 px-6 bg-surface">
+    <div class="max-w-6xl mx-auto">
+      <div class="text-center mb-16">
+        <p class="reveal section-label mb-3">WEB DASHBOARD</p>
+        <h2 class="reveal text-3xl md:text-[2.5rem] font-heading font-extrabold leading-tight mb-5">可视化数据看板</h2>
+        <p class="reveal text-muted text-lg max-w-2xl mx-auto leading-relaxed">
+          实时查看记忆、问题、任务。3D 向量网络揭示知识关联，让每一条记忆都清晰可见。
+        </p>
+      </div>
+
+      <div class="reveal mb-14">
+        <div class="browser-frame max-w-5xl mx-auto">
+          <div class="browser-bar">
+            <div class="flex gap-1.5"><span class="dot bg-[#FF5F57]"></span><span class="dot bg-[#FEBC2E]"></span><span class="dot bg-[#28C840]"></span></div>
+            <div class="flex-1 ml-4"><div class="bg-white rounded-md px-3 py-1 text-xs text-[#9B9B9B] max-w-xs mx-auto text-center font-mono border border-border">localhost:9080 — 统计概览</div></div>
+          </div>
+          <img src="docs/dashboard-overview.png" alt="统计概览" class="w-full block">
+        </div>
+      </div>
+
+      <!-- Stats in cards -->
+      <div class="reveal grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto mb-14">
+        <div class="card text-center py-6 cursor-default">
+          <div class="text-2xl md:text-3xl font-heading font-extrabold">135+</div>
+          <div class="text-sm text-[#9B9B9B] mt-1">记忆条目</div>
+        </div>
+        <div class="card text-center py-6 cursor-default">
+          <div class="text-2xl md:text-3xl font-heading font-extrabold">34</div>
+          <div class="text-sm text-[#9B9B9B] mt-1">问题追踪</div>
+        </div>
+        <div class="card text-center py-6 cursor-default">
+          <div class="text-2xl md:text-3xl font-heading font-extrabold">44</div>
+          <div class="text-sm text-[#9B9B9B] mt-1">任务管理</div>
+        </div>
+        <div class="card text-center py-6 cursor-default">
+          <div class="text-2xl md:text-3xl font-heading font-extrabold">7</div>
+          <div class="text-sm text-[#9B9B9B] mt-1">多项目</div>
+        </div>
+      </div>
+
+      <div class="reveal">
+        <div class="browser-frame max-w-5xl mx-auto">
+          <div class="browser-bar">
+            <div class="flex gap-1.5"><span class="dot bg-[#FF5F57]"></span><span class="dot bg-[#FEBC2E]"></span><span class="dot bg-[#28C840]"></span></div>
+            <div class="flex-1 ml-4"><div class="bg-white rounded-md px-3 py-1 text-xs text-[#9B9B9B] max-w-xs mx-auto text-center font-mono border border-border">localhost:9080 — 项目选择</div></div>
+          </div>
+          <img src="docs/001.png" alt="项目选择" class="w-full block">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== DESKTOP APP ===== -->
+  <section id="download" class="py-28 px-6">
+    <div class="max-w-6xl mx-auto">
+      <div class="text-center mb-16">
+        <p class="reveal section-label mb-3">DESKTOP APP</p>
+        <h2 class="reveal text-3xl md:text-[2.5rem] font-heading font-extrabold leading-tight mb-5">桌面原生应用</h2>
+        <p class="reveal text-muted text-lg max-w-2xl mx-auto leading-relaxed">
+          macOS / Windows / Linux 原生体验。无需打开浏览器，直接管理记忆与任务。
+        </p>
+      </div>
+
+      <div class="reveal mb-14">
+        <div class="desktop-frame max-w-4xl mx-auto">
+          <div class="bg-surface px-4 py-3 flex items-center gap-2 border-b border-border">
+            <div class="flex gap-1.5"><span class="w-3 h-3 rounded-full bg-[#FF5F57]"></span><span class="w-3 h-3 rounded-full bg-[#FEBC2E]"></span><span class="w-3 h-3 rounded-full bg-[#28C840]"></span></div>
+            <span class="text-xs text-[#9B9B9B] ml-3 font-mono">AIVectorMemory</span>
+          </div>
+          <img src="docs/002.png" alt="桌面应用" class="w-full block">
+        </div>
+      </div>
+
+      <div class="reveal flex flex-col sm:flex-row items-center justify-center gap-4">
+        <a href="https://github.com/Edlineas/aivectormemory/releases" target="_blank" rel="noopener" class="card flex items-center gap-3 px-6 py-4 cursor-pointer">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="#191919"><path d="M18.71 19.5C17.88 20.74 17 21.95 15.66 21.97C14.32 22 13.89 21.18 12.37 21.18C10.84 21.18 10.37 21.95 9.1 22C7.79 22.05 6.8 20.68 5.96 19.47C4.25 16.56 2.93 11.3 4.7 7.72C5.57 5.94 7.36 4.86 9.28 4.84C10.56 4.82 11.78 5.72 12.57 5.72C13.36 5.72 14.85 4.62 16.4 4.8C17.06 4.83 18.89 5.08 20.08 6.81C19.96 6.89 17.62 8.24 17.65 11.1C17.68 14.54 20.58 15.67 20.61 15.68C20.58 15.77 20.11 17.39 18.71 19.5ZM13 3.5C13.73 2.67 14.94 2.04 15.94 2C16.07 3.17 15.6 4.35 14.9 5.19C14.21 6.04 13.09 6.7 11.95 6.61C11.8 5.46 12.36 4.26 13 3.5Z"/></svg>
+          <div><div class="text-xs text-[#9B9B9B]">Download for</div><div class="font-semibold">macOS</div></div>
+        </a>
+        <a href="https://github.com/Edlineas/aivectormemory/releases" target="_blank" rel="noopener" class="card flex items-center gap-3 px-6 py-4 cursor-pointer">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="#191919"><path d="M3 5.548L10.452 4.56L10.456 11.684L3.008 11.726L3 5.548ZM10.452 12.316L10.456 19.444L3.006 18.454L3.006 12.274L10.452 12.316ZM11.26 4.44L20.996 3V11.6L11.26 11.68V4.44ZM21 12.392L20.996 20.996L11.26 19.56L11.244 12.384L21 12.392Z"/></svg>
+          <div><div class="text-xs text-[#9B9B9B]">Download for</div><div class="font-semibold">Windows</div></div>
+        </a>
+        <a href="https://github.com/Edlineas/aivectormemory/releases" target="_blank" rel="noopener" class="card flex items-center gap-3 px-6 py-4 cursor-pointer">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="#191919"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+          <div><div class="text-xs text-[#9B9B9B]">Download for</div><div class="font-semibold">Linux</div></div>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== CORE CAPABILITIES ===== -->
+  <section class="py-28 px-6 bg-surface">
+    <div class="max-w-6xl mx-auto">
+      <div class="text-center mb-16">
+        <p class="reveal section-label mb-3">CAPABILITIES</p>
+        <h2 class="reveal text-3xl md:text-[2.5rem] font-heading font-extrabold leading-tight mb-5">核心能力</h2>
+        <p class="reveal text-muted text-lg max-w-2xl mx-auto leading-relaxed">基础记忆能力同样领先，每一项都经过精心打磨。</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div class="reveal card p-7 cursor-pointer">
+          <div class="w-11 h-11 bg-blue-50 rounded-xl flex items-center justify-center mb-5"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg></div>
+          <h3 class="font-heading text-lg font-bold mb-2">语义搜索</h3>
+          <p class="text-muted text-sm leading-relaxed">向量相似度匹配，搜"数据库超时"也能找到"MySQL 连接池踩坑"。</p>
+        </div>
+        <div class="reveal reveal-d1 card p-7 cursor-pointer">
+          <div class="w-11 h-11 bg-green-50 rounded-xl flex items-center justify-center mb-5"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#16A34A" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div>
+          <h3 class="font-heading text-lg font-bold mb-2">省 50%+ Token</h3>
+          <p class="text-muted text-sm leading-relaxed">按需检索只加载相关记忆，不再批量注入上下文。省钱又精准。</p>
+        </div>
+        <div class="reveal reveal-d2 card p-7 cursor-pointer">
+          <div class="w-11 h-11 bg-purple-50 rounded-xl flex items-center justify-center mb-5"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#7C3AED" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M9 9h6v6H9z"/><path d="M9 1v3M15 1v3M9 20v3M15 20v3M20 9h3M20 14h3M1 9h3M1 14h3"/></svg></div>
+          <h3 class="font-heading text-lg font-bold mb-2">100% 本地</h3>
+          <p class="text-muted text-sm leading-relaxed">ONNX 本地推理 + SQLite 存储。零云依赖，数据永不离开你的机器。</p>
+        </div>
+        <div class="reveal reveal-d1 card p-7 cursor-pointer">
+          <div class="w-11 h-11 bg-amber-50 rounded-xl flex items-center justify-center mb-5"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2"><rect x="2" y="6" width="14" height="14" rx="2"/><path d="M8 2h12a2 2 0 012 2v12"/></svg></div>
+          <h3 class="font-heading text-lg font-bold mb-2">智能去重</h3>
+          <p class="text-muted text-sm leading-relaxed">相似度 > 0.95 自动合并，记忆库永远保持干净。</p>
+        </div>
+        <div class="reveal reveal-d2 card p-7 cursor-pointer">
+          <div class="w-11 h-11 bg-cyan-50 rounded-xl flex items-center justify-center mb-5"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0891B2" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg></div>
+          <h3 class="font-heading text-lg font-bold mb-2">7 语言支持</h3>
+          <p class="text-muted text-sm leading-relaxed">简中 / 繁中 / English / Espanol / Deutsch / Francais / 日本語。</p>
+        </div>
+        <div class="reveal reveal-d3 card p-7 cursor-pointer">
+          <div class="w-11 h-11 bg-rose-50 rounded-xl flex items-center justify-center mb-5"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#E11D48" stroke-width="2"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg></div>
+          <h3 class="font-heading text-lg font-bold mb-2">多项目隔离</h3>
+          <p class="text-muted text-sm leading-relaxed">每个项目独立记忆空间，互不干扰。自动加载对应上下文。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== IDE SUPPORT ===== -->
+  <section class="py-28 px-6">
+    <div class="max-w-6xl mx-auto">
+      <div class="text-center mb-14">
+        <p class="reveal section-label mb-3">IDE SUPPORT</p>
+        <h2 class="reveal text-3xl md:text-[2.5rem] font-heading font-extrabold leading-tight mb-5">支持 10 款主流 IDE</h2>
+        <p class="reveal text-muted text-lg">一键安装，开箱即用。无需手动配置 MCP。</p>
+      </div>
+
+      <div class="reveal grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 max-w-4xl mx-auto">
+        <div class="card py-5 px-4 text-center cursor-pointer"><div class="font-heading font-semibold text-sm mb-1">Cursor</div><div class="text-[#9B9B9B] text-xs">AI Code Editor</div></div>
+        <div class="card py-5 px-4 text-center cursor-pointer"><div class="font-heading font-semibold text-sm mb-1">Claude Code</div><div class="text-[#9B9B9B] text-xs">Anthropic CLI</div></div>
+        <div class="card py-5 px-4 text-center cursor-pointer"><div class="font-heading font-semibold text-sm mb-1">Kiro</div><div class="text-[#9B9B9B] text-xs">AWS IDE</div></div>
+        <div class="card py-5 px-4 text-center cursor-pointer"><div class="font-heading font-semibold text-sm mb-1">Windsurf</div><div class="text-[#9B9B9B] text-xs">AI IDE</div></div>
+        <div class="card py-5 px-4 text-center cursor-pointer"><div class="font-heading font-semibold text-sm mb-1">VSCode</div><div class="text-[#9B9B9B] text-xs">Copilot Agent</div></div>
+        <div class="card py-5 px-4 text-center cursor-pointer"><div class="font-heading font-semibold text-sm mb-1">Copilot</div><div class="text-[#9B9B9B] text-xs">GitHub</div></div>
+        <div class="card py-5 px-4 text-center cursor-pointer"><div class="font-heading font-semibold text-sm mb-1">OpenCode</div><div class="text-[#9B9B9B] text-xs">Terminal IDE</div></div>
+        <div class="card py-5 px-4 text-center cursor-pointer"><div class="font-heading font-semibold text-sm mb-1">Trae</div><div class="text-[#9B9B9B] text-xs">ByteDance IDE</div></div>
+        <div class="card py-5 px-4 text-center cursor-pointer"><div class="font-heading font-semibold text-sm mb-1">Codex</div><div class="text-[#9B9B9B] text-xs">OpenAI CLI</div></div>
+        <div class="card py-5 px-4 text-center cursor-pointer"><div class="font-heading font-semibold text-sm mb-1">Gemini CLI</div><div class="text-[#9B9B9B] text-xs">Google CLI</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== INSTALL ===== -->
+  <section id="install" class="py-28 px-6 bg-surface">
+    <div class="max-w-3xl mx-auto">
+      <div class="text-center mb-14">
+        <p class="reveal section-label mb-3">GET STARTED</p>
+        <h2 class="reveal text-3xl md:text-[2.5rem] font-heading font-extrabold leading-tight mb-5">30 秒开始使用</h2>
+        <p class="reveal text-muted text-lg">两行命令，为你的所有 IDE 装上记忆。</p>
+      </div>
+
+      <div class="reveal mb-8">
+        <div class="terminal">
+          <div class="bg-[#12122a] px-4 py-3 flex items-center gap-2 border-b border-white/10">
+            <div class="flex gap-1.5"><span class="w-3 h-3 rounded-full bg-[#FF5F57]"></span><span class="w-3 h-3 rounded-full bg-[#FEBC2E]"></span><span class="w-3 h-3 rounded-full bg-[#28C840]"></span></div>
+            <span class="text-xs text-white/40 ml-3">Terminal</span>
+          </div>
+          <div class="p-6 font-mono text-sm leading-loose">
+            <div><span class="text-blue-400 mr-2 select-none">$</span><span class="text-white/90">pip install aivectormemory</span></div>
+            <div><span class="text-blue-400 mr-2 select-none">$</span><span class="text-white/90">avmrun install</span></div>
+            <div class="text-green-400 mt-2">✓ 已自动为 Cursor、Claude Code、VSCode 等 10 款 IDE 配置 MCP</div>
+            <div class="mt-2"><span class="text-blue-400 mr-2 select-none">$</span><span class="text-white/90">avmrun web</span><span class="text-white/30 ml-3"># 启动 Web 数据看板</span></div>
+            <div class="text-cyan-400">→ http://localhost:9080</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="reveal text-center">
+        <p class="text-[#9B9B9B] text-sm mb-3">或使用 uvx（零安装试用）</p>
+        <div class="inline-flex items-center bg-white border border-border rounded-full px-5 py-3 font-mono text-sm">
+          <span class="text-cta mr-2 select-none">$</span>
+          <span>uvx aivectormemory install</span>
+          <button onclick="navigator.clipboard.writeText('uvx aivectormemory install')" class="ml-4 text-[#9B9B9B] hover:text-[#191919] transition-colors cursor-pointer" title="复制">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== FINAL CTA ===== -->
+  <section class="py-28 px-6">
+    <div class="max-w-3xl mx-auto text-center">
+      <h2 class="reveal text-3xl md:text-[2.5rem] font-heading font-extrabold leading-tight mb-6">准备好了吗？</h2>
+      <p class="reveal text-muted text-lg mb-10 max-w-xl mx-auto leading-relaxed">
+        让你的 AI 不再是金鱼记忆。安装 AIVectorMemory，开启完整的 AI 开发工作流。
+      </p>
+      <div class="reveal flex flex-col sm:flex-row items-center justify-center gap-4">
+        <a href="#install" class="group bg-cta hover:bg-cta-hover text-white font-semibold px-8 py-3.5 rounded-full transition-colors cursor-pointer flex items-center gap-2">
+          立即安装
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="transition-transform group-hover:translate-x-0.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+        <a href="https://github.com/Edlineas/aivectormemory" target="_blank" rel="noopener"
+          class="group border border-border hover:border-[#D4D4D2] hover:bg-surface text-[#191919] font-semibold px-8 py-3.5 rounded-full transition-all cursor-pointer flex items-center gap-2">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+          查看源码
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== FOOTER ===== -->
+  <footer class="border-t border-border py-12 px-6">
+    <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+      <div class="flex items-center gap-2.5">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#191919" stroke-width="2">
+          <circle cx="12" cy="8" r="3"/><circle cx="6" cy="18" r="2.5"/><circle cx="18" cy="18" r="2.5"/>
+          <line x1="12" y1="11" x2="7" y2="16" stroke-width="1.5"/><line x1="12" y1="11" x2="17" y2="16" stroke-width="1.5"/>
+          <line x1="8.5" y1="18" x2="15.5" y2="18" stroke-width="1.5"/>
+        </svg>
+        <span class="font-heading font-bold">AIVectorMemory</span>
+      </div>
+      <div class="flex items-center gap-6 text-sm text-muted">
+        <a href="https://github.com/Edlineas/aivectormemory" target="_blank" rel="noopener" class="hover:text-[#191919] transition-colors cursor-pointer">GitHub</a>
+        <a href="https://pypi.org/project/aivectormemory/" target="_blank" rel="noopener" class="hover:text-[#191919] transition-colors cursor-pointer">PyPI</a>
+        <a href="https://github.com/Edlineas/aivectormemory/blob/main/LICENSE" target="_blank" rel="noopener" class="hover:text-[#191919] transition-colors cursor-pointer">Apache 2.0</a>
+      </div>
+      <p class="text-sm text-[#9B9B9B]">&copy; 2026 AIVectorMemory. Open Source.</p>
+    </div>
+  </footer>
+
+  <script>
+    const obs = new IntersectionObserver(entries => {
+      entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+    }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+    document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+  </script>
+</body>
+</html>

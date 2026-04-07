@@ -29,10 +29,22 @@ STEERING_CONTENT = """# AIVectorMemory - Reglas de Flujo de Trabajo
 1. **Verificar antes de cualquier operación, nunca asumir, nunca confiar en la memoria**
 2. **Al encontrar problemas, nunca testear a ciegas — revisar los archivos de código, encontrar la causa raíz, corresponder con el error real**
 3. **Sin promesas verbales — todo se valida con pruebas que pasen**
-4. **Revisar código y pensar rigurosamente antes de cualquier modificación de archivo**
-5. **Durante desarrollo y auto-pruebas, nunca pedir al usuario que opere manualmente. Hacerlo uno mismo si es posible. Los errores propios deben corregirse por uno mismo — nunca preguntar al usuario si quiere que se corrijan**
-6. **Cuando el usuario solicita leer un archivo, nunca saltar alegando "ya leído" o "ya en contexto" — llamar la herramienta para leer el contenido más reciente**
-7. **Cuando se necesita información del proyecto, primero `recall` para consultar el sistema de memoria. Si no se encuentra, buscar en código/archivos de configuración. Solo preguntar al usuario como último recurso. Prohibido saltar recall y preguntar directamente al usuario**
+4. **Analizar la cadena de impacto completa y listar todas las áreas afectadas antes de cualquier modificación.** Solo comenzar después de confirmar que todas las áreas afectadas están contempladas. Prohibido trabajar por partes.
+5. **Durante desarrollo y auto-pruebas, nunca pedir al usuario que opere manualmente. Hacerlo uno mismo si es posible. Los errores de operación propios deben corregirse por uno mismo, prohibido preguntar al usuario si quiere que se repare**
+6. **Cuando el usuario pide leer un archivo, prohibido omitirlo con "ya lo leí" o "ya está en el contexto" — siempre reinvocar la herramienta para leer el contenido más reciente**
+7. **Cuando se necesita información del proyecto, primero consultar `recall` en el sistema de memoria, si no se encuentra buscar en código/configuración, solo preguntar al usuario como último recurso. Prohibido saltarse recall y preguntar directamente al usuario**
+8. **La verificación de completitud es responsabilidad de la IA, no del usuario.** Tras completar una tarea, verificar la completitud uno mismo buscando código, haciendo grep de referencias relacionadas y ejecutando pruebas, luego reportar resultados directamente. Solo bloquear para confirmación del usuario en elecciones de solución, decisiones de arquitectura o compromisos de requisitos. Prohibido preguntar al usuario "¿falta algo?" o "¿necesita adiciones?" — eso traslada el trabajo de verificación al usuario.
+9. **Cuando una herramienta es interceptada por un hook, primero investigar la razón de la intercepción e intentar resolver el problema raíz — prohibido cambiar directamente a otra herramienta para evitarlo.** Por ejemplo, si Write es interceptado, no usar Bash cat/heredoc sin investigar — primero ver por qué el hook interceptó, resolver el problema y luego reintentar.
+
+**⚠️ Cómo ejecutar (estándares de ejecución de los principios fundamentales):**
+
+- **Verificar = invocar herramientas** (Read/grep/Bash), no razonamiento mental. Antes de modificar un archivo, debe haberse leído con Read en el turno actual
+- **Encontrar causa raíz = mostrar la correspondencia**: antes de modificar, escribir "mensaje de error → línea de código correspondiente → por qué da error → por qué la corrección lo resuelve"
+- **Pruebas pasadas = mostrar salida original**: tras la modificación, ejecutar pruebas y mostrar la salida clave. Prohibido terminar con "corregido" o "debería funcionar ahora"
+- **Cadena de impacto = evidencia de búsqueda grep**: usar grep para buscar funciones/campos/nombres de tabla modificados y listar todas las referencias, no confiar en el pensamiento
+- **Corrección de errores = código + datos + verificación**: lógica del código corregida + datos afectados por lógica errónea corregidos + verificar que los datos son correctos. Prohibido decir "ahora debería estar correcto" o "los nuevos datos serán correctos"
+- **Reporte de completitud = listar proceso de verificación**: al reportar, indicar qué comandos se ejecutaron, qué archivos se revisaron, no solo decir "verificado"
+- **Tareas multi-etapa se ejecutan continuamente**: las etapas posteriores del plan confirmado se avanzan directamente, no pausar proactivamente entre etapas preguntando "¿continúo?"
 
 ---
 
@@ -151,10 +163,12 @@ DEV_WORKFLOW_PROMPT = (
     "1. **Verificar antes de cualquier operación, nunca asumir, nunca confiar en la memoria**\n"
     "2. **Revisar archivos de código, encontrar causa raíz, corresponder con el error real**\n"
     "3. **Todo se valida con pruebas que pasen**\n"
-    "4. **Revisar código y pensar rigurosamente antes de cualquier modificación de archivo**\n"
-    "5. **Ejecutar pruebas y verificaciones uno mismo, corregir errores propios**\n"
-    "6. **Cuando el usuario solicita leer un archivo, llamar la herramienta para leer el contenido más reciente**\n"
-    "7. **Cuando se necesita info del proyecto, primero `recall` sistema de memoria → buscar en código/config → solo preguntar al usuario como último recurso**\n\n"
+    "4. **Analizar cadena de impacto completa y listar áreas afectadas antes de modificar. Prohibido trabajar por partes**\n"
+    "5. **Ejecutar pruebas uno mismo, errores propios se corrigen uno mismo, prohibido preguntar al usuario si quiere que se repare**\n"
+    "6. **Usuario pide leer archivo → prohibido omitir con \"ya lo leí\", siempre releer contenido más reciente**\n"
+    "7. **¿Info del proyecto? Primero recall en sistema de memoria, luego buscar código, solo preguntar al usuario como último recurso**\n"
+    "8. **Verificación de completitud es responsabilidad de la IA. Verificar y reportar resultados uno mismo. No trasladar trabajo de verificación al usuario. Solo bloquear para decisiones de solución/arquitectura**\n"
+    "9. **¿Herramienta interceptada por hook? Investigar causa y resolver problema raíz primero, no cambiar a otra herramienta para evitarlo**\n\n"
     "⚠️ Reglas completas en CLAUDE.md — deben seguirse estrictamente."
 )
 

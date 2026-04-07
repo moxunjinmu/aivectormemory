@@ -89,24 +89,11 @@ HOOKS_CONFIGS = [
         },
     },
     {
-        "filename": "pre-tool-use-check.kiro.hook",
-        "content": {
-            "name": "代码修改前检查 track issue",
-            "version": "1.0.0",
-            "description": "Edit/Write 工具执行前，检查当前项目是否有活跃的 track issue，没有则拒绝执行",
-            "when": {"type": "preToolUse", "toolTypes": ["write"]},
-            "then": {
-                "type": "runCommand",
-                "command": "python3 -m aivectormemory.hooks.check_track",
-            },
-        },
-    },
-    {
         "filename": "bash-guard.kiro.hook",
         "content": {
             "name": "Bash Guard",
             "version": "1.0.0",
-            "description": "拦截危险 Bash 命令（git commit/push/部署等）",
+            "description": "拦截毁灭性删除命令（rm -rf / 等）",
             "when": {"type": "preToolUse", "toolTypes": ["shell"]},
             "then": {
                 "type": "runCommand",
@@ -135,16 +122,6 @@ def _stop_guard_script_path() -> Path:
 CLAUDE_CODE_HOOKS_CONFIG = {
     "hooks": {
         "PreToolUse": [
-            {
-                "matcher": "Edit|Write",
-                "hooks": [
-                    {
-                        "type": "command",
-                        "command": "python3 -m aivectormemory.hooks.check_track",
-                        "timeout": 10,
-                    }
-                ]
-            },
             {
                 "matcher": "Bash",
                 "hooks": [
@@ -196,11 +173,6 @@ CURSOR_HOOKS_CONFIG = {
     "hooks": {
         "preToolUse": [
             {
-                "matcher": "edit|write",
-                "command": "python3 -m aivectormemory.hooks.check_track",
-                "timeout": 10,
-            },
-            {
                 "matcher": "bash",
                 "command": "python3 -m aivectormemory.hooks.bash_guard",
                 "timeout": 5,
@@ -211,12 +183,6 @@ CURSOR_HOOKS_CONFIG = {
 
 WINDSURF_HOOKS_CONFIG = {
     "hooks": {
-        "pre_write_code": [
-            {
-                "command": "python3 -m aivectormemory.hooks.check_track",
-                "show_output": True,
-            }
-        ],
         "pre_run_command": [
             {
                 "command": "python3 -m aivectormemory.hooks.bash_guard",
@@ -229,10 +195,6 @@ WINDSURF_HOOKS_CONFIG = {
 CODEX_HOOKS_CONFIG = {
     "hooks": {
         "PreToolUse": [
-            {
-                "matcher": "Edit|Write",
-                "hooks": [{"type": "command", "command": "python3 -m aivectormemory.hooks.check_track", "timeout": 10}]
-            },
             {
                 "matcher": "Bash",
                 "hooks": [{"type": "command", "command": "python3 -m aivectormemory.hooks.bash_guard", "timeout": 5}]
@@ -249,7 +211,6 @@ CODEX_HOOKS_CONFIG = {
 COPILOT_HOOKS_CONFIG = {
     "hooks": {
         "PreToolUse": [
-            {"type": "command", "command": "python3 -m aivectormemory.hooks.check_track", "timeout": 10},
             {"type": "command", "command": "python3 -m aivectormemory.hooks.bash_guard", "timeout": 5}
         ],
         "Stop": [
@@ -261,10 +222,6 @@ COPILOT_HOOKS_CONFIG = {
 GEMINI_HOOKS_CONFIG = {
     "hooks": {
         "BeforeTool": [
-            {
-                "matcher": "write_file|create_file|edit_file|apply_diff",
-                "hooks": [{"type": "command", "command": "python3 -m aivectormemory.hooks.check_track"}]
-            },
             {
                 "matcher": "run_shell_command",
                 "hooks": [{"type": "command", "command": "python3 -m aivectormemory.hooks.bash_guard"}]
@@ -447,11 +404,12 @@ def _write_claude_code_hooks(hooks_dir: Path, lang: str | None = None) -> list[s
             config["hooks"][k] = new_hooks[k]
         config["hooks"].pop("TaskCompleted", None)
     # 写入 permissions.allow（MCP 工具通配符 + 基础工具自动授权）
-    required_perms = [f"mcp__{DEFAULT_SERVER_NAME}__*", f"mcp__{PLAYWRIGHT_SERVER_NAME}__*", "Bash(*)", "Edit(*)", "Write(*)", "Read(*)", "Glob(*)", "Grep(*)"]
-    # 清理旧的逐条 MCP 权限（被通配符覆盖）
+    required_perms = [f"mcp__{DEFAULT_SERVER_NAME}__*", f"mcp__{PLAYWRIGHT_SERVER_NAME}__*", "Bash", "Edit", "Write", "Read", "Glob", "Grep", "WebFetch", "WebSearch", "Skill", "NotebookEdit"]
+    # 清理旧格式权限（逐条 MCP 权限 + 带括号的工具权限如 Bash(*)）
     old_mcp_prefixes = (f"mcp__{DEFAULT_SERVER_NAME}__", f"mcp__{PLAYWRIGHT_SERVER_NAME}__")
+    old_paren_perms = {"Bash(*)", "Edit(*)", "Write(*)", "Read(*)", "Glob(*)", "Grep(*)"}
     if "permissions" in config and "allow" in config["permissions"]:
-        config["permissions"]["allow"] = [p for p in config["permissions"]["allow"] if not any(p.startswith(prefix) and not p.endswith("*") for prefix in old_mcp_prefixes)]
+        config["permissions"]["allow"] = [p for p in config["permissions"]["allow"] if p not in old_paren_perms and not any(p.startswith(prefix) and not p.endswith("*") for prefix in old_mcp_prefixes)]
     existing_perms = set(config.get("permissions", {}).get("allow", []))
     missing = [p for p in required_perms if p not in existing_perms]
     if missing:
@@ -1155,13 +1113,14 @@ def _remove_claude_code_hooks(hooks_dir: Path) -> list[str]:
             changed = True
     if not config.get("hooks"):
         config.pop("hooks", None)
-    # 移除 permissions
+    # 移除 permissions（MCP 通配符 + 基础工具）
     mcp_prefixes = (f"mcp__{DEFAULT_SERVER_NAME}__", f"mcp__{PLAYWRIGHT_SERVER_NAME}__")
+    avm_perms = {"Bash", "Edit", "Write", "Read", "Glob", "Grep", "WebFetch", "WebSearch", "Skill", "NotebookEdit", "Bash(*)", "Edit(*)", "Write(*)", "Read(*)", "Glob(*)", "Grep(*)"}
     if "permissions" in config and "allow" in config["permissions"]:
         before = len(config["permissions"]["allow"])
         config["permissions"]["allow"] = [
             p for p in config["permissions"]["allow"]
-            if not any(p.startswith(prefix) for prefix in mcp_prefixes)
+            if p not in avm_perms and not any(p.startswith(prefix) for prefix in mcp_prefixes)
         ]
         if len(config["permissions"]["allow"]) < before:
             changed = True

@@ -29,10 +29,22 @@ STEERING_CONTENT = """# AIVectorMemory - Règles de Flux de Travail
 1. **Vérifier avant toute opération, ne jamais supposer, ne jamais se fier à la mémoire**
 2. **Face à des problèmes, ne jamais tester aveuglément — examiner les fichiers de code, trouver la cause racine, correspondre à l'erreur réelle**
 3. **Pas de promesses verbales — tout est validé par des tests qui passent**
-4. **Examiner le code et réfléchir rigoureusement avant toute modification de fichier**
-5. **Pendant le développement et l'auto-test, ne jamais demander à l'utilisateur d'opérer manuellement. Le faire soi-même si possible. Ses propres erreurs doivent être corrigées par soi-même — ne jamais demander à l'utilisateur s'il faut les corriger**
-6. **Lorsque l'utilisateur demande de lire un fichier, ne jamais sauter en prétextant "déjà lu" ou "déjà dans le contexte" — appeler l'outil pour lire le contenu le plus récent**
-7. **Lorsque des informations projet sont nécessaires, d'abord `recall` pour interroger le système de mémoire. Si non trouvé, chercher dans le code/fichiers de configuration. Ne demander à l'utilisateur qu'en dernier recours. Interdit de sauter recall et demander directement à l'utilisateur**
+4. **Analyser la chaîne d'impact complète et lister toutes les zones affectées avant toute modification.** Ne commencer qu'après confirmation que toutes les zones affectées sont prises en compte. Interdit de travailler au coup par coup.
+5. **Pendant le développement et l'auto-test, ne jamais demander à l'utilisateur d'opérer manuellement. Le faire soi-même si possible. Les erreurs d'opération propres doivent être corrigées par soi-même, interdit de demander à l'utilisateur s'il veut qu'on répare**
+6. **Quand l'utilisateur demande de lire un fichier, interdit de sauter en disant « déjà lu » ou « déjà dans le contexte » — toujours réinvoquer l'outil pour lire le contenu le plus récent**
+7. **Quand des informations projet sont nécessaires, d'abord interroger `recall` dans le système de mémoire, si introuvable chercher dans le code/configuration, ne demander à l'utilisateur qu'en dernier recours. Interdit de sauter recall et demander directement à l'utilisateur**
+8. **La vérification de complétude est la responsabilité de l'IA, pas de l'utilisateur.** Après avoir terminé une tâche, vérifier la complétude soi-même en cherchant dans le code, grep des références associées et exécution de tests, puis rapporter les résultats directement. Ne bloquer pour confirmation utilisateur que pour les choix de solution, décisions d'architecture ou compromis de requis. Interdit de demander à l'utilisateur « des oublis ? » ou « des ajouts nécessaires ? » — cela transfère le travail de vérification à l'utilisateur.
+9. **Quand un outil est intercepté par un hook, d'abord enquêter sur la raison de l'interception et tenter de résoudre le problème racine — interdit de basculer directement vers un autre outil pour contourner.** Par exemple, si Write est intercepté, ne pas utiliser Bash cat/heredoc sans enquêter — d'abord voir pourquoi le hook a intercepté, résoudre le problème puis réessayer.
+
+**⚠️ Comment exécuter (standards d'exécution des principes fondamentaux) :**
+
+- **Vérifier = invoquer des outils** (Read/grep/Bash), pas du raisonnement mental. Avant de modifier un fichier, il doit avoir été lu avec Read dans le tour actuel
+- **Trouver la cause racine = afficher la correspondance** : avant modification, écrire « message d'erreur → ligne de code correspondante → pourquoi l'erreur → pourquoi la correction résout le problème »
+- **Tests passés = montrer la sortie brute** : après modification, exécuter les tests et montrer la sortie clé. Interdit de conclure avec « corrigé » ou « devrait fonctionner maintenant »
+- **Chaîne d'impact = preuves de recherche grep** : utiliser grep pour chercher les fonctions/champs/noms de table modifiés et lister toutes les références, pas se fier à la réflexion
+- **Correction d'erreur = code + données + vérification** : logique du code corrigée + données affectées par la logique erronée corrigées + vérifier que les données sont correctes. Interdit de dire « devrait être correct maintenant » ou « les nouvelles données seront justes »
+- **Rapport de complétude = lister le processus de vérification** : lors du rapport, indiquer quelles commandes ont été exécutées, quels fichiers ont été vérifiés, pas juste dire « vérifié »
+- **Tâches multi-étapes s'exécutent en continu** : les étapes suivantes du plan confirmé progressent directement, interdit de faire une pause proactive entre les étapes pour demander « je continue ? »
 
 ---
 
@@ -151,10 +163,12 @@ DEV_WORKFLOW_PROMPT = (
     "1. **Vérifier avant toute opération, ne jamais supposer, ne jamais se fier à la mémoire**\n"
     "2. **Examiner les fichiers de code, trouver la cause racine, correspondre à l'erreur réelle**\n"
     "3. **Tout est validé par des tests qui passent**\n"
-    "4. **Examiner le code et réfléchir rigoureusement avant toute modification de fichier**\n"
-    "5. **Exécuter les tests et vérifications soi-même, corriger ses propres erreurs**\n"
-    "6. **Lorsque l'utilisateur demande de lire un fichier, appeler l'outil pour lire le contenu le plus récent**\n"
-    "7. **Quand des infos projet sont nécessaires, d'abord `recall` système de mémoire → chercher dans code/config → ne demander à l'utilisateur qu'en dernier recours**\n\n"
+    "4. **Analyser la chaîne d'impact complète et lister les zones affectées avant modification. Interdit de travailler au coup par coup**\n"
+    "5. **Exécuter les tests soi-même, corriger ses propres erreurs soi-même, interdit de demander à l'utilisateur s'il veut qu'on répare**\n"
+    "6. **Utilisateur demande de lire un fichier → interdit de sauter en disant « déjà lu », toujours relire le contenu le plus récent**\n"
+    "7. **Info projet nécessaire ? D'abord recall dans le système de mémoire, puis chercher dans le code, demander à l'utilisateur en dernier recours**\n"
+    "8. **Vérification de complétude est la responsabilité de l'IA. Vérifier et rapporter les résultats soi-même. Ne pas transférer le travail de vérification à l'utilisateur. Ne bloquer que pour les décisions de solution/architecture**\n"
+    "9. **Outil intercepté par hook ? D'abord enquêter sur la cause et résoudre le problème racine, ne pas basculer vers un autre outil**\n\n"
     "⚠️ Règles complètes dans CLAUDE.md — doivent être strictement respectées."
 )
 

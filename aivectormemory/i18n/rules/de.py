@@ -29,10 +29,22 @@ STEERING_CONTENT = """# AIVectorMemory - Workflow-Regeln
 1. **Vor jeder Operation verifizieren, niemals annehmen, niemals auf Gedächtnis verlassen**
 2. **Bei Problemen niemals blind testen — die Code-Dateien überprüfen, Grundursache finden, dem tatsächlichen Fehler entsprechen**
 3. **Keine mündlichen Versprechen — alles wird durch bestandene Tests validiert**
-4. **Code überprüfen und rigoros nachdenken vor jeder Dateiänderung**
-5. **Während Entwicklung und Selbsttest niemals den Benutzer bitten manuell zu operieren. Selbst machen wenn möglich. Eigene Bedienungsfehler selbst korrigieren — niemals den Benutzer fragen ob sie behoben werden sollen**
-6. **Wenn der Benutzer das Lesen einer Datei anfordert, niemals mit "bereits gelesen" oder "bereits im Kontext" überspringen — Werkzeug aufrufen um den neuesten Inhalt zu lesen**
-7. **Wenn Projektinformationen benötigt werden, zuerst `recall` verwenden um das Gedächtnissystem abzufragen. Wenn nicht gefunden, in Code/Konfigurationsdateien suchen. Nur als letztes Mittel den Benutzer fragen. Verboten recall zu überspringen und den Benutzer direkt zu fragen**
+4. **Vor jeder Änderung die vollständige Auswirkungskette analysieren und eine Liste erstellen.** Erst nach Bestätigung aller betroffenen Bereiche mit der Arbeit beginnen. Stückweises Arbeiten ist verboten.
+5. **Während Entwicklung und Selbsttest niemals den Benutzer bitten manuell zu operieren. Selbst machen wenn möglich. Eigene Bedienungsfehler müssen selbst korrigiert werden, den Benutzer fragen ob repariert werden soll ist verboten**
+6. **Wenn der Benutzer das Lesen einer Datei verlangt, darf nicht mit „bereits gelesen" oder „bereits im Kontext" übersprungen werden — das Tool muss erneut aufgerufen werden um den neuesten Inhalt zu lesen**
+7. **Wenn Projektinformationen benötigt werden, muss zuerst `recall` das Gedächtnissystem abfragen, dann Code/Konfiguration durchsuchen, nur als letzter Ausweg den Benutzer fragen. Recall überspringen und direkt den Benutzer fragen ist verboten**
+8. **Vollständigkeitsprüfung ist die Verantwortung der KI, nicht des Benutzers.** Nach Abschluss einer Aufgabe muss die Vollständigkeit selbst durch Codesuche, grep verwandter Referenzen und Testausführung verifiziert werden, dann Ergebnisse direkt melden. Nur bei Lösungsauswahl, Architekturentscheidungen oder Anforderungskompromissen auf Benutzerbestätigung warten. Dem Benutzer Fragen wie „noch Auslassungen?" oder „Ergänzungen nötig?" zu stellen, die Überprüfungsarbeit auf den Benutzer abwälzen, ist verboten.
+9. **Wenn ein Tool von einem Hook abgefangen wird, muss zuerst der Abfanggrund untersucht und das Grundproblem gelöst werden — ein direkter Werkzeugwechsel zur Umgehung ist verboten.** Zum Beispiel darf nach Abfangen von Write nicht ohne Ursachenforschung Bash cat/heredoc als Ersatz verwendet werden — zuerst prüfen warum der Hook abgefangen hat, Problem lösen, dann erneut versuchen.
+
+**⚠️ Wie ausführen (Ausführungsstandards der Kernprinzipien):**
+
+- **Verifizieren = Tools aufrufen** (Read/grep/Bash), nicht mentales Reasoning. Vor Dateiänderung muss die Zieldatei in dieser Runde per Read gelesen worden sein
+- **Grundursache finden = Zuordnung ausgeben**: vor Änderung muss geschrieben werden „Fehlermeldung → entsprechende Codezeile → warum der Fehler auftritt → warum die Korrektur das Problem löst"
+- **Test bestanden = Rohausgabe zeigen**: nach Änderung Tests ausführen und Schlüsselausgabe zeigen. Abschluss mit „behoben" oder „sollte jetzt funktionieren" ist verboten
+- **Auswirkungskette = grep-Suchbelege**: mit grep geänderte Funktionen/Felder/Tabellennamen suchen und alle Referenzen auflisten, nicht im Kopf überlegen
+- **Fehlerkorrektur = Code + Daten + Verifizierung**: Codelogik korrigiert + von fehlerhafter Logik betroffene Daten korrigiert + Daten als korrekt bestätigt. „Sollte jetzt korrekt sein" oder „neue Daten werden richtig sein" ist verboten
+- **Vollständigkeitsbericht = Verifizierungsprozess auflisten**: beim Bericht angeben welche Befehle ausgeführt und welche Dateien geprüft wurden, nicht nur „verifiziert" sagen
+- **Mehrstufige Aufgaben kontinuierlich ausführen**: bestätigte Pläne in Folgestufen direkt vorantreiben, nicht zwischen Stufen eigeninitiativ pausieren und „soll ich fortfahren?" fragen
 
 ---
 
@@ -151,10 +163,12 @@ DEV_WORKFLOW_PROMPT = (
     "1. **Vor jeder Operation verifizieren, niemals annehmen, niemals auf Gedächtnis verlassen**\n"
     "2. **Code-Dateien überprüfen, Grundursache finden, dem tatsächlichen Fehler entsprechen**\n"
     "3. **Alles wird durch bestandene Tests validiert**\n"
-    "4. **Code überprüfen und rigoros nachdenken vor jeder Dateiänderung**\n"
-    "5. **Tests selbst ausführen, eigene Fehler selbst korrigieren**\n"
-    "6. **Wenn der Benutzer Datei lesen anfordert, Werkzeug aufrufen um neuesten Inhalt zu lesen**\n"
-    "7. **Wenn Projektinfo benötigt, zuerst `recall` Gedächtnissystem → Code/Konfiguration suchen → nur als letztes Mittel den Benutzer fragen**\n\n"
+    "4. **Vor jeder Änderung vollständige Auswirkungskette analysieren und Liste erstellen. Stückweises Arbeiten verboten**\n"
+    "5. **Tests selbst ausführen, eigene Bedienungsfehler selbst korrigieren, Benutzer nicht fragen ob repariert werden soll**\n"
+    "6. **Benutzer verlangt Datei lesen → niemals mit „bereits gelesen" überspringen, immer neuesten Inhalt erneut lesen**\n"
+    "7. **Projektinfo benötigt? Zuerst recall Gedächtnissystem, dann Code durchsuchen, erst zuletzt Benutzer fragen**\n"
+    "8. **Vollständigkeitsprüfung ist KI-Verantwortung. Selbst verifizieren und Ergebnisse melden. Überprüfungsarbeit nicht auf Benutzer abwälzen. Nur bei Lösungs-/Architekturentscheidungen blockieren**\n"
+    "9. **Tool von Hook abgefangen? Erst Ursache untersuchen und Grundproblem lösen, nicht auf anderes Tool ausweichen**\n\n"
     "⚠️ Vollständige Regeln in CLAUDE.md — müssen strikt befolgt werden."
 )
 
