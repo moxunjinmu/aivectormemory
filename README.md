@@ -29,12 +29,16 @@
 | Feature | Description |
 |---------|-------------|
 | 🧠 **Cross-Session Memory** | Your AI finally remembers your project — pitfalls, decisions, conventions all persist across sessions |
-| 🔍 **Semantic Search** | No need to recall exact wording — search "database timeout" and find "MySQL connection pool issue" |
+| 🔍 **Hybrid Smart Search** | FTS5 full-text + vector semantic dual-path search, RRF fusion ranking + composite scoring (recency × frequency × importance), far more precise than pure vector search |
+| 🐛 **Issue Tracking** | Built-in Issue Tracker — discover → investigate → fix → archive, full lifecycle. AI manages bugs automatically |
+| 📋 **Task Management** | Spec → task breakdown → nested subtasks → status sync → linked archival. AI drives the complete dev workflow |
+| 🚦 **Session State** | Blocking management + breakpoint resume + progress tracking, seamless handoff across sessions and context compaction |
+| 🪝 **Hooks + Steering** | Auto-inject workflow rules + behavior guard hooks, consistent AI behavior guaranteed — no need to repeat instructions |
+| 🧬 **Memory Evolution** | Contradiction detection auto-supersedes stale knowledge + short-term → long-term auto-promotion + 90-day auto-archive, self-evolving memory |
+| 📊 **Desktop App + Web Dashboard** | Native desktop app (macOS/Windows/Linux) + Web dashboard, 3D vector network reveals knowledge connections at a glance |
 | 💰 **Save 50%+ Tokens** | Stop copy-pasting project context every conversation. Semantic retrieval on demand, no more bulk injection |
-| 🔗 **Task-Driven Dev** | Issue tracking → task breakdown → status sync → linked archival. AI manages the full dev workflow |
-| 📊 **Desktop App + Web Dashboard** | Native desktop app (macOS/Windows/Linux) + Web dashboard, visual management for memories and tasks, 3D vector network reveals knowledge connections at a glance |
 | 🏠 **Fully Local** | Zero cloud dependency. ONNX local inference, no API Key, data never leaves your machine |
-| 🔌 **All IDEs** | Cursor / Kiro / Claude Code / Windsurf / VSCode / OpenCode / Trae / Codex — one-click install, works out of the box |
+| 🔌 **11 IDEs Covered** | Cursor / Kiro / Claude Code / Windsurf / VSCode / Copilot / OpenCode / Trae / Codex / Antigravity / OpenClaw — one-click install & uninstall |
 | 📁 **Multi-Project Isolation** | One DB for all projects, auto-isolated with zero interference, seamless project switching |
 | 🔄 **Smart Dedup** | Similarity > 0.95 auto-merges updates, keeping your memory store clean — never gets messy over time |
 | 🌐 **7 Languages** | 简体中文 / 繁體中文 / English / Español / Deutsch / Français / 日本語, full-stack i18n for dashboard + Steering rules |

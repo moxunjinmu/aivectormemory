@@ -24,14 +24,19 @@
 | Fonctionnalité | Description |
 |----------------|-------------|
 | 🧠 **Mémoire Inter-Sessions** | Votre IA se souvient enfin de votre projet — erreurs rencontrées, décisions prises, conventions établies, tout persiste entre les sessions |
-| 🔍 **Recherche Sémantique** | Pas besoin de se rappeler les mots exacts — chercher « timeout base de données » trouve « erreur pool de connexions MySQL » |
-| 💰 **Économie 50%+ Tokens** | Fini le copier-coller du contexte projet à chaque conversation. Récupération sémantique à la demande, adieu l'injection massive |
-| 🔗 **Dev Piloté par Tâches** | Suivi des problèmes → découpage en tâches → synchronisation des statuts → archivage lié. L'IA gère tout le workflow de développement |
-| 📊 **Tableau de Bord Web** | Gestion visuelle de toutes les mémoires et tâches, réseau vectoriel 3D pour voir les connexions de connaissances d'un coup d'œil |
+| 🔍 **Recherche Hybride Intelligente** | FTS5 texte intégral + recherche sémantique vectorielle double, classement fusionné RRF + scoring composite (récence × fréquence × importance), bien plus précise que la recherche vectorielle pure |
+| 🐛 **Suivi de Problèmes** | Issue Tracker intégré — découvrir → enquêter → corriger → archiver cycle complet. L'IA gère le cycle de vie des bugs automatiquement |
+| 📋 **Gestion de Tâches** | Spec → découpage en tâches → sous-tâches imbriquées → synchronisation des statuts → archivage lié. L'IA pilote le workflow de développement complet |
+| 🚦 **État de Session** | Gestion des blocages + reprise au point d'arrêt + suivi de progression, transition fluide entre sessions et compression de contexte |
+| 🪝 **Hooks + Steering** | Injection automatique des règles de travail + hooks de garde comportementale, comportement IA cohérent garanti — plus besoin de répéter les instructions |
+| 🧬 **Évolution de Mémoire** | Détection de contradictions remplace les connaissances obsolètes + promotion automatique court→long terme + archivage auto à 90 jours, mémoire auto-évolutive |
+| 📊 **App Bureau + Tableau de Bord Web** | App bureau native (macOS/Windows/Linux) + tableau de bord Web, réseau vectoriel 3D pour voir les connexions de connaissances d'un coup d'œil |
+| 💰 **Économie 50%+ Tokens** | Récupération sémantique à la demande, fini le copier-coller du contexte projet à chaque conversation |
 | 🏠 **Entièrement Local** | Zéro dépendance cloud. Inférence locale ONNX, pas de clé API, les données ne quittent jamais votre machine |
-| 🔌 **Tous les IDEs** | Cursor / Kiro / Claude Code / Windsurf / VSCode / OpenCode / Trae / Codex — installation en un clic, prêt à l'emploi |
+| 🔌 **11 IDEs Couverts** | Cursor / Kiro / Claude Code / Windsurf / VSCode / Copilot / OpenCode / Trae / Codex / Antigravity / OpenClaw — installation et désinstallation en un clic |
 | 📁 **Isolation Multi-Projets** | Une seule BD pour tous les projets, isolation automatique sans interférence, changement de projet transparent |
 | 🔄 **Déduplication Intelligente** | Similarité > 0.95 fusionne automatiquement, la base de mémoires reste propre — ne devient jamais désordonnée |
+| 🌐 **7 Langues** | 简体中文 / 繁體中文 / English / Español / Deutsch / Français / 日本語, i18n complète pour tableau de bord + règles Steering |
 
 <p align="center">
   QQ群：1085682431 &nbsp;|&nbsp; 微信：changhuibiz<br>
