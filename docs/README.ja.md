@@ -5,7 +5,7 @@
 </p>
 <h1 align="center">AIVectorMemory</h1>
 <p align="center">
-  <strong>記憶だけじゃない — 記憶 + 問題追跡 + タスク管理、オールインワン AI 開発ワークフローエンジン</strong>
+  <strong>AIコーディングアシスタントに記憶を — セッション間永続記憶MCPサーバー</strong>
 </p>
 <p align="center">
   <a href="https://pypi.org/project/aivectormemory/"><img src="https://img.shields.io/pypi/v/aivectormemory?color=blue&label=PyPI" alt="PyPI"></a>
@@ -15,34 +15,23 @@
 </p>
 ---
 
-> **市場のAI記憶ツール（mem0、Cline Memory Bankなど）は一つのことしかしません：記憶の保存と呼び出し。** AIがコンテキストを覚えた、それで？バグは追跡されず、開発タスクは管理されず、セッションを切り替えると進捗は全部消え、ルールを書いてもAIは守らない。記憶はスタート地点であって、ゴールではありません。
+> **まだ CLAUDE.md / MEMORY.md を記憶として使っていますか？** この Markdown ファイル記憶方式には致命的な欠陥があります：ファイルは膨らみ続け、毎回のセッションで全量注入して大量のトークンを消費；内容はキーワード検索しかできず、「データベースタイムアウト」で検索しても「MySQL コネクションプールの落とし穴」は見つからない；複数プロジェクトで1つのファイルを共有すると相互汚染；タスク追跡がなく、開発進捗は頭の中だけ；200行での切り捨て、手動メンテナンス、重複排除や統合ができないという日常的な問題も。
 >
-> **AIVectorMemoryは記憶・問題追跡・タスク管理を三位一体にした唯一のMCP Serverです。** セマンティック検索で的確に呼び出し（「データベースタイムアウト」で検索すれば「MySQLコネクションプールの落とし穴」が見つかる）、内蔵の `track` 問題追跡 + `task` タスク管理でAIが開発フロー全体を自動実行、`status` でセッション間の状態を同期し進捗を失わない、Hooksでワークフロールールを強制執行。10のIDEにワンクリックインストール、全データはローカル保存でクラウド依存ゼロ。
+> **AIVectorMemory はまったく異なるアプローチです。** ローカルベクトルデータベースに保存し、セマンティック検索で的確に呼び出し（言葉が違っても一致）、オンデマンド検索で関連する記憶だけを読み込み（トークン消費を50%+削減）、マルチプロジェクトを自動隔離して干渉ゼロ、内蔵の問題追跡 + タスク管理で AI が開発フロー全体を自動管理。すべてのデータはあなたのマシンに永久保存 — クラウド依存ゼロ、セッションや IDE を切り替えても失われません。
 
 ## ✨ 主な機能
 
-
-**他にはない機能：**
-
-| 独自機能 | 説明 | mem0 / Cline MB にある？ |
-|---------|------|------------------------|
-| 🔗 **問題追跡（track）** | バグ発見 → 調査 → 修正 → テスト → アーカイブ、完全なライフサイクル管理 | ❌ どちらもなし |
-| 📋 **タスク管理（task）** | requirements → design → tasks、複数ステップの要件を自動分割・実行 | ❌ どちらもなし |
-| 📡 **セッション間状態（status）** | ブロック状態、現在のタスク、進捗 — セッション切り替えでも失われない | ❌ どちらもなし |
-| 🛡️ **Hooks ルール強制** | bash_guard / stop_guard / check_track、ルール違反をハードブロック | ❌ どちらもなし |
-
-**基本能力も業界をリード：**
-
 | 機能 | 説明 |
 |------|------|
-| 🧠 **クロスセッション記憶** | 踏んだ地雷、下した決定、決めた規約、セッションが変わっても忘れない |
-| 🔍 **セマンティック検索** | ベクトル類似度マッチング、表現が違っても的確に呼び出し |
-| 💰 **50%+トークン節約** | オンデマンド検索で関連記憶のみ読み込み、一括注入とはお別れ |
-| 🏠 **完全ローカル** | ONNXローカル推論、クラウド依存ゼロ、データはマシンから出ない |
-| 🔌 **10のIDE** | Cursor / Kiro / Claude Code / Windsurf / VSCode / Copilot / OpenCode / Trae / Codex / Gemini CLI |
-| 📊 **デスクトップ + Webダッシュボード** | 記憶とタスクを視覚的に管理、3Dベクトルネットワークで知識の繋がりが一目瞭然 |
-| 🔄 **スマート重複排除** | 類似度 > 0.95 で自動マージ、記憶ストアは常にクリーン |
-| 🌐 **7言語** | 简体中文 / 繁體中文 / English / Español / Deutsch / Français / 日本語 |
+| 🧠 **クロスセッション記憶** | AIがついにプロジェクトを覚えてくれる — 踏んだ地雷、下した決定、決めた規約、セッションが変わっても忘れない |
+| 🔍 **セマンティック検索** | 原文の書き方を覚えていなくてOK —「データベースタイムアウト」で検索すれば「MySQLコネクションプール問題」が見つかる |
+| 💰 **50%+トークン節約** | 毎回プロジェクト背景をコピペする必要なし。セマンティック検索でオンデマンド呼び出し、一括注入とはお別れ |
+| 🔗 **タスク駆動開発** | 問題追跡 → タスク分割 → ステータス同期 → 連動アーカイブ。AIが開発フロー全体を自動管理 |
+| 📊 **Webダッシュボード** | すべての記憶とタスクを視覚的に管理、3Dベクトルネットワークで知識の繋がりが一目瞭然 |
+| 🏠 **完全ローカル** | クラウド依存ゼロ。ONNXローカル推論、APIキー不要、データはマシンから出ない |
+| 🔌 **全IDE対応** | Cursor / Kiro / Claude Code / Windsurf / VSCode / OpenCode / Trae / Codex — ワンクリックインストール、すぐ使える |
+| 📁 **マルチプロジェクト分離** | 1つのDBで全プロジェクト管理、自動分離で干渉なし、プロジェクト切り替えもシームレス |
+| 🔄 **スマート重複排除** | 類似度 > 0.95 で自動マージ更新、記憶ストアは常にクリーン — 使い続けても散らからない |
 
 <p align="center">
   QQ群：1085682431 &nbsp;|&nbsp; 微信：changhuibiz<br>
@@ -90,10 +79,10 @@ pip install --upgrade aivectormemory
 
 # プロジェクトディレクトリに移動し、ワンクリックで IDE を設定
 cd /path/to/your/project
-avmrun install
+run install
 ```
 
-`avmrun install` は対話式で IDE を選択し、MCP 設定・Steering ルール・Hooks を自動生成します。手動設定は不要です。
+`run install` は対話式で IDE を選択し、MCP 設定・Steering ルール・Hooks を自動生成します。手動設定は不要です。
 
 > **macOS ユーザーへの注意**：
 > - `externally-managed-environment` エラーが出た場合は `--break-system-packages` を追加してください
@@ -237,9 +226,9 @@ extra_tags   (string[])  追加タグ
 ## 📊 Webダッシュボード
 
 ```bash
-avmrun web --port 9080
-avmrun web --port 9080 --quiet          # リクエストログを非表示
-avmrun web --port 9080 --quiet --daemon  # バックグラウンド実行（macOS/Linux）
+run web --port 9080
+run web --port 9080 --quiet          # リクエストログを非表示
+run web --port 9080 --quiet --daemon  # バックグラウンド実行（macOS/Linux）
 ```
 
 ブラウザで `http://localhost:9080` にアクセス。デフォルトユーザー名 `admin`、パスワード `admin123`（初回ログイン後に設定で変更可能）。
@@ -283,7 +272,7 @@ avmrun web --port 9080 --quiet --daemon  # バックグラウンド実行（macO
 
 AIVectorMemoryはストレージ層です。Steeringルールを使ってAIに**いつ、どのように**ツールを呼び出すかを指示します。
 
-`avmrun install` を実行すると、Steeringルールとフック設定が自動生成されます。手動設定は不要です。
+`run install` を実行すると、Steeringルールとフック設定が自動生成されます。手動設定は不要です。
 
 | IDE | Steeringの場所 | Hooks |
 |-----|---------------|-------|
@@ -302,20 +291,33 @@ AIVectorMemoryはストレージ層です。Steeringルールを使ってAIに**
 ```markdown
 # AIVectorMemory - ワークフロールール
 
-## ⚠️ メッセージ種別判定
-分類 → 雑談：直接返信；問題/バグ：track create → 問題追跡フロー；多段階機能：Specフロー
+## 1. 新セッション起動（順番に実行必須）
 
-## ⚠️ 問題追跡フロー
-1. track create → 2. 調査（recall + コード確認）→ 3. 方針説明、ブロック設定
-→ 4. ユーザー確認、コード修正 → 5. テスト実行 + grep 副作用確認 → 6. track update
-→ 7. ブロック設定して検証待ち → 8. ユーザー確認、track archive
+1. `recall`（tags: ["プロジェクト知識"], scope: "project", top_k: 100）プロジェクト知識を読み込み
+2. `recall`（tags: ["preference"], scope: "user", top_k: 20）ユーザー設定を読み込み
+3. `status`（stateなし）セッション状態を読み取り
+4. ブロック中 → 報告して待機；ブロックなし → 処理フローへ
 
-## ⚠️ タスク管理フロー（Spec）
-1. track create → 2. specディレクトリ作成 → 3. requirements.md → 4. design.md → 5. tasks.md
-→ 6. task batch_create → 7. サブタスクを順番に実行 → 8. 全体自己テスト、ブロック設定
+## 2. メッセージ処理フロー
 
-## ⚠️ ブロッキングルール / 自己テスト基準 / 開発規範
-（完全なルールは `avmrun install` で自動生成）
+- ステップA：`status` で状態読み取り、ブロック中なら待機
+- ステップB：メッセージ種別判定（雑談/修正/設定/コード問題）
+- ステップC：`track create` で問題記録
+- ステップD：調査（`recall` でつまずき検索 + コード確認 + 根本原因特定）
+- ステップE：ユーザーに方針説明、ブロック設定して確認待ち
+- ステップF：コード修正（修正前に `recall` でつまずき確認）
+- ステップG：テスト実行で検証
+- ステップH：ブロック設定してユーザー検証待ち
+- ステップI：ユーザー確認 → `track archive` + ブロック解除
+
+## 3. ブロッキングルール
+
+方針提案時・修正完了検証待ち時は必ず `status({ is_blocked: true })`。
+ユーザーの明確な確認後のみブロック解除可能。自己解除禁止。
+
+## 4-9. 問題追跡 / コードチェック / Specタスク管理 / 記憶品質 / ツール一覧 / 開発規範
+
+（完全なルールは `run install` で自動生成）
 ```
 
 </details>
@@ -369,129 +371,15 @@ export HF_ENDPOINT=https://hf-mirror.com
 
 ## 📋 更新履歴
 
-### v2.2.6
+### v2.3.1
 
-**ルール同期：DEV_WORKFLOW_PROMPT を STEERING_CONTENT と完全に整合**
-- 📝 DEV_WORKFLOW_PROMPT に「禁止」行、「対応するフローに従って実行」行を追加
-- 📝 コア原則を省略版から完全版に復元、「どう実行するか（実行基準）」section を追加
-- 🌐 7 言語ファイルすべて同期
-
-### v2.2.5
-
-**リファクタリング：コア原則の精簡 + 実行基準 + check_track hook 削除**
-- 📝 コア原則を 11 条から 9 条に精簡 — 抜け穴を塞ぎ、バイパス経路をブロック
-- 📝 「どう実行するか」実行基準ブロックを追加：検証=ツール呼び出し、根本原因特定=対応関係を出力、テスト通過=生の出力を表示、recall はコード以外の操作より先に実行必須
-- 🛡️ check_track preToolUse hook を削除（Write 操作の誤インターセプトにより AI が Bash でバイパス）
-- 🛡️ bash_guard の description を修正（デプロイがブロックされていると AI を誤解させなくなった）
-- 🌐 7 言語同期
-
-### v2.2.3
-
-**改善：ルール構造再編 — ワークフロー整理、フロー分離を明確化**
-- 📝 19 の番号付きセクションから 9 つのトピック別セクションに再構成（番号なし）
-- 📝 問題追跡フロー（8 ステップ）とタスク管理 / Spec フロー（8 ステップ）を独立分離
-- 📝 セルフテスト基準を独立セクションとして追加、テスト方法の選択ルールを明確化
-- 📝 Hooks 注入スクリプト（inject-workflow-rules.sh）簡素化 — IDE セーフティ、編集後チェックリスト、違反例を削除
-- 📝 check_track フック：非コードファイル（.md/.sh/.json/.yaml 等）は問題追跡チェックをスキップ
-- 🌐 7 言語同期
-
-### v2.2.2
-
-**改善：ルール番号再構成 — A-I → 1-19 フラット番号**
-- 📝 19 ルールすべてフラット数字番号、7 言語同期
-
-### v2.2.1
-
-**ホットフィックス：git commit/push ハードブロック削除 + 手動操作検出拡張**
-- 🐛 bash_guard の git commit/push ブロック削除。steering ルール + stop_guard で管理
-- 🛡️ stop_guard 手動操作ワードリスト拡張
-- 📝 G1-G4 チェックリスト「即時実行」追加
-
-### v2.2.0
-
-**メジャー：ユニバーサル Hooks — 8 IDE、7 言語、クロスプラットフォーム、自動アップグレード**
-- 🛡️ Hooks を .sh から Python モジュールに移行（`python3 -m aivectormemory.hooks.xxx`）— クロスプラットフォーム、pip 更新で自動反映
-- 🛡️ `bash_guard` 7 ルールに拡張：+ git commit/push ブロック + デプロイコマンドブロック
-- 🛡️ `stop_guard` 7 チェックに拡張：+ バックエンドテスト + grep 副作用 + track update + status ブロック
-- 🌐 全 hook エラーメッセージが 7 言語対応
-- 🔌 bash_guard を全 IDE に展開：Cursor、Windsurf、Kiro、Codex CLI、Copilot、Gemini CLI
-- 🆕 新規 IDE サポート：Codex CLI、GitHub Copilot、Gemini CLI
-- ✅ テストスイート：48 → 114 テスト
-
-### v2.1.11
-
-**修正：デスクトップ版記憶削除 + Web ダッシュボード一括削除**
-- 🐛 デスクトップ版の記憶削除が機能しない問題を修正 — ネイティブ `confirm()` が Wails WebView で動作しないため、カスタム Modal コンポーネントに変更
-- ✨ Web ダッシュボードの記憶ページ（プロジェクト + グローバル）に一括削除機能を追加 — 一括操作ボタン、チェックボックス選択、全選択、一括削除確認
-- 🌐 7言語に一括削除関連の翻訳を追加
-
-### v2.1.10
-
-**強化：自己修正ルール — AI は自分の操作ミスを自分で修正すること**
-- 📝 コア原則第5条強化（7言語同期）：「自分の操作ミスは自分で修正すること、ユーザーに修正するかどうか聞くことは禁止」
-
-### v2.1.9
-
-**強化：Hook によるルール強制 — Bash Guard + Stop Guard + テスト決定木**
-- 🛡️ 新規 `bash_guard.sh`（PreToolUse Bash）：`open http`（Playwright MCP 使用必須）、複数行 `python3 -c`、`$()+パイプ` 組み合わせ、`mysql -e` 複数文をブロック
-- 🛡️ 新規 `stop_guard.sh`（Stop hook）：transcript を解析し検出——コード変更後 Playwright 未使用 + 回答に「手動操作」違反ワード含む。AI は Playwright を使用するか「この変更はフロントエンドページに影響しません」と明示する必要あり
-- 🎯 G1 テストルールに決定木追加（7言語同期）：変更の影響範囲に応じてテスト方法を選択（フロントエンドコード→Playwright、API がページに影響→curl+Playwright、純バックエンド→pytest/curl、不明→Playwright）
-- 🔧 `_cleanup_legacy_playwright` 削除（再インストール時に既存の Playwright 設定を削除しない）
-- 🔧 Playwright MCP インストールデフォルトを N から Y に変更
-- 🔧 セルフテストルール強化：Playwright MCP は使用前に ToolSearch でロード、ツール利用不可と仮定することは禁止
-
-### v2.1.8
-
-**強化：ワークフロールール復元 — 詳細なワークフローステップ + スキップ防止メカニズム**
-- 📝 簡略化前の詳細なワークフローステップを復元（ステップ C/D/E/F/I に明示的な recall フォーマット、調査チェックポイント、中断処理を含む）
-- 🛡️ 新しいセーフガードルール：ユーザーが否定的な言葉（「おかしい/動かない/ない/エラー」）を使用した場合 → デフォルトで `track create` — AI が「設計通り」と自己判断して記録をスキップすることを禁止
-- ⚠️ すべての 11 セクション見出しに ⚠️ プレフィックスを追加し、注意優先度を向上
-- 🌐 第 1 節を `IDENTITY & TONE` に統一、フィールド名を英語キー（Role/Language/Voice/Authority）に、7 言語同期
-- 🔧 `_write_steering` のアンカーを修正し、柔軟なセクション見出し形式をサポート
-
-### v2.1.7
-
-**修正：Playwright MCP 設定の強制書き込みを廃止**
-- 🔧 `install` 時の Playwright MCP をオプション化（`npx` がある場合のみ確認、デフォルトはインストールなし）
-- 🩹 `install` が旧バージョンで強制書き込みされた Playwright 設定を自動クリーンアップ — OpenCode「mcp.playwright: Invalid input」クラッシュを修正
-- 🗑️ server 起動時の `auto_repair_playwright_config` を削除（設定検証失敗時に到達不可）
-- ➕ `avmrun` ショートコマンドエイリアスを追加（`avmrun install`、`avmrun web` など）
-
-### v2.1.6
-
-**修正：CLI エントリポイントのリネーム**
-- 🔧 CLI エントリポイントを `run` から `aivectormemory` にリネーム — `uvx aivectormemory` が `--from` ワークアラウンドなしで直接使用可能に
-- ♻️ argparse `prog` 名とインストール設定を同期更新
-
-### v2.1.5
-
-**修正：Playwright MCP 設定の互換性**
-- 🔧 OpenCode アップグレード後の `mcp.playwright: Invalid input` エラーを修正 — `_build_playwright_config` に OpenCode フォーマット処理が欠落（`type: local` + 配列 `command` が不足）
-- ♻️ `_build_playwright_config` を `_build_config` のフォーマットロジックを再利用するようリファクタリング — 重複分岐を排除し、すべての IDE フォーマットに自動対応
-- 🩹 `auto_repair_playwright_config` を追加：MCP server 起動時に不正な Playwright 設定を自動検出・修復 — シームレスなアップグレード、手動再インストール不要
-
-### v2.1.4
-
-**修正：取代済みメモリの可視性**
-- 🔓 取代済みメモリを召回結果から完全に隠すハードフィルターを削除 — 以前は `exclude_superseded=true`（デフォルト）がスコアリング前にメモリをブロックし、永久に不可視にしていた
-- 📊 取代済みメモリは importance 低減（`×0.3`）+ `sqrt(importance)` スコアリングにより自然にランク付け — 完全に消えるのではなく結果の下位に表示
-- 🧹 `_load_superseded_ids` 関数および関連する不要コードを削除
-
-### v2.1.3
-
-**修正：スコアリングエンジンの全面改修**
-- 🧮 重大バグ修正：複合スコアが RRF ランクスコアではなく元のベクトル類似度を使用するように変更 — 以前は ~0.8 の類似度が ~0.015 の RRF スコアに置き換えられ、意味的関連性シグナルが破壊されていた
-- √ importance を直接乗数から `sqrt(importance)` に変更 — 極端なペナルティを軽減（0.15 → 0.387、従来は 0.15）しつつ supersede 抑制を維持
-- 🛡️ 類似度フロア：類似度 ≥ 0.85 のメモリに最低保証スコアを付与、高関連性メモリが低 importance により埋もれるのを防止
-- ⚖️ 重み再調整：similarity 0.55（旧 0.5）、recency 0.30、frequency 0.15（旧 0.2）— 意味的関連性がランキングを支配
-- 📉 FTS のみのフォールバックを 0.5 から 0.3 に引き下げ — 純粋なキーワードマッチが過大な類似度スコアを得ることを防止
-
-### v2.1.2
-
-**修正：メモリ検索の精度**
-- 🔍 階層検索の貪欲カットオフを修正：`long_term` の結果で枠が埋まると `short_term` メモリが完全にスキップされ、関連性の高いメモリが見つからない問題
-- 🔧 両階層を同時検索し、複合スコアで統一ランキング（類似度 × 時効 × 頻度 × 重要度）
-- 🛡️ `_search_tier` の filters 辞書が参照で変更されるバグを修正
+**強化：ルール体系の全面改訂 + OpenClaw サポート**
+- 🧠 AIルールの記憶システム呼び出し5箇所の漏れを修正：調査前の recall 落とし穴（ステップD）、危険操作前の recall（§7）、Spec 執筆前の recall（§8）、サブタスク実行前の recall（§8）、修正後の remember 落とし穴（ステップI）
+- 🦞 OpenClaw IDE サポート追加 — 11 IDE 対応（MCP設定は ~/.openclaw/openclaw.json にマージ、ルールは AGENTS.md に追記）
+- 🎭 Playwright 自己テストルール強化 — ToolSearch deferred tools ロード要件追加、`open` コマンド代替を禁止
+- 🔧 v2.2.0–v2.2.6 機能統合：Hooks システム（bash_guard + stop_guard + check_track）、スコアリングエンジン改善、recall 最適化、Web ダッシュボード一括削除、デスクトップ版記憶削除 Modal
+- ⚠️ DEV_WORKFLOW_PROMPT：違反リマインダー2件追加（コード変更前の落とし穴確認、修正後の落とし穴保存）
+- 🌐 7言語ルールファイル全同期
 
 ### v2.1.1
 
@@ -513,7 +401,7 @@ export HF_ENDPOINT=https://hf-mirror.com
 - 🔗 関係拡張：タグ重複 ≥ 2 で関連リンクを自動構築、1ホップ拡張で関連メモリを発見
 - 📝 自動要約：長いメモリ（>500文字）に要約を生成、brief モードで要約を返しトークン節約
 - 🧹 コードクリーンアップ：15件のデッドコード削除、7件の重複パターンを共通ユーティリティにリファクタリング
-- ❌ `avmrun uninstall` — すべての IDE 設定（MCP、ステアリング、フック、権限）をクリーンに削除、メモリデータは保持
+- ❌ `run uninstall` — すべての IDE 設定（MCP、ステアリング、フック、権限）をクリーンに削除、メモリデータは保持
 
 ### v2.0.9
 
@@ -528,7 +416,7 @@ export HF_ENDPOINT=https://hf-mirror.com
 ### v2.0.8
 
 **新機能：Playwright ブラウザテスト内蔵**
-- 🎭 `avmrun install` で Playwright ブラウザテストを自動設定 — AI が実際のブラウザを開いてフロントエンドの変更を検証可能に
+- 🎭 `run install` で Playwright ブラウザテストを自動設定 — AI が実際のブラウザを開いてフロントエンドの変更を検証可能に
 - 🎭 専用テストブラウザ（Chrome for Testing）を使用、個人のブラウザタブに影響なし
 - 🔑 権限設定を簡素化 — よく使うツールの権限確認ポップアップを削減
 - 📏 7 言語の AI ルールを更新、ブラウザテスト動作を強制規範化
@@ -537,7 +425,7 @@ export HF_ENDPOINT=https://hf-mirror.com
 
 **強化：より多くの IDE サポート**
 - 🖥️ Antigravity と GitHub Copilot IDE のサポートを追加
-- 🔑 `avmrun install` でツール権限を自動設定、手動設定を削減
+- 🔑 `run install` でツール権限を自動設定、手動設定を削減
 - 📏 AI セルフテストルールを簡素化
 
 ### v2.0.6
@@ -713,7 +601,7 @@ export HF_ENDPOINT=https://hf-mirror.com
 
 - 🛡️ PreToolUse Hook：Edit/Write 前に track issue を強制チェック、アクティブな問題がなければ実行拒否（Claude Code / Kiro / OpenCode 対応）
 - 🔌 OpenCode プラグインを `@opencode-ai/plugin` SDK 形式にアップグレード（tool.execute.before hook）
-- 🔧 `avmrun install` で check_track.sh スクリプトを自動デプロイ、パスを動的に注入
+- 🔧 `run install` で check_track.sh スクリプトを自動デプロイ、パスを動的に注入
 - 🐛 issue_repo archive/delete の `row.get()` が `sqlite3.Row` と非互換な問題を修正
 - 🐛 session_id を DB から最新値を読み取ってからインクリメント、マルチインスタンス競合を回避
 - 🐛 track date パラメータ形式バリデーション（YYYY-MM-DD）+ issue_id 型バリデーション
@@ -727,7 +615,7 @@ export HF_ENDPOINT=https://hf-mirror.com
 
 - 🔇 Web ダッシュボード `--quiet` パラメータでリクエストログを非表示
 - 🔄 Web ダッシュボード `--daemon` パラメータでバックグラウンド実行（macOS/Linux）
-- 🔧 `avmrun install` MCP 設定生成の修正（sys.executable + 完全なフィールド）
+- 🔧 `run install` MCP 設定生成の修正（sys.executable + 完全なフィールド）
 - 📋 問題追跡の CRUD とアーカイブ（Web ダッシュボード 追加/編集/アーカイブ/削除 + 記憶関連付け）
 - 👆 リスト行の任意の場所をクリックで編集モーダルを表示（記憶/問題/タグ）
 - 🔒 セッション継続/コンテキスト転送時にブロッキングルールを強制適用（再確認が必要）

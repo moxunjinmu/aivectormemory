@@ -9,7 +9,7 @@
 </p>
 <h1 align="center">AIVectorMemory</h1>
 <p align="center">
-  <strong>不只是记忆 — 记忆 + 问题追踪 + 任务管理，三合一 AI 开发工作流引擎</strong>
+  <strong>给 AI 编程助手装上记忆 — 跨会话持久化记忆 MCP Server</strong>
 </p>
 <p align="center">
   <a href="https://pypi.org/project/aivectormemory/"><img src="https://img.shields.io/pypi/v/aivectormemory?color=blue&label=PyPI" alt="PyPI"></a>
@@ -20,34 +20,25 @@
 
 ---
 
-> **市面上的 AI 记忆工具（mem0、Cline Memory Bank 等）只做一件事：存取记忆。** AI 记住了上下文，然后呢？遇到 bug 没有追踪，开发任务没有管理，换个会话进度全丢，规则写了一堆 AI 照样不遵守。记忆只是起点，不是终点。
+> **你还在用 CLAUDE.md / MEMORY.md 当记忆？** 这类 Markdown 文件记忆模式有致命缺陷：文件越写越大，每次会话全量注入吃掉大量 Token；内容只能关键词匹配，搜"数据库超时"找不到"MySQL 连接池踩坑"；多项目共用一个文件互相污染；没有任务追踪，开发进度全靠人脑记；更别提 200 行截断、手动维护、无法去重合并这些日常痛点了。
 >
-> **AIVectorMemory 是唯一把记忆、问题追踪、任务管理三合一的 MCP Server。** 语义搜索精准召回（搜"数据库超时"能找到"MySQL 连接池踩坑"），内置 `track` 问题追踪 + `task` 任务管理让 AI 全自动跑完开发流程，`status` 跨会话状态同步不丢进度，Hooks 强制执行工作规则。10 个 IDE 一键安装，所有数据本地存储零云依赖。
+> **AIVectorMemory 是完全不同的方案。** 本地向量数据库存储，语义搜索精准召回（用词不同也能匹配），按需检索只加载相关记忆（Token 消耗直降 50%+），多项目自动隔离互不干扰，内置问题追踪 + 任务管理让 AI 全自动管理开发流程。所有数据永久保存在你的电脑上，零云依赖，换会话、换 IDE 都不丢。
 
 ## ✨ 核心特性
 
 
-**别人没有的：**
-
-| 独有能力 | 说明 | mem0 / Cline MB 有吗？ |
-|---------|------|----------------------|
-| 🔗 **问题追踪（track）** | 发现 bug → 排查 → 修复 → 测试 → 归档，完整生命周期管理 | ❌ 都没有 |
-| 📋 **任务管理（task）** | requirements → design → tasks，多步骤需求自动拆分执行 | ❌ 都没有 |
-| 📡 **跨会话状态（status）** | 阻塞状态、当前任务、进度，换会话不丢 | ❌ 都没有 |
-| 🛡️ **Hooks 规则强制** | bash_guard / stop_guard / check_track，硬拦截违规操作 | ❌ 都没有 |
-
-**基础能力同样领先：**
-
 | 特性 | 说明 |
 |------|------|
-| 🧠 **跨会话记忆** | 踩过的坑、做过的决策、定下的规范，换会话照样记得 |
-| 🔍 **语义搜索** | 向量相似度匹配，用词不同也能精准召回 |
-| 💰 **省 50%+ Token** | 按需检索只加载相关记忆，告别全量注入 |
-| 🏠 **完全本地** | ONNX 本地推理，零云依赖，数据不出电脑 |
-| 🔌 **10 个 IDE** | Cursor / Kiro / Claude Code / Windsurf / VSCode / Copilot / OpenCode / Trae / Codex / Gemini CLI |
-| 📊 **桌面端 + Web 看板** | 可视化管理记忆和任务，3D 向量网络看清知识关联 |
-| 🔄 **智能去重** | 相似度 > 0.95 自动合并，记忆库永远干净 |
-| 🌐 **7 语言** | 简体中文 / 繁體中文 / English / Español / Deutsch / Français / 日本語 |
+| 🧠 **跨会话记忆** | 踩过的坑、做过的决策、定下的规范，换个会话照样记得，AI 终于不再失忆 |
+| 🔍 **语义搜索** | 向量相似度匹配，搜"数据库超时"就能找到"MySQL 连接池踩坑"，用词不同也能精准召回 |
+| 💰 **省 50%+ Token** | 语义检索按需召回，告别每次对话复制粘贴项目背景的全量上下文注入 |
+| 🔗 **任务驱动开发** | 问题追踪 → 任务拆分 → 状态同步 → 联动归档，AI 全自动管理完整开发流程 |
+| 📊 **桌面端 + Web 看板** | 原生桌面应用（macOS/Windows/Linux）+ Web 看板，可视化管理记忆和任务，3D 向量网络一眼看清知识关联 |
+| 🏠 **完全本地** | 零依赖云服务，ONNX 本地推理，无需 API Key，数据不出你的电脑 |
+| 🔌 **全 IDE 通吃** | Cursor / Kiro / Claude Code / Windsurf / VSCode / OpenCode / Trae / Codex — 一键安装，开箱即用 |
+| 📁 **多项目隔离** | 一个 DB 管所有项目，自动隔离互不干扰，切换项目无感知 |
+| 🔄 **智能去重** | 相似度 > 0.95 自动合并更新，记忆库永远干净，不会越用越乱 |
+| 🌐 **7 语言支持** | 简体中文 / 繁體中文 / English / Español / Deutsch / Français / 日本語，看板 + Steering 全栈国际化 |
 
 <p align="center">
   QQ群：1085682431 &nbsp;|&nbsp; 微信：changhuibiz<br>
@@ -113,10 +104,10 @@ pip install --upgrade aivectormemory
 
 # 进入你的项目目录，一键配置 IDE
 cd /path/to/your/project
-avmrun install
+run install
 ```
 
-`avmrun install` 会交互式引导你选择 IDE，自动生成 MCP 配置、Steering 规则和 Hooks，无需手动编写。
+`run install` 会交互式引导你选择 IDE，自动生成 MCP 配置、Steering 规则和 Hooks，无需手动编写。
 
 > **macOS 用户注意**：
 > - 遇到 `externally-managed-environment` 错误，加 `--break-system-packages`
@@ -260,9 +251,9 @@ extra_tags   (string[])  额外标签
 ## 📊 Web 看板
 
 ```bash
-avmrun web --port 9080
-avmrun web --port 9080 --quiet          # 屏蔽请求日志
-avmrun web --port 9080 --quiet --daemon  # 后台运行（macOS/Linux）
+run web --port 9080
+run web --port 9080 --quiet          # 屏蔽请求日志
+run web --port 9080 --quiet --daemon  # 后台运行（macOS/Linux）
 ```
 
 浏览器访问 `http://localhost:9080`，默认用户名 `admin`，密码 `admin123`（首次登录后可在设置中修改）。
@@ -288,7 +279,7 @@ avmrun web --port 9080 --quiet --daemon  # 后台运行（macOS/Linux）
 
 AIVectorMemory 是存储层，通过 Steering 规则告诉 AI **何时、如何**调用这些工具。
 
-运行 `avmrun install` 会自动生成 Steering 规则和 Hooks 配置，无需手动编写。
+运行 `run install` 会自动生成 Steering 规则和 Hooks 配置，无需手动编写。
 
 | IDE | Steering 位置 | Hooks |
 |-----|--------------|-------|
@@ -307,20 +298,33 @@ AIVectorMemory 是存储层，通过 Steering 规则告诉 AI **何时、如何*
 ```markdown
 # AIVectorMemory - 工作规则
 
-## ⚠️ 消息类型判断
-分类 → 闲聊：直接回复；问题/bug：track create → 问题追踪流程；多步骤功能：Spec 流程
+## 1. 新会话启动（必须按顺序执行）
 
-## ⚠️ 问题追踪流程
-1. track create → 2. 排查（recall + 查看代码）→ 3. 说明方案，设阻塞
-→ 4. 用户确认，修改代码 → 5. 运行测试 + grep 副作用 → 6. track update
-→ 7. 设阻塞等待验证 → 8. 用户确认，track archive
+1. `recall`（tags: ["项目知识"], scope: "project", top_k: 100）加载项目知识
+2. `recall`（tags: ["preference"], scope: "user", top_k: 20）加载用户偏好
+3. `status`（不传 state）读取会话状态
+4. 有阻塞 → 汇报并等待；无阻塞 → 进入处理流程
 
-## ⚠️ 任务管理流程（Spec）
-1. track create → 2. 创建 spec 目录 → 3. requirements.md → 4. design.md → 5. tasks.md
-→ 6. task batch_create → 7. 按顺序执行子任务 → 8. 全量自测，设阻塞
+## 2. 收到消息后的处理流程
 
-## ⚠️ 阻塞规则 / 自测标准 / 开发规范
-（完整规则由 `avmrun install` 自动生成）
+- 步骤 A：`status` 读取状态，有阻塞则等待
+- 步骤 B：判断消息类型（闲聊/纠正/偏好/代码问题）
+- 步骤 C：`track create` 记录问题
+- 步骤 D：排查（`recall` 查踩坑 + 查看代码 + 找根因）
+- 步骤 E：向用户说明方案，设阻塞等确认
+- 步骤 F：修改代码（修改前 `recall` 查踩坑）
+- 步骤 G：运行测试验证
+- 步骤 H：设阻塞等待用户验证
+- 步骤 I：用户确认 → `track archive` + 清阻塞
+
+## 3. 阻塞规则
+
+提方案等确认、修复完等验证时必须 `status({ is_blocked: true })`。
+用户明确确认后才能清除阻塞，禁止自行清除。
+
+## 4-9. 问题追踪 / 代码检查 / Spec 任务管理 / 记忆质量 / 工具速查 / 开发规范
+
+（完整规则由 `run install` 自动生成）
 ```
 
 </details>
@@ -374,134 +378,15 @@ export HF_ENDPOINT=https://hf-mirror.com
 
 ## 📋 更新日志
 
-### v2.2.6
+### v2.3.1
 
-**规则同步：DEV_WORKFLOW_PROMPT 与 STEERING_CONTENT 完全对齐**
-- 📝 DEV_WORKFLOW_PROMPT 补充「禁止」行、「按对应流程执行」行
-- 📝 核心原则从缩写版恢复完整版，补充「怎么做（执行标准）」section
-- 🌐 7 语言文件全部同步
-
-### v2.2.5
-
-**重构：核心原则精简 + 执行标准 + 移除 check_track hook**
-- 📝 核心原则从 11 条精简为 9 条，补漏洞、堵绕过口
-- 📝 新增「怎么做」执行标准块：验证=调用工具、找根因=输出对应关系、测试通过=展示原始输出、recall 必须先于非代码操作
-- 🛡️ 移除 check_track preToolUse hook（误拦截 Write 操作导致 AI 用 Bash 绕过）
-- 🛡️ bash_guard description 修正（不再误导 AI 认为部署被阻止）
-- 🌐 7 语言同步
-
-### v2.2.3
-
-**优化：规则结构重组 — 精简工作流，清晰分离流程**
-- 📝 从 19 条编号规则重组为 9 个主题分区（去除编号）
-- 📝 问题追踪流程（8 步）与任务管理 / Spec 流程（8 步）独立分离
-- 📝 新增自测标准独立章节，明确测试方式选择规则
-- 📝 Hooks 注入脚本（inject-workflow-rules.sh）精简 — 移除 IDE 安全、修改后检查清单、违规示例
-- 📝 check_track 钩子：非代码文件（.md/.sh/.json/.yaml 等）跳过问题追踪检查
-- 🌐 7 语言同步
-
-### v2.2.2
-
-**优化：规则编号重构 — A-I 改为 1-19 纯数字编号**
-- 📝 19 条规则全部使用纯数字编号，消除 A-I 字母子步骤
-- 📝 问题追踪字段规范合并到步骤 7/8/11.4/13（删除独立章节）
-- 📝 开发规范中自测重复段落删除（统一指向第 11 条）
-- 📝 G1-G4 检查清单强化：「立即执行，不要等用户提醒」
-- 🌐 7 语言同步
-
-### v2.2.1
-
-**热修复：移除 git commit/push 硬阻断 + 扩展手动操作检测**
-- 🐛 修复 bash_guard 用 exit 2 阻断 git commit/push 导致用户无法提交。git 操作改为 steering 规则约束 + stop_guard 事后兜底
-- 🛡️ stop_guard 手动操作词表扩展为短子串匹配（请用/请你/验证一下），覆盖 AI 换说法的变体
-- 📝 G1-G4 检查清单增加「立即执行，不要等用户提醒」
-
-### v2.2.0
-
-**重大升级：通用 Hooks — 8 个 IDE、7 语言、跨平台、自动升级**
-- 🛡️ Hooks 从 .sh 脚本迁移到 Python 模块（`python3 -m aivectormemory.hooks.xxx`）— 跨平台（macOS/Linux/Windows），pip 升级自动生效
-- 🛡️ `bash_guard` 扩展到 7 条规则：+ git commit 拦截 + git push 拦截 + 部署命令拦截（ssh/docker/kubectl/systemctl）
-- 🛡️ `stop_guard` 扩展到 7 项检查：+ 后端测试检测（pytest/curl）+ grep 副作用检查 + track update 验证 + status 阻塞验证
-- 🌐 所有 hook 错误消息支持 7 种语言（zh-CN/zh-TW/en/ja/de/fr/es）
-- 🔌 **bash_guard 部署到所有 IDE**：Cursor、Windsurf、Kiro、Codex CLI、Copilot、Gemini CLI
-- 🆕 新增 IDE 支持：Codex CLI、GitHub Copilot（VSCode+Cloud）、Gemini CLI
-- 🔄 自动升级：`pip install --upgrade` 即刻更新 hook 逻辑，无需重新 install
-- ✅ 测试套件：48 → 114 个测试
-
-### v2.1.11
-
-**修复：桌面端记忆删除 + Web 看板批量删除**
-- 🐛 修复桌面端记忆删除无效 — 原生 `confirm()` 在 Wails WebView 中不工作，改为自定义 Modal 确认框
-- ✨ Web 看板记忆页面（项目 + 全局）增加批量删除功能 — 批量操作按钮、checkbox 多选、全选、批量删除确认
-- 🌐 7种语言新增批量删除相关翻译
-
-### v2.1.10
-
-**增强：自行修正规则 — AI 必须自行修复自己的操作失误**
-- 📝 核心原则第 5 条强化（7语言同步）：「自己的操作失误必须自行修正，禁止问用户要不要修复」
-
-### v2.1.9
-
-**增强：Hook 硬性拦截 — Bash Guard + Stop Guard + 测试决策树**
-- 🛡️ 新增 `bash_guard.sh`（PreToolUse Bash）：拦截 `open http`（必须用 Playwright MCP）、多行 `python3 -c`、`$()+管道` 组合、`mysql -e` 多语句
-- 🛡️ 新增 `stop_guard.sh`（Stop hook）：解析 transcript 检测——改了代码没用 Playwright 验证 + 回复含"手动操作"违规词。AI 必须用 Playwright 或明确声明「此改动不影响前端页面」
-- 🎯 G1 测试规则增加决策树（7语言同步）：按改动影响范围选择测试方式（前端代码→Playwright，API 影响页面→curl+Playwright，纯后端→pytest/curl，不确定→Playwright）
-- 🔧 移除 `_cleanup_legacy_playwright`（重新安装不再删除已有的 Playwright 配置）
-- 🔧 Playwright MCP 安装默认值从 N 改为 Y
-- 🔧 自测规则强化：Playwright MCP 使用前需 ToolSearch 加载，禁止假设工具不可用
-
-### v2.1.8
-
-**增强：工作规则恢复详细版 — 完整工作流步骤 + 防跳过机制**
-- 📝 恢复精简前的详细工作流步骤（步骤 C/D/E/F/I 含明确 recall 格式、排查检查点、中途打断处理）
-- 🛡️ 新增兜底规则：用户提到否定词（"不对/不行/没有/报错"）→ 默认 track create，AI 不能再自行判断"设计如此"跳过记录
-- ⚠️ 所有 11 个章节标题加上 ⚠️ 前缀，提升注意力优先级
-- 🌐 第 1 节统一为 `IDENTITY & TONE`，字段名用英文 key（Role/Language/Voice/Authority），7 语言同步
-- 🔧 修复 `_write_steering` anchor 以支持灵活的章节标题格式
-
-### v2.1.7
-
-**修复：Playwright MCP 配置不再强制写入**
-- 🔧 `install` 时 Playwright MCP 改为可选（仅在有 `npx` 时询问，默认不安装）
-- 🩹 `install` 自动清理旧版强制写入的 Playwright 配置 — 修复 OpenCode "mcp.playwright: Invalid input" 崩溃
-- 🗑️ 移除 server 启动时的 `auto_repair_playwright_config`（配置校验失败时不可达）
-- ➕ 新增 `avmrun` 短命令别名（`avmrun install`、`avmrun web` 等）
-
-### v2.1.6
-
-**修复：CLI 入口点重命名**
-- 🔧 将 CLI 入口点从 `run` 重命名为 `aivectormemory` — `uvx aivectormemory` 现可直接使用，无需 `--from` 变通方案
-- ♻️ 同步更新 argparse `prog` 名称及安装配置
-
-### v2.1.5
-
-**修复：Playwright MCP 配置兼容性**
-- 🔧 修复 OpenCode 升级后报 `mcp.playwright: Invalid input` 错误 — `_build_playwright_config` 缺少 OpenCode 格式处理（缺少 `type: local` + 数组 `command`）
-- ♻️ 重构 `_build_playwright_config` 复用 `_build_config` 格式逻辑 — 消除重复分支，自动适配所有 IDE 格式
-- 🩹 新增 `auto_repair_playwright_config`：MCP server 启动时自动检测并修复错误的 Playwright 配置 — 升级无感，无需手动重装
-
-### v2.1.4
-
-**修复：被取代记忆的可见性**
-- 🔓 移除了将被取代记忆从召回结果中完全隐藏的硬过滤 — 此前 `exclude_superseded=true`（默认）在评分之前就阻止了这些记忆，使其永久不可见
-- 📊 被取代记忆现在通过 importance 降低（`×0.3`）+ `sqrt(importance)` 评分自然排序 — 它们在结果中排名靠后而非完全消失
-- 🧹 移除了 `_load_superseded_ids` 函数及相关死代码
-
-### v2.1.3
-
-**修复：评分引擎全面重构**
-- 🧮 修复关键 bug：复合评分现在使用原始向量相似度而非 RRF 排名分 — 此前 ~0.8 的相似度被替换为 ~0.015 的 RRF 分数，破坏了语义相关性信号
-- √ importance 从直接乘数改为 `sqrt(importance)` — 降低极端惩罚（0.15 → 0.387 而非 0.15），同时保留 supersede 抑制能力
-- 🛡️ 相似度保底：相似度 ≥ 0.85 的记忆获得保底最低分，防止高相关性记忆被低 importance 埋没
-- ⚖️ 权重重新平衡：similarity 0.55（原 0.5）、recency 0.30、frequency 0.15（原 0.2）— 语义相关性现在主导排序
-- 📉 FTS 纯文本回退分从 0.5 降至 0.3 — 纯关键词匹配不再获得虚高的相似度分数
-
-### v2.1.2
-
-**修复：记忆召回准确性**
-- 🔍 修复分层搜索贪心截断：`long_term` 结果填满后 `short_term` 记忆完全跳过，导致高相关性记忆不可见
-- 🔧 两个层级同时搜索，由复合评分统一排序（相似度 × 时效 × 频率 × 重要度）
-- 🛡️ 修复 `_search_tier` 中 filters 字典引用修改 bug
+**增强：规则体系全面修订 + OpenClaw 支持**
+- 🧠 修复 AI 规则中 5 处记忆系统调用遗漏：排查前 recall 踩坑（步骤D）、危险操作前 recall（§7）、Spec 编写前 recall（§8）、子任务执行前 recall（§8）、修复后 remember 踩坑（步骤I）
+- 🦞 新增 OpenClaw IDE 支持 — 现支持 11 个 IDE（MCP 配置合并到 ~/.openclaw/openclaw.json，规则追加到 AGENTS.md）
+- 🎭 Playwright 自测规则强化 — 补充 ToolSearch deferred tools 加载要求，禁止 `open` 命令替代
+- 🔧 合并 v2.2.0–v2.2.6 功能：Hooks 系统（bash_guard + stop_guard + check_track）、评分引擎优化、recall 优化、Web 看板批量删除、桌面端记忆删除 Modal
+- ⚠️ DEV_WORKFLOW_PROMPT：新增 2 条违规提醒（修改代码前查踩坑、修复后存踩坑）
+- 🌐 7 语言规则文件全部同步
 
 ### v2.1.1
 
@@ -523,7 +408,7 @@ export HF_ENDPOINT=https://hf-mirror.com
 - 🔗 关系扩展：标签重叠 ≥ 2 自动建立关联，1 跳扩展发现相关记忆
 - 📝 自动摘要：长记忆（>500 字）生成摘要，brief 模式返回摘要节省 token
 - 🧹 代码清理：删除 15 项死代码，7 项重复代码重构为公共函数
-- ❌ `avmrun uninstall` — 一键清理所有 IDE 配置（MCP、规则、hooks、权限），保留记忆数据
+- ❌ `run uninstall` — 一键清理所有 IDE 配置（MCP、规则、hooks、权限），保留记忆数据
 
 ### v2.0.9
 
@@ -538,7 +423,7 @@ export HF_ENDPOINT=https://hf-mirror.com
 ### v2.0.8
 
 **新功能：内置 Playwright 浏览器测试**
-- 🎭 `avmrun install` 现在自动配置 Playwright 浏览器测试 — AI 可以打开真实浏览器验证前端变更
+- 🎭 `run install` 现在自动配置 Playwright 浏览器测试 — AI 可以打开真实浏览器验证前端变更
 - 🎭 使用独立的测试浏览器（Chrome for Testing），不会影响你的个人浏览器标签页
 - 🔑 简化权限配置 — 常用工具不再弹出权限确认
 - 📏 7 种语言 AI 规则全部更新，强制规范浏览器测试行为
@@ -547,7 +432,7 @@ export HF_ENDPOINT=https://hf-mirror.com
 
 **增强：更多 IDE 支持**
 - 🖥️ 新增 Antigravity 和 GitHub Copilot IDE 支持
-- 🔑 `avmrun install` 自动配置工具权限，减少手动设置
+- 🔑 `run install` 自动配置工具权限，减少手动设置
 - 📏 精简 AI 自测规则
 
 ### v2.0.6

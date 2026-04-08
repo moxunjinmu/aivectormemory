@@ -5,7 +5,7 @@
 </p>
 <h1 align="center">AIVectorMemory</h1>
 <p align="center">
-  <strong>Mehr als Gedächtnis — Gedächtnis + Issue-Tracking + Aufgabenverwaltung, eine All-in-One KI-Entwicklungsworkflow-Engine</strong>
+  <strong>Gib deinem KI-Programmierassistenten ein Gedächtnis — Sitzungsübergreifender persistenter Speicher MCP Server</strong>
 </p>
 <p align="center">
   <a href="https://pypi.org/project/aivectormemory/"><img src="https://img.shields.io/pypi/v/aivectormemory?color=blue&label=PyPI" alt="PyPI"></a>
@@ -15,34 +15,23 @@
 </p>
 ---
 
-> **Andere KI-Gedächtnistools (mem0, Cline Memory Bank usw.) machen nur eines: Erinnerungen speichern und abrufen.** Die KI merkt sich den Kontext — und dann? Bugs werden nicht verfolgt, Entwicklungsaufgaben nicht verwaltet, beim Sitzungswechsel geht der Fortschritt verloren, und Regeln, die du geschrieben hast, werden trotzdem ignoriert. Gedächtnis ist nur der Startpunkt, nicht das Ziel.
+> **Nutzt du immer noch CLAUDE.md / MEMORY.md als Gedächtnis?** Dieser Markdown-Datei-Ansatz hat fatale Schwächen: Die Datei wird immer größer, jede Sitzung injiziert alles und verbraucht massiv Tokens; Inhalte unterstützen nur Stichwortsuche — suche „Datenbank-Timeout" und du findest nicht „MySQL Connection Pool Fallstrick"; eine Datei für mehrere Projekte führt zu gegenseitiger Kontamination; es gibt kein Aufgaben-Tracking, der Entwicklungsfortschritt existiert nur in deinem Kopf; ganz zu schweigen von der 200-Zeilen-Kürzung, manueller Pflege und der Unmöglichkeit, Duplikate zu erkennen oder zusammenzuführen.
 >
-> **AIVectorMemory ist der einzige MCP Server, der Gedächtnis, Issue-Tracking und Aufgabenverwaltung vereint.** Semantische Suche mit präzisem Abruf (suche „Datenbank-Timeout" und finde „MySQL Connection Pool Fallstrick"), integriertes `track` Issue-Tracking + `task` Aufgabenverwaltung, damit die KI den gesamten Entwicklungsablauf automatisch durchführt, `status` für sitzungsübergreifende Zustandssynchronisation ohne Fortschrittsverlust, und Hooks zur Durchsetzung von Workflow-Regeln. Ein-Klick-Installation für 10 IDEs, alle Daten lokal gespeichert ohne Cloud-Abhängigkeit.
+> **AIVectorMemory ist ein grundlegend anderer Ansatz.** Lokale Vektordatenbank-Speicherung mit semantischer Suche für präzisen Abruf (findet Übereinstimmungen auch bei unterschiedlicher Wortwahl), bedarfsgesteuerter Abruf lädt nur relevante Erinnerungen (Token-Verbrauch sinkt um 50%+), automatische Multi-Projekt-Isolation ohne Interferenz, und integriertes Problem-Tracking + Aufgabenverwaltung, die der KI ermöglicht, deinen Entwicklungsworkflow vollständig zu automatisieren. Alle Daten werden dauerhaft auf deinem Rechner gespeichert — null Cloud-Abhängigkeit, nichts geht verloren beim Wechsel von Sitzungen oder IDEs.
 
 ## ✨ Kernfunktionen
 
-
-**Was andere nicht haben:**
-
-| Einzigartige Fähigkeit | Beschreibung | Hat mem0 / Cline MB das? |
-|------------------------|-------------|--------------------------|
-| 🔗 **Issue-Tracking (track)** | Bug gefunden → Untersuchung → Fix → Test → Archivierung, vollständiges Lifecycle-Management | ❌ Keines von beiden |
-| 📋 **Aufgabenverwaltung (task)** | requirements → design → tasks, mehrstufige Anforderungen automatisch aufgeteilt und ausgeführt | ❌ Keines von beiden |
-| 📡 **Sitzungsübergreifender Status (status)** | Blockierungsstatus, aktuelle Aufgabe, Fortschritt — beim Sitzungswechsel nichts verloren | ❌ Keines von beiden |
-| 🛡️ **Hooks Regeldurchsetzung** | bash_guard / stop_guard / check_track, harte Blockierung von Regelverstößen | ❌ Keines von beiden |
-
-**Grundlegende Fähigkeiten ebenfalls führend:**
-
 | Funktion | Beschreibung |
 |----------|-------------|
-| 🧠 **Sitzungsübergreifendes Gedächtnis** | Fehler, Entscheidungen, Konventionen — bleiben über Sessions hinweg erhalten |
-| 🔍 **Semantische Suche** | Vektor-Ähnlichkeitsabgleich, präziser Abruf auch bei unterschiedlicher Wortwahl |
-| 💰 **50%+ Tokens sparen** | Bedarfsgesteuerter Abruf lädt nur relevante Erinnerungen, Schluss mit Masseninjektion |
-| 🏠 **Vollständig Lokal** | ONNX lokale Inferenz, null Cloud-Abhängigkeit, Daten verlassen nie deinen Rechner |
-| 🔌 **10 IDEs** | Cursor / Kiro / Claude Code / Windsurf / VSCode / Copilot / OpenCode / Trae / Codex / Gemini CLI |
-| 📊 **Desktop-App + Web-Dashboard** | Visuelle Verwaltung von Erinnerungen und Aufgaben, 3D-Vektornetzwerk zeigt Wissensverbindungen |
-| 🔄 **Intelligente Deduplizierung** | Ähnlichkeit > 0.95 führt automatisch zusammen, Wissensspeicher bleibt sauber |
-| 🌐 **7 Sprachen** | 简体中文 / 繁體中文 / English / Español / Deutsch / Français / 日本語 |
+| 🧠 **Sitzungsübergreifendes Gedächtnis** | Deine KI erinnert sich endlich an dein Projekt — Fehler, Entscheidungen, Konventionen bleiben über Sessions hinweg erhalten |
+| 🔍 **Semantische Suche** | Kein exakter Wortlaut nötig — suche „Datenbank-Timeout" und finde „MySQL Connection Pool Problem" |
+| 💰 **50%+ Tokens sparen** | Schluss mit Copy-Paste des Projektkontexts in jeder Konversation. Semantischer Abruf bei Bedarf statt Masseninjektion |
+| 🔗 **Aufgabengesteuertes Dev** | Problem-Tracking → Aufgabenzerlegung → Status-Sync → verknüpfte Archivierung. KI verwaltet den gesamten Dev-Workflow |
+| 📊 **Web-Dashboard** | Visuelle Verwaltung aller Erinnerungen und Aufgaben, 3D-Vektornetzwerk zeigt Wissensverbindungen auf einen Blick |
+| 🏠 **Vollständig Lokal** | Null Cloud-Abhängigkeit. ONNX lokale Inferenz, kein API Key, Daten verlassen nie deinen Rechner |
+| 🔌 **Alle IDEs** | Cursor / Kiro / Claude Code / Windsurf / VSCode / OpenCode / Trae / Codex — Ein-Klick-Installation, sofort einsatzbereit |
+| 📁 **Multi-Projekt-Isolation** | Eine DB für alle Projekte, automatisch isoliert ohne Interferenz, nahtloser Projektwechsel |
+| 🔄 **Intelligente Deduplizierung** | Ähnlichkeit > 0.95 führt automatisch zusammen, Wissensspeicher bleibt sauber — wird nie unübersichtlich |
 
 <p align="center">
   QQ群：1085682431 &nbsp;|&nbsp; 微信：changhuibiz<br>
@@ -90,10 +79,10 @@ pip install --upgrade aivectormemory
 
 # In dein Projektverzeichnis wechseln, Ein-Klick-IDE-Setup
 cd /path/to/your/project
-avmrun install
+run install
 ```
 
-`avmrun install` führt dich interaktiv durch die IDE-Auswahl und generiert automatisch MCP-Konfiguration, Steering-Regeln und Hooks — kein manuelles Setup nötig.
+`run install` führt dich interaktiv durch die IDE-Auswahl und generiert automatisch MCP-Konfiguration, Steering-Regeln und Hooks — kein manuelles Setup nötig.
 
 > **macOS-Benutzer beachten**:
 > - Bei `externally-managed-environment` Fehler: `--break-system-packages` hinzufügen
@@ -237,9 +226,9 @@ Extrahiert und speichert automatisch Benutzerpräferenzen am Ende jeder Konversa
 ## 📊 Web-Dashboard
 
 ```bash
-avmrun web --port 9080
-avmrun web --port 9080 --quiet          # Anfrage-Logs unterdrücken
-avmrun web --port 9080 --quiet --daemon  # Im Hintergrund ausführen (macOS/Linux)
+run web --port 9080
+run web --port 9080 --quiet          # Anfrage-Logs unterdrücken
+run web --port 9080 --quiet --daemon  # Im Hintergrund ausführen (macOS/Linux)
 ```
 
 Besuche `http://localhost:9080` im Browser. Standardbenutzername `admin`, Passwort `admin123` (kann nach der ersten Anmeldung in den Einstellungen geändert werden).
@@ -283,7 +272,7 @@ Besuche `http://localhost:9080` im Browser. Standardbenutzername `admin`, Passwo
 
 AIVectorMemory ist die Speicherschicht. Verwende Steering-Regeln, um der KI mitzuteilen, **wann und wie** sie diese Tools aufrufen soll.
 
-`avmrun install` generiert automatisch Steering-Regeln und Hooks-Konfiguration — kein manuelles Setup nötig.
+`run install` generiert automatisch Steering-Regeln und Hooks-Konfiguration — kein manuelles Setup nötig.
 
 | IDE | Steering-Pfad | Hooks |
 |-----|--------------|-------|
@@ -302,20 +291,33 @@ AIVectorMemory ist die Speicherschicht. Verwende Steering-Regeln, um der KI mitz
 ```markdown
 # AIVectorMemory - Workflow-Regeln
 
-## ⚠️ Nachrichtentyp-Klassifizierung
-Klassifizieren → Smalltalk: direkt antworten; Problem/Bug: track create → Problemverfolgungsfluss; Mehrstufige Funktion: Spec-Fluss
+## 1. Neuer Sitzungsstart (in Reihenfolge ausführen)
 
-## ⚠️ Problemverfolgungsfluss
-1. track create → 2. Untersuchen (recall + Code prüfen) → 3. Lösung vorstellen, Blockierung setzen
-→ 4. Benutzer bestätigt, Code ändern → 5. Tests ausführen + grep Nebenwirkungen → 6. track update
-→ 7. Blockierung setzen zur Verifizierung → 8. Benutzer bestätigt, track archive
+1. `recall` (tags: ["Projektwissen"], scope: "project", top_k: 100) Projektwissen laden
+2. `recall` (tags: ["preference"], scope: "user", top_k: 20) Benutzereinstellungen laden
+3. `status` (ohne state-Parameter) Sitzungsstatus lesen
+4. Blockiert → berichten und warten; Nicht blockiert → Verarbeitungsfluss starten
 
-## ⚠️ Aufgabenverwaltungsfluss (Spec)
-1. track create → 2. Spec-Verzeichnis erstellen → 3. requirements.md → 4. design.md → 5. tasks.md
-→ 6. task batch_create → 7. Unteraufgaben der Reihe nach ausführen → 8. Vollständiger Selbsttest, Blockierung setzen
+## 2. Nachrichtenverarbeitungsfluss
 
-## ⚠️ Blockierungsregeln / Selbsttest-Standards / Entwicklungsstandards
-(Vollständige Regeln werden automatisch von `avmrun install` generiert)
+- Schritt A: `status` Status lesen, bei Blockierung warten
+- Schritt B: Nachrichtentyp klassifizieren (Chat/Korrektur/Präferenz/Code-Problem)
+- Schritt C: `track create` Problem erfassen
+- Schritt D: Untersuchen (`recall` Fehler suchen + Code prüfen + Ursache finden)
+- Schritt E: Plan dem Benutzer vorstellen, Blockierung setzen für Bestätigung
+- Schritt F: Code ändern (vor Änderungen `recall` Fehler prüfen)
+- Schritt G: Tests zur Verifizierung ausführen
+- Schritt H: Blockierung setzen für Benutzerverifizierung
+- Schritt I: Benutzer bestätigt → `track archive` + Blockierung aufheben
+
+## 3. Blockierungsregeln
+
+Bei Planvorschlägen oder Verifizierungswartung muss `status({ is_blocked: true })` gesetzt werden.
+Nur nach expliziter Benutzerbestätigung aufheben. Niemals selbst aufheben.
+
+## 4-9. Problemverfolgung / Code-Prüfung / Spec-Aufgabenverwaltung / Erinnerungsqualität / Werkzeugübersicht / Entwicklungsstandards
+
+(Vollständige Regeln werden automatisch von `run install` generiert)
 ```
 
 </details>
@@ -369,129 +371,15 @@ Oder env in der MCP-Konfiguration hinzufügen:
 
 ## 📋 Änderungsprotokoll
 
-### v2.2.6
+### v2.3.1
 
-**Regelsynchronisierung: DEV_WORKFLOW_PROMPT vollständig mit STEERING_CONTENT abgeglichen**
-- 📝 Zeile „Verboten" hinzugefügt, Zeile „dem entsprechenden Ablauf folgen" hinzugefügt
-- 📝 Kernprinzipien von Kurzfassung auf Vollversion wiederhergestellt, Abschnitt „Wie ausführen (Ausführungsstandards)" hinzugefügt
-- 🌐 Alle 7 Sprachdateien synchronisiert
-
-### v2.2.5
-
-**Refactoring: Kernprinzipien gestrafft + Ausführungsstandards + check_track-Hook entfernt**
-- 📝 Kernprinzipien von 11 auf 9 reduziert — Schlupflöcher geschlossen, Umgehungswege blockiert
-- 📝 „Wie umsetzen"-Ausführungsstandards-Block hinzugefügt: Verifizierung = Tool aufrufen, Ursache finden = Zuordnung ausgeben, Test bestanden = Rohausgabe zeigen, recall muss vor Nicht-Code-Operationen erfolgen
-- 🛡️ check_track preToolUse-Hook entfernt (Fehlinterzeption von Write-Operationen führte dazu, dass die KI über Bash umging)
-- 🛡️ bash_guard-Description korrigiert (die KI wird nicht mehr irregeführt, dass Deployment blockiert ist)
-- 🌐 Alle 7 Sprachen synchronisiert
-
-### v2.2.3
-
-**Verbesserung: Regelstruktur neu organisiert — optimierter Workflow mit klarer Flusstrennung**
-- 📝 Von 19 nummerierten Abschnitten zu 9 themenbasierten Abschnitten umstrukturiert (ohne Nummerierung)
-- 📝 Issue-Tracking-Ablauf (8 Schritte) und Aufgabenverwaltung / Spec-Ablauf (8 Schritte) klar getrennt
-- 📝 Selbsttest-Standards als eigenständiger Abschnitt mit klarer Testmethoden-Auswahl hinzugefügt
-- 📝 Hooks-Injektion (inject-workflow-rules.sh) vereinfacht — IDE-Sicherheit, Post-Edit-Checkliste und Verstoßbeispiele entfernt
-- 📝 check_track-Hook: Nicht-Code-Dateien (.md/.sh/.json/.yaml etc.) überspringen die Issue-Tracking-Prüfung
-- 🌐 Alle 7 Sprachen synchronisiert
-
-### v2.2.2
-
-**Verbesserung: Regelnummerierung — A-I → 1-19 flache Nummerierung**
-- 📝 19 Regeln mit flacher Nummerierung, 7 Sprachen synchronisiert
-
-### v2.2.1
-
-**Hotfix: git commit/push Hartblock entfernt + Manuelle-Operationen-Erkennung erweitert**
-- 🐛 bash_guard git commit/push Block entfernt. Steering-Regeln + stop_guard Nachprüfung
-- 🛡️ stop_guard Wortliste erweitert
-- 📝 G1-G4 Checkliste: „Sofort ausführen" hinzugefügt
-
-### v2.2.0
-
-**Major: Universelle Hooks — 8 IDEs, 7 Sprachen, Plattformübergreifend, Auto-Upgrade**
-- 🛡️ Hooks von .sh zu Python-Modulen migriert (`python3 -m aivectormemory.hooks.xxx`) — plattformübergreifend, pip-Upgrade wirkt sofort
-- 🛡️ `bash_guard` auf 7 Regeln erweitert: + git commit/push Blockierung + Deploy-Befehl Blockierung
-- 🛡️ `stop_guard` auf 7 Prüfungen erweitert: + Backend-Tests + grep Seiteneffekte + track update + status Blockierung
-- 🌐 Alle Hook-Fehlermeldungen in 7 Sprachen
-- 🔌 bash_guard auf alle IDEs ausgerollt: Cursor, Windsurf, Kiro, Codex CLI, Copilot, Gemini CLI
-- 🆕 Neue IDE-Unterstützung: Codex CLI, GitHub Copilot, Gemini CLI
-- ✅ Testsuite: 48 → 114 Tests
-
-### v2.1.11
-
-**Fix: Desktop-Speicher löschen + Web-Dashboard Stapellöschung**
-- 🐛 Desktop-App Speicher löschen funktioniert nicht behoben — natives `confirm()` (nicht unterstützt in Wails WebView) durch benutzerdefinierte Modal-Komponente ersetzt
-- ✨ Stapellösch-UI zum Web-Dashboard Speicherseiten (Projekt + Global) hinzugefügt — Stapelmodus-Button, Checkbox-Auswahl, Alle auswählen, Stapellöschung mit Bestätigung
-- 🌐 Stapellösch-Übersetzungen in allen 7 Sprachen hinzugefügt
-
-### v2.1.10
-
-**Verbesserung: Selbstkorrektur-Regel — AI muss eigene Fehler selbst beheben**
-- 📝 Kernprinzip #5 verstärkt (7 Sprachen synchron): „Eigene Bedienungsfehler müssen selbst korrigiert werden — niemals den Benutzer fragen ob sie behoben werden sollen"
-
-### v2.1.9
-
-**Verbesserung: Hook-basierte Regeldurchsetzung — Bash Guard + Stop Guard + Test-Entscheidungsbaum**
-- 🛡️ Neu `bash_guard.sh` (PreToolUse Bash): blockiert `open http` (Playwright MCP verwenden), mehrzeiliges `python3 -c`, `$()+Pipe`-Kombinationen, `mysql -e` Mehrfachanweisungen
-- 🛡️ Neu `stop_guard.sh` (Stop Hook): analysiert Transcript — Code geändert ohne Playwright-Verifizierung + Antwort enthält „manuelle Bedienung"-Wörter. AI muss Playwright verwenden oder explizit erklären „Diese Änderung betrifft keine Frontend-Seiten"
-- 🎯 G1-Testregel um Entscheidungsbaum erweitert (7 Sprachen synchron): Testmethode nach Auswirkungsbereich wählen (Frontend-Code→Playwright, API betrifft Seite→curl+Playwright, reines Backend→pytest/curl, unsicher→Playwright)
-- 🔧 `_cleanup_legacy_playwright` entfernt (Neuinstallation löscht keine bestehende Playwright-Konfiguration mehr)
-- 🔧 Playwright MCP Installationsstandard von N auf Y geändert
-- 🔧 Selbsttest-Regeln verstärkt: Playwright MCP vor Verwendung mit ToolSearch laden, nie annehmen dass Tools nicht verfügbar sind
-
-### v2.1.8
-
-**Verbesserung: Wiederherstellung der Arbeitsregeln — Detaillierte Workflow-Schritte + Anti-Überspringen-Schutz**
-- 📝 Detaillierte Workflow-Schritte aus der Version vor der Vereinfachung wiederhergestellt (Schritte C/D/E/F/I mit expliziten Recall-Formaten, Untersuchungs-Checkpoints, Unterbrechungsbehandlung)
-- 🛡️ Neue Schutzregel: Wenn der Benutzer negative Wörter erwähnt („falsch/funktioniert nicht/fehlt/Fehler") → standardmäßig `track create` — KI kann nicht mehr „ist so designt" urteilen und Aufzeichnung überspringen
-- ⚠️ Alle 11 Abschnittsüberschriften mit ⚠️-Präfix für höhere Aufmerksamkeitspriorität
-- 🌐 Abschnitt 1 vereinheitlicht zu `IDENTITY & TONE` mit englischen Feldschlüsseln (Role/Language/Voice/Authority) in allen 7 Sprachen
-- 🔧 `_write_steering`-Anker korrigiert zur Unterstützung flexibler Abschnittsüberschriften
-
-### v2.1.7
-
-**Fix: Playwright MCP-Konfiguration wird nicht mehr erzwungen**
-- 🔧 Playwright MCP ist bei `install` jetzt optional (nur bei verfügbarem `npx` abgefragt, Standard: Nein)
-- 🩹 `install` bereinigt automatisch alte erzwungene Playwright-Konfigurationen — behebt OpenCode „mcp.playwright: Invalid input"-Absturz
-- 🗑️ `auto_repair_playwright_config` beim Serverstart entfernt (unerreichbar bei fehlgeschlagener Konfigurationsvalidierung)
-- ➕ `avmrun` als kurzer CLI-Alias hinzugefügt (`avmrun install`, `avmrun web` usw.)
-
-### v2.1.6
-
-**Fix: CLI-Einstiegspunkt umbenannt**
-- 🔧 CLI-Einstiegspunkt von `run` in `aivectormemory` umbenannt — `uvx aivectormemory` funktioniert jetzt direkt ohne `--from`-Workaround
-- ♻️ argparse `prog`-Name und Installationskonfiguration synchron aktualisiert
-
-### v2.1.5
-
-**Fix: Playwright MCP-Konfigurationskompatibilität**
-- 🔧 Fehler `mcp.playwright: Invalid input` in OpenCode nach Upgrade behoben — `_build_playwright_config` fehlte die Behandlung des OpenCode-Formats (fehlende `type: local` + Array `command`)
-- ♻️ `_build_playwright_config` refaktoriert zur Wiederverwendung der Formatlogik von `_build_config` — eliminiert doppelte Verzweigungen, passt sich automatisch an alle IDE-Formate an
-- 🩹 `auto_repair_playwright_config` hinzugefügt: MCP-Server erkennt und repariert fehlerhafte Playwright-Konfiguration beim Start automatisch — nahtloses Upgrade, keine manuelle Neuinstallation erforderlich
-
-### v2.1.4
-
-**Fix: Sichtbarkeit ersetzter Erinnerungen**
-- 🔓 Harten Filter entfernt, der ersetzte Erinnerungen vollständig aus Recall-Ergebnissen ausblendete — zuvor blockierte `exclude_superseded=true` (Standard) Erinnerungen vor der Bewertung und machte sie dauerhaft unsichtbar
-- 📊 Ersetzte Erinnerungen werden jetzt natürlich durch importance-Reduktion (`×0.3`) + `sqrt(importance)`-Bewertung eingestuft — sie erscheinen weiter unten in den Ergebnissen statt vollständig zu verschwinden
-- 🧹 Funktion `_load_superseded_ids` und zugehörigen toten Code entfernt
-
-### v2.1.3
-
-**Fix: Überarbeitung der Scoring-Engine**
-- 🧮 Kritischen Bug behoben: Composite-Score verwendet jetzt die originale Vektor-Ähnlichkeit statt des RRF-Rang-Scores — zuvor wurde eine Ähnlichkeit von ~0.8 durch einen RRF-Score von ~0.015 ersetzt, was das semantische Relevanzsignal zerstörte
-- √ importance von direktem Multiplikator zu `sqrt(importance)` geändert — reduziert extreme Bestrafung (0.15 → 0.387 statt 0.15) bei Beibehaltung der Supersede-Unterdrückung
-- 🛡️ Ähnlichkeits-Mindestgrenze: Erinnerungen mit Ähnlichkeit ≥ 0.85 erhalten eine garantierte Mindestpunktzahl, um zu verhindern, dass hochrelevante Erinnerungen durch niedrige importance vergraben werden
-- ⚖️ Neugewichtung: similarity 0.55 (vorher 0.5), recency 0.30, frequency 0.15 (vorher 0.2) — semantische Relevanz dominiert jetzt das Ranking
-- 📉 FTS-only-Fallback von 0.5 auf 0.3 reduziert — reine Keyword-Treffer erhalten keine aufgeblähten Ähnlichkeitswerte mehr
-
-### v2.1.2
-
-**Fehlerbehebung: Genauigkeit der Gedächtnis-Abfrage**
-- 🔍 Gieriger Abbruch bei gestufter Suche behoben: `long_term`-Ergebnisse blockierten die Suche nach `short_term`-Erinnerungen, wodurch hochrelevante Erinnerungen unsichtbar waren
-- 🔧 Beide Stufen werden nun gleichzeitig durchsucht, sortiert nach kombinierter Bewertung (Ähnlichkeit × Aktualität × Häufigkeit × Wichtigkeit)
-- 🛡️ Bug bei der Mutation des `filters`-Dictionarys in `_search_tier` behoben
+**Verbesserung: Umfassende Regelüberarbeitung + OpenClaw-Unterstützung**
+- 🧠 5 fehlende Speichersystem-Aufrufe in KI-Regeln behoben: recall Fallstricke vor Untersuchung (Schritt D), vor gefährlichen Operationen (§7), vor Spec-Erstellung (§8), vor Teilaufgaben-Ausführung (§8), remember Fallstricke nach Fix (Schritt I)
+- 🦞 OpenClaw IDE-Unterstützung hinzugefügt — jetzt 11 IDEs (MCP-Konfiguration wird in ~/.openclaw/openclaw.json zusammengeführt, Regeln an AGENTS.md angehängt)
+- 🎭 Playwright-Selbsttest-Regeln verstärkt — ToolSearch Deferred-Tools-Ladeanforderung hinzugefügt, `open`-Befehl-Workaround verboten
+- 🔧 v2.2.0–v2.2.6 Funktionen zusammengeführt: Hooks-System (bash_guard + stop_guard + check_track), Scoring-Engine-Verbesserungen, recall-Optimierungen, Web-Dashboard Massenlöschung, Desktop-Speicher-Lösch-Modal
+- ⚠️ DEV_WORKFLOW_PROMPT: 2 neue Verstoß-Erinnerungen (Fallstricke vor Code-Änderung prüfen, nach Fix speichern)
+- 🌐 Alle 7 Sprach-Regeldateien synchronisiert
 
 ### v2.1.1
 
@@ -513,7 +401,7 @@ Oder env in der MCP-Konfiguration hinzufügen:
 - 🔗 Beziehungserweiterung: Tag-Überlappung ≥ 2 erstellt automatisch Verknüpfungen, 1-Hop-Erweiterung findet verwandte Erinnerungen
 - 📝 Auto-Zusammenfassung: Lange Erinnerungen (>500 Zeichen) erhalten Zusammenfassungen, Brief-Modus gibt Zusammenfassungen zurück um Token zu sparen
 - 🧹 Code-Bereinigung: 15 tote Code-Elemente entfernt, 7 duplizierte Muster in gemeinsame Utilities refaktorisiert
-- ❌ `avmrun uninstall` — Entfernt sauber alle IDE-Konfigurationen (MCP, Steering, Hooks, Berechtigungen) unter Beibehaltung der Speicherdaten
+- ❌ `run uninstall` — Entfernt sauber alle IDE-Konfigurationen (MCP, Steering, Hooks, Berechtigungen) unter Beibehaltung der Speicherdaten
 
 ### v2.0.9
 
@@ -528,7 +416,7 @@ Oder env in der MCP-Konfiguration hinzufügen:
 ### v2.0.8
 
 **Neu: Integrierter Playwright Browser-Test**
-- 🎭 `avmrun install` konfiguriert jetzt automatisch Playwright Browser-Tests — KI kann einen echten Browser öffnen um Frontend-Änderungen zu überprüfen
+- 🎭 `run install` konfiguriert jetzt automatisch Playwright Browser-Tests — KI kann einen echten Browser öffnen um Frontend-Änderungen zu überprüfen
 - 🎭 Verwendet einen dedizierten Testbrowser (Chrome for Testing), der Ihre persönlichen Browser-Tabs nicht beeinträchtigt
 - 🔑 Vereinfachte Berechtigungskonfiguration — keine Berechtigungs-Popups mehr für gängige Tools
 - 📏 KI-Regeln in allen 7 Sprachen aktualisiert um korrektes Browser-Testverhalten durchzusetzen
@@ -537,7 +425,7 @@ Oder env in der MCP-Konfiguration hinzufügen:
 
 **Verbesserung: Mehr IDE-Unterstützung**
 - 🖥️ Unterstützung für Antigravity und GitHub Copilot IDEs hinzugefügt
-- 🔑 `avmrun install` konfiguriert Tool-Berechtigungen automatisch
+- 🔑 `run install` konfiguriert Tool-Berechtigungen automatisch
 - 📏 KI-Selbsttest-Regeln vereinfacht
 
 ### v2.0.6
@@ -713,7 +601,7 @@ Oder env in der MCP-Konfiguration hinzufügen:
 
 - 🛡️ PreToolUse Hook: Erzwungene Track-Issue-Prüfung vor Edit/Write, Ablehnung ohne aktive Issues (Claude Code / Kiro / OpenCode)
 - 🔌 OpenCode-Plugin auf `@opencode-ai/plugin` SDK-Format aktualisiert (tool.execute.before Hook)
-- 🔧 `avmrun install` deployt check_track.sh automatisch mit dynamischer Pfadinjektion
+- 🔧 `run install` deployt check_track.sh automatisch mit dynamischer Pfadinjektion
 - 🐛 issue_repo archive/delete `row.get()` Inkompatibilität mit `sqlite3.Row` behoben
 - 🐛 session_id Race-Condition behoben: Neuester Wert aus DB lesen vor Inkrementierung
 - 🐛 Track date Formatvalidierung (YYYY-MM-DD) + issue_id Typvalidierung hinzugefügt
@@ -727,7 +615,7 @@ Oder env in der MCP-Konfiguration hinzufügen:
 
 - 🔇 Web-Dashboard `--quiet` Parameter zum Unterdrücken von Anfrage-Logs
 - 🔄 Web-Dashboard `--daemon` Parameter für Hintergrundausführung (macOS/Linux)
-- 🔧 `avmrun install` MCP-Konfigurationsgenerierung behoben (sys.executable + vollständige Felder)
+- 🔧 `run install` MCP-Konfigurationsgenerierung behoben (sys.executable + vollständige Felder)
 - 📋 Issue-Tracking CRUD & Archivierung (Web-Dashboard Hinzufügen/Bearbeiten/Archivieren/Löschen + Erinnerungsverknüpfung)
 - 👆 Klick auf beliebige Stelle in Listenzeile öffnet Bearbeitungs-Modal (Erinnerungen/Issues/Tags)
 - 🔒 Blockierungsregeln bei Sitzungsfortsetzungen/Kontexttransfers erzwungen (erneute Bestätigung erforderlich)

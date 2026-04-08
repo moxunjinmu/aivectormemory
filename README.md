@@ -9,7 +9,7 @@
 </p>
 <h1 align="center">AIVectorMemory</h1>
 <p align="center">
-  <strong>More than memory — Memory + Issue Tracking + Task Management, an all-in-one AI development workflow engine</strong>
+  <strong>Give your AI coding assistant a memory — Cross-session persistent memory MCP Server</strong>
 </p>
 <p align="center">
   <a href="https://pypi.org/project/aivectormemory/"><img src="https://img.shields.io/pypi/v/aivectormemory?color=blue&label=PyPI" alt="PyPI"></a>
@@ -20,34 +20,24 @@
 
 ---
 
-> **Other AI memory tools (mem0, Cline Memory Bank, etc.) only do one thing: store and retrieve memories.** AI remembers the context, then what? Bugs go untracked, dev tasks go unmanaged, progress is lost when switching sessions, and rules you wrote get ignored anyway. Memory is just the starting point, not the finish line.
+> **Still using CLAUDE.md / MEMORY.md as memory?** This Markdown-file memory approach has fatal flaws: the file keeps growing, injecting everything into every session and burning massive tokens; content only supports keyword matching — search "database timeout" and you won't find "MySQL connection pool pitfall"; sharing one file across projects causes cross-contamination; there's no task tracking, so dev progress lives entirely in your head; not to mention the 200-line truncation, manual maintenance, and inability to deduplicate or merge.
 >
-> **AIVectorMemory is the only MCP Server that combines memory, issue tracking, and task management in one.** Semantic search with precise recall (search "database timeout" and find "MySQL connection pool pitfall"), built-in `track` issue tracking + `task` task management so AI runs the full dev workflow automatically, `status` cross-session state sync that never loses progress, and Hooks that enforce your workflow rules. One-click install across 10 IDEs, all data stored locally with zero cloud dependency.
+> **AIVectorMemory is a fundamentally different approach.** Local vector database storage with semantic search for precise recall (matches even when wording differs), on-demand retrieval that loads only relevant memories (token usage drops 50%+), automatic multi-project isolation with zero interference, and built-in issue tracking + task management that lets AI fully automate your dev workflow. All data is permanently stored on your machine — zero cloud dependency, never lost when switching sessions or IDEs.
 
 ## ✨ Core Features
 
-
-**What others don't have:**
-
-| Unique Capability | Description | Does mem0 / Cline MB have it? |
-|-------------------|-------------|-------------------------------|
-| 🔗 **Issue Tracking (track)** | Bug found → investigate → fix → test → archive, full lifecycle management | ❌ Neither has it |
-| 📋 **Task Management (task)** | requirements → design → tasks, multi-step requirements auto-split and executed | ❌ Neither has it |
-| 📡 **Cross-Session State (status)** | Block state, current task, progress — never lost when switching sessions | ❌ Neither has it |
-| 🛡️ **Hooks Rule Enforcement** | bash_guard / stop_guard / check_track, hard-block rule violations | ❌ Neither has it |
-
-**Core capabilities also leading:**
-
 | Feature | Description |
 |---------|-------------|
-| 🧠 **Cross-Session Memory** | Pitfalls, decisions, conventions — all persist across sessions |
-| 🔍 **Semantic Search** | Vector similarity matching, precise recall even with different wording |
-| 💰 **Save 50%+ Tokens** | On-demand retrieval loads only relevant memories, no more bulk injection |
-| 🏠 **Fully Local** | ONNX local inference, zero cloud dependency, data never leaves your machine |
-| 🔌 **10 IDEs** | Cursor / Kiro / Claude Code / Windsurf / VSCode / Copilot / OpenCode / Trae / Codex / Gemini CLI |
-| 📊 **Desktop App + Web Dashboard** | Visual management for memories and tasks, 3D vector network reveals knowledge connections |
-| 🔄 **Smart Dedup** | Similarity > 0.95 auto-merges, memory store stays clean forever |
-| 🌐 **7 Languages** | 简体中文 / 繁體中文 / English / Español / Deutsch / Français / 日本語 |
+| 🧠 **Cross-Session Memory** | Your AI finally remembers your project — pitfalls, decisions, conventions all persist across sessions |
+| 🔍 **Semantic Search** | No need to recall exact wording — search "database timeout" and find "MySQL connection pool issue" |
+| 💰 **Save 50%+ Tokens** | Stop copy-pasting project context every conversation. Semantic retrieval on demand, no more bulk injection |
+| 🔗 **Task-Driven Dev** | Issue tracking → task breakdown → status sync → linked archival. AI manages the full dev workflow |
+| 📊 **Desktop App + Web Dashboard** | Native desktop app (macOS/Windows/Linux) + Web dashboard, visual management for memories and tasks, 3D vector network reveals knowledge connections at a glance |
+| 🏠 **Fully Local** | Zero cloud dependency. ONNX local inference, no API Key, data never leaves your machine |
+| 🔌 **All IDEs** | Cursor / Kiro / Claude Code / Windsurf / VSCode / OpenCode / Trae / Codex — one-click install, works out of the box |
+| 📁 **Multi-Project Isolation** | One DB for all projects, auto-isolated with zero interference, seamless project switching |
+| 🔄 **Smart Dedup** | Similarity > 0.95 auto-merges updates, keeping your memory store clean — never gets messy over time |
+| 🌐 **7 Languages** | 简体中文 / 繁體中文 / English / Español / Deutsch / Français / 日本語, full-stack i18n for dashboard + Steering rules |
 
 <p align="center">
   QQ群：1085682431 &nbsp;|&nbsp; 微信：changhuibiz<br>
@@ -113,10 +103,10 @@ pip install --upgrade aivectormemory
 
 # Navigate to your project directory, one-click IDE setup
 cd /path/to/your/project
-avmrun install
+run install
 ```
 
-`avmrun install` interactively guides you to select your IDE, auto-generating MCP config, Steering rules, and Hooks — no manual setup needed.
+`run install` interactively guides you to select your IDE, auto-generating MCP config, Steering rules, and Hooks — no manual setup needed.
 
 > **macOS users note**:
 > - If you get `externally-managed-environment` error, add `--break-system-packages`
@@ -260,9 +250,9 @@ Auto-extracts and stores user preferences at end of each conversation, smart ded
 ## 📊 Web Dashboard
 
 ```bash
-avmrun web --port 9080
-avmrun web --port 9080 --quiet          # Suppress request logs
-avmrun web --port 9080 --quiet --daemon  # Run in background (macOS/Linux)
+run web --port 9080
+run web --port 9080 --quiet          # Suppress request logs
+run web --port 9080 --quiet --daemon  # Run in background (macOS/Linux)
 ```
 
 Visit `http://localhost:9080` in your browser. Default username `admin`, password `admin123` (can be changed in settings after first login).
@@ -288,7 +278,7 @@ Visit `http://localhost:9080` in your browser. Default username `admin`, passwor
 
 AIVectorMemory is the storage layer. Use Steering rules to tell AI **when and how** to call these tools.
 
-Running `avmrun install` auto-generates Steering rules and Hooks config — no manual setup needed.
+Running `run install` auto-generates Steering rules and Hooks config — no manual setup needed.
 
 | IDE | Steering Location | Hooks |
 |-----|------------------|-------|
@@ -307,20 +297,33 @@ Running `avmrun install` auto-generates Steering rules and Hooks config — no m
 ```markdown
 # AIVectorMemory - Workflow Rules
 
-## ⚠️ Message Type Judgment
-Classify → casual chat: reply directly; issue/bug: track create → Issue Tracking flow; multi-step feature: Spec flow
+## 1. New Session Startup (execute in order)
 
-## ⚠️ Issue Tracking Flow
-1. track create → 2. investigate (recall + read code) → 3. present solution, set block
-→ 4. user confirms, modify code → 5. run tests + grep side effects → 6. track update
-→ 7. set block for verification → 8. user confirms, track archive
+1. `recall` (tags: ["project-knowledge"], scope: "project", top_k: 100) load project knowledge
+2. `recall` (tags: ["preference"], scope: "user", top_k: 20) load user preferences
+3. `status` (no state param) read session state
+4. Blocked → report and wait; Not blocked → enter processing flow
 
-## ⚠️ Task Management Flow (Spec)
-1. track create → 2. create spec dir → 3. requirements.md → 4. design.md → 5. tasks.md
-→ 6. task batch_create → 7. execute subtasks in order → 8. full self-test, set block
+## 2. Message Processing Flow
 
-## ⚠️ Blocking Rules / Self-Test Standards / Development Standards
-(Full rules auto-generated by `avmrun install`)
+- Step A: `status` read state, wait if blocked
+- Step B: Classify message type (chat/correction/preference/code issue)
+- Step C: `track create` record issue
+- Step D: Investigate (`recall` pitfalls + read code + find root cause)
+- Step E: Present plan to user, set blocked awaiting confirmation
+- Step F: Modify code (`recall` pitfalls before changes)
+- Step G: Run tests to verify
+- Step H: Set blocked awaiting user verification
+- Step I: User confirms → `track archive` + clear block
+
+## 3. Blocking Rules
+
+Must `status({ is_blocked: true })` when proposing plans or awaiting verification.
+Only clear after explicit user confirmation. Never self-clear.
+
+## 4-9. Issue Tracking / Code Checks / Spec Task Mgmt / Memory Quality / Tool Reference / Dev Standards
+
+(Full rules auto-generated by `run install`)
 ```
 
 </details>
@@ -374,134 +377,15 @@ Or add env to MCP config:
 
 ## 📋 Changelog
 
-### v2.2.6
+### v2.3.1
 
-**Rules sync: DEV_WORKFLOW_PROMPT fully aligned with STEERING_CONTENT**
-- 📝 DEV_WORKFLOW_PROMPT: added "Forbidden" line, "follow corresponding flow" line
-- 📝 Core principles restored from abbreviated to full version, added "How to execute (execution standards)" section
-- 🌐 All 7 language files synchronized
-
-### v2.2.5
-
-**Refactor: Core principles streamlined + execution standards + remove check_track hook**
-- 📝 Core principles reduced from 11 to 9 — patching loopholes, blocking bypass paths
-- 📝 Added "How to Do It" execution standards block: verify = call tools, find root cause = output correspondence, test passed = show raw output, recall must precede non-code operations
-- 🛡️ Removed check_track preToolUse hook (false interception of Write operations caused AI to bypass via Bash)
-- 🛡️ bash_guard description corrected (no longer misleads AI into thinking deployment is blocked)
-- 🌐 All 7 languages synchronized
-
-### v2.2.3
-
-**Enhancement: Rules restructure — streamlined workflow with clear flow separation**
-- 📝 Restructured from 19 numbered sections to 9 clean topic-based sections (no numbering)
-- 📝 Separated Issue Tracking flow (8 steps) and Task Management / Spec flow (8 steps)
-- 📝 Added Self-Test Standards as standalone section with clear test method selection
-- 📝 Hooks injection (inject-workflow-rules.sh) streamlined — removed IDE Safety, post-edit checklist, violation examples
-- 📝 check_track hook: non-code files (.md/.sh/.json/.yaml etc.) now bypass track-issue check
-- 🌐 All 7 languages synchronized
-
-### v2.2.2
-
-**Enhancement: Rule numbering overhaul — A-I → 1-19 flat numbering**
-- 📝 All 19 rules now use flat numeric numbering (1-19), no more A-I letter substeps
-- 📝 Issue tracking field specs merged into steps 7/8/11.4/13 (removed standalone section)
-- 📝 Self-test duplicate removed from Development Standards (now only in section 11)
-- 📝 G1-G4 checklist strengthened: "execute immediately, don't wait for user reminder"
-- 🌐 All 7 languages synchronized
-
-### v2.2.1
-
-**Hotfix: Remove git commit/push hard-block + Expand manual-operation detection**
-- 🐛 Fixed bash_guard blocking `git commit`/`git push` with exit 2 — users couldn't commit even when explicitly requested. Git operations now governed by steering rules + stop_guard post-check only
-- 🛡️ Expanded stop_guard manual-operation word list — shorter substrings (`请用`/`请你`/`验证一下`/`please verify`) to catch AI phrasing variants
-- 📝 Strengthened G1-G4 checklist wording: "execute immediately, don't wait for user reminder"
-
-### v2.2.0
-
-**Major: Universal Hooks — 8 IDEs, 7 Languages, Cross-Platform, Auto-Upgrade**
-- 🛡️ Hooks migrated from `.sh` scripts to Python modules (`python3 -m aivectormemory.hooks.xxx`) — cross-platform (macOS/Linux/Windows), auto-upgrades via pip
-- 🛡️ `bash_guard` expanded to 7 rules: + `git commit` blocking + `git push` blocking + deploy command blocking (ssh/docker/kubectl/systemctl)
-- 🛡️ `stop_guard` expanded to 7 checks: + backend test detection (pytest/curl) + grep side-effect check + track update verification + status blocking verification
-- 🌐 All hook error messages now support 7 languages (zh-CN/zh-TW/en/ja/de/fr/es) via `_messages.py`
-- 🔌 **bash_guard deployed to all IDEs**: Cursor (bash matcher), Windsurf (pre_run_command), Kiro (shell preToolUse), Codex CLI, Copilot (VSCode+Cloud), Gemini CLI
-- 🆕 New IDE support: Codex CLI (`.codex/hooks.json`), GitHub Copilot (`.github/hooks/`), Gemini CLI (`.gemini/settings.json`)
-- 🔄 Auto-upgrade: `pip install --upgrade` updates hook logic instantly — no re-install needed
-- ✅ Test suite: 48 → 114 tests (66 hooks tests covering all rules, cross-IDE format compatibility, i18n message validation)
-
-### v2.1.11
-
-**Fix: Desktop memory delete + Web dashboard batch delete**
-- 🐛 Fixed desktop app memory delete not working — replaced native `confirm()` (unsupported in Wails WebView) with custom Modal component
-- ✨ Added batch delete UI to Web dashboard memory pages (project + global) — batch mode button, checkbox selection, select all, batch delete with confirmation
-- 🌐 Added batch delete i18n keys across all 7 languages
-
-### v2.1.10
-
-**Enhancement: Self-correction rule — AI must fix its own mistakes without asking**
-- 📝 Core principle #5 enhanced across all 7 languages: "Your own operational mistakes must be self-corrected — never ask the user whether to fix them"
-
-### v2.1.9
-
-**Enhancement: Hook-Based Rule Enforcement — Bash Guard + Stop Guard + Test Decision Tree**
-- 🛡️ New `bash_guard.sh` (PreToolUse Bash): blocks `open http` (must use Playwright MCP), multiline `python3 -c`, `$()+pipe` combos, `mysql -e` multi-statements
-- 🛡️ New `stop_guard.sh` (Stop hook): parses transcript to detect — code edited without Playwright verification + response contains "manual operation" words. AI must either use Playwright or explicitly state "this change does not affect frontend pages"
-- 🎯 Testing decision tree added to G1 rule across all 7 languages: choose test method based on impact scope (frontend code → Playwright, API affecting pages → curl + Playwright, pure backend → pytest/curl, unsure → Playwright)
-- 🔧 Removed `_cleanup_legacy_playwright` (no longer deletes existing Playwright config on re-install)
-- 🔧 Playwright MCP install default changed from N to Y
-- 🔧 Self-test rules enhanced: must use ToolSearch to load Playwright MCP from deferred tools, never assume tools unavailable
-
-### v2.1.8
-
-**Enhancement: Steering Rules Restoration — More Detailed Workflow Steps + Anti-Skip Safeguard**
-- 📝 Restored detailed workflow steps from pre-simplification version (steps C/D/E/F/I with explicit recall formats, investigation checkpoints, interrupt handling)
-- 🛡️ New safeguard rule: when user mentions negative words ("wrong/not working/missing/error"), default to `track create` — AI can no longer self-judge "by design" and skip recording
-- ⚠️ All 11 section headers now prefixed with ⚠️ for higher attention priority
-- 🌐 Section 1 unified to `IDENTITY & TONE` with English field keys (Role/Language/Voice/Authority) across all 7 languages
-- 🔧 Fixed `_write_steering` anchor to support flexible section header formats
-
-### v2.1.7
-
-**Fix: Playwright MCP Config — No Longer Force-Injected**
-- 🔧 Playwright MCP config is now opt-in during `install` (prompted only when `npx` is available, default: No)
-- 🩹 `install` auto-cleans legacy Playwright configs written by older versions — fixes OpenCode "mcp.playwright: Invalid input" crash
-- 🗑️ Removed `auto_repair_playwright_config` from server startup (unreachable when config validation fails)
-- ➕ Added `avmrun` as a short CLI alias (`avmrun install`, `avmrun web`, etc.)
-
-### v2.1.6
-
-**Fix: CLI Entry Point Renamed**
-- 🔧 Renamed CLI entry point from `run` to `aivectormemory` — `uvx aivectormemory` now works directly without `--from` workaround
-- ♻️ Updated argparse `prog` name and install runner config to match
-
-### v2.1.5
-
-**Fix: Playwright MCP Config Compatibility**
-- 🔧 Fixed `mcp.playwright: Invalid input` error on OpenCode after upgrade — `_build_playwright_config` was missing OpenCode format handling (missing `type: local` + array `command`)
-- ♻️ Refactored `_build_playwright_config` to reuse `_build_config` format logic — eliminates duplicate if-else branches, automatically adapts to all IDE formats
-- 🩹 Added `auto_repair_playwright_config`: MCP server auto-detects and fixes incorrect Playwright config on startup — seamless upgrade, no manual reinstall needed
-
-### v2.1.4
-
-**Fix: Superseded Memory Visibility**
-- 🔓 Removed hard filter that completely hid superseded memories from recall results — previously `exclude_superseded=true` (default) blocked memories before scoring, making them permanently invisible
-- 📊 Superseded memories now ranked naturally via importance reduction (`×0.3`) + `sqrt(importance)` scoring — they appear lower in results instead of disappearing entirely
-- 🧹 Removed `_load_superseded_ids` function and related dead code
-
-### v2.1.3
-
-**Fix: Scoring Engine Overhaul**
-- 🧮 Fixed critical bug: composite score now uses original vector similarity instead of RRF rank score — previously a ~0.8 similarity was replaced by ~0.015 RRF score, destroying semantic relevance signal
-- √ importance changed from direct multiplier to `sqrt(importance)` — reduces extreme penalty (0.15 → 0.387 instead of 0.15) while preserving supersede suppression
-- 🛡️ Similarity floor: memories with similarity ≥ 0.85 get a guaranteed minimum score, preventing high-relevance memories from being buried by low importance
-- ⚖️ Rebalanced weights: similarity 0.55 (was 0.5), recency 0.30, frequency 0.15 (was 0.2) — semantic relevance now dominates ranking
-- 📉 FTS-only fallback reduced from 0.5 to 0.3 — pure keyword matches no longer get inflated similarity scores
-
-### v2.1.2
-
-**Fix: Memory Recall Accuracy**
-- 🔍 Fixed tiered search greedy cutoff: `long_term` results previously blocked `short_term` memories from being searched, causing highly relevant memories to be invisible
-- 🔧 Both tiers now searched simultaneously, ranked by composite score (similarity × recency × frequency × importance)
-- 🛡️ Fixed `filters` dict mutation bug in `_search_tier` — original filters no longer modified by reference
+**Enhancement: Rule System Overhaul + OpenClaw Support**
+- 🧠 Fixed 5 missing memory system calls in AI rules: recall pitfalls before investigation (Step D), before dangerous ops (§7), before Spec writing (§8), before subtask execution (§8), and remember pitfalls after fix (Step I)
+- 🦞 Added OpenClaw IDE support — now 11 IDEs total (MCP config merges into ~/.openclaw/openclaw.json, steering appends to AGENTS.md)
+- 🎭 Playwright self-test rules strengthened — added ToolSearch deferred tools loading requirement, banned `open` command workaround
+- 🔧 Merged v2.2.0–v2.2.6 features: hooks system (bash_guard + stop_guard + check_track), scoring engine improvements, recall optimizations, web dashboard bulk delete, desktop memory delete modal
+- ⚠️ DEV_WORKFLOW_PROMPT: added 2 new violation reminders (recall before code change, remember after fix)
+- 🌐 All 7 language rule files updated in sync
 
 ### v2.1.1
 
@@ -523,7 +407,7 @@ Or add env to MCP config:
 - 🔗 Relation expansion: tag overlap ≥ 2 builds related links, 1-hop expansion surfaces connected memories
 - 📝 Auto-summary: long memories (>500 chars) get summaries, brief mode returns summaries to save tokens
 - 🧹 Code cleanup: removed 15 dead code items, refactored 7 duplicate patterns into shared utilities
-- ❌ `avmrun uninstall` — cleanly removes all IDE configurations (MCP, steering, hooks, permissions) while preserving memory data
+- ❌ `run uninstall` — cleanly removes all IDE configurations (MCP, steering, hooks, permissions) while preserving memory data
 
 ### v2.0.9
 
@@ -538,7 +422,7 @@ Or add env to MCP config:
 ### v2.0.8
 
 **New: Playwright Browser Testing Built-in**
-- 🎭 `avmrun install` now automatically configures Playwright browser testing — AI can open a real browser to verify frontend changes instead of guessing
+- 🎭 `run install` now automatically configures Playwright browser testing — AI can open a real browser to verify frontend changes instead of guessing
 - 🎭 Uses a dedicated test browser (Chrome for Testing) that won't interfere with your personal browser tabs
 - 🔑 Simplified permission setup — no more manual permission popups for common tools
 - 📏 Updated AI rules across all 7 languages to enforce proper browser testing behavior
@@ -547,7 +431,7 @@ Or add env to MCP config:
 
 **Enhancement: More IDE Support**
 - 🖥️ Added support for Antigravity and GitHub Copilot IDEs
-- 🔑 `avmrun install` now auto-configures tool permissions, reducing manual setup
+- 🔑 `run install` now auto-configures tool permissions, reducing manual setup
 - 📏 Streamlined AI self-testing rules
 
 ### v2.0.6

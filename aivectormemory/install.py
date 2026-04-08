@@ -39,6 +39,8 @@ IDES = [
     ("Copilot",        lambda root: root / ".github/copilot/mcp.json",  "basic", False,
      lambda root: root / ".github/copilot-instructions.md", "append",
      lambda root: root / ".github/hooks"),
+    ("OpenClaw",       lambda root: Path.home() / ".openclaw/openclaw.json", "standard", True,
+     lambda root: root / "AGENTS.md", "append", None),
 ]
 
 RUNNERS = [
