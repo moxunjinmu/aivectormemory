@@ -24,14 +24,19 @@
 | Funktion | Beschreibung |
 |----------|-------------|
 | 🧠 **Sitzungsübergreifendes Gedächtnis** | Deine KI erinnert sich endlich an dein Projekt — Fehler, Entscheidungen, Konventionen bleiben über Sessions hinweg erhalten |
-| 🔍 **Semantische Suche** | Kein exakter Wortlaut nötig — suche „Datenbank-Timeout" und finde „MySQL Connection Pool Problem" |
-| 💰 **50%+ Tokens sparen** | Schluss mit Copy-Paste des Projektkontexts in jeder Konversation. Semantischer Abruf bei Bedarf statt Masseninjektion |
-| 🔗 **Aufgabengesteuertes Dev** | Problem-Tracking → Aufgabenzerlegung → Status-Sync → verknüpfte Archivierung. KI verwaltet den gesamten Dev-Workflow |
-| 📊 **Web-Dashboard** | Visuelle Verwaltung aller Erinnerungen und Aufgaben, 3D-Vektornetzwerk zeigt Wissensverbindungen auf einen Blick |
+| 🔍 **Hybride Intelligente Suche** | FTS5 Volltext + vektorielle semantische Dualsuche, RRF-Fusionsranking + Komposit-Scoring (Aktualität × Häufigkeit × Wichtigkeit), weit präziser als reine Vektorsuche |
+| 🐛 **Problem-Tracking** | Integrierter Issue Tracker — Entdecken → Untersuchen → Beheben → Archivieren, vollständiger Lebenszyklus. KI verwaltet Bugs automatisch |
+| 📋 **Aufgabenverwaltung** | Spec → Aufgabenzerlegung → verschachtelte Unteraufgaben → Status-Sync → verknüpfte Archivierung. KI steuert den gesamten Dev-Workflow |
+| 🚦 **Sitzungsstatus** | Blockierungsverwaltung + Breakpoint-Wiederaufnahme + Fortschrittsverfolgung, nahtlose Übergabe zwischen Sitzungen und Kontextkomprimierung |
+| 🪝 **Hooks + Steering** | Automatische Einspeisung von Arbeitsregeln + Verhaltensschutz-Hooks, konsistentes KI-Verhalten garantiert — keine wiederholten Anweisungen nötig |
+| 🧬 **Gedächtnis-Evolution** | Widerspruchserkennung ersetzt veraltetes Wissen + automatische Beförderung Kurzzeit→Langzeit + 90-Tage-Auto-Archivierung, selbstentwickelnder Speicher |
+| 📊 **Desktop-App + Web-Dashboard** | Native Desktop-App (macOS/Windows/Linux) + Web-Dashboard, 3D-Vektornetzwerk zeigt Wissensverbindungen auf einen Blick |
+| 💰 **50%+ Tokens sparen** | Semantischer Abruf bei Bedarf, Schluss mit Copy-Paste des Projektkontexts in jeder Konversation |
 | 🏠 **Vollständig Lokal** | Null Cloud-Abhängigkeit. ONNX lokale Inferenz, kein API Key, Daten verlassen nie deinen Rechner |
-| 🔌 **Alle IDEs** | Cursor / Kiro / Claude Code / Windsurf / VSCode / OpenCode / Trae / Codex — Ein-Klick-Installation, sofort einsatzbereit |
+| 🔌 **11 IDEs Abgedeckt** | Cursor / Kiro / Claude Code / Windsurf / VSCode / Copilot / OpenCode / Trae / Codex / Antigravity / OpenClaw — Ein-Klick-Installation & -Deinstallation |
 | 📁 **Multi-Projekt-Isolation** | Eine DB für alle Projekte, automatisch isoliert ohne Interferenz, nahtloser Projektwechsel |
 | 🔄 **Intelligente Deduplizierung** | Ähnlichkeit > 0.95 führt automatisch zusammen, Wissensspeicher bleibt sauber — wird nie unübersichtlich |
+| 🌐 **7 Sprachen** | 简体中文 / 繁體中文 / English / Español / Deutsch / Français / 日本語, Full-Stack i18n für Dashboard + Steering-Regeln |
 
 <p align="center">
   QQ群：1085682431 &nbsp;|&nbsp; 微信：changhuibiz<br>

@@ -24,14 +24,19 @@
 | Característica | Descripción |
 |----------------|-------------|
 | 🧠 **Memoria Entre Sesiones** | Tu IA por fin recuerda tu proyecto — errores encontrados, decisiones tomadas, convenciones establecidas, todo persiste entre sesiones |
-| 🔍 **Búsqueda Semántica** | No necesitas recordar las palabras exactas — busca "timeout de base de datos" y encuentra "error en pool de conexiones MySQL" |
-| 💰 **Ahorro 50%+ Tokens** | Deja de copiar y pegar el contexto del proyecto en cada conversación. Recuperación semántica bajo demanda, adiós a la inyección masiva |
-| 🔗 **Dev Dirigido por Tareas** | Seguimiento de problemas → desglose de tareas → sincronización de estados → archivado vinculado. La IA gestiona todo el flujo de desarrollo |
-| 📊 **Panel Web** | Gestión visual de todas las memorias y tareas, red vectorial 3D para ver conexiones de conocimiento de un vistazo |
+| 🔍 **Búsqueda Híbrida Inteligente** | FTS5 texto completo + búsqueda semántica vectorial dual, ranking fusionado RRF + puntuación compuesta (recencia × frecuencia × importancia), mucho más precisa que la búsqueda vectorial pura |
+| 🐛 **Seguimiento de Problemas** | Issue Tracker integrado — descubrir → investigar → corregir → archivar ciclo completo. La IA gestiona el ciclo de vida de bugs automáticamente |
+| 📋 **Gestión de Tareas** | Spec → desglose de tareas → subtareas anidadas → sincronización de estados → archivado vinculado. La IA dirige el flujo de desarrollo completo |
+| 🚦 **Estado de Sesión** | Gestión de bloqueos + reanudación desde punto de interrupción + seguimiento de progreso, transición fluida entre sesiones y compresión de contexto |
+| 🪝 **Hooks + Steering** | Inyección automática de reglas de trabajo + hooks de guardia de comportamiento, comportamiento consistente de la IA garantizado — sin repetir instrucciones |
+| 🧬 **Evolución de Memoria** | Detección de contradicciones reemplaza conocimiento obsoleto + promoción automática corto→largo plazo + archivo automático a 90 días, memoria auto-evolutiva |
+| 📊 **App Escritorio + Panel Web** | App de escritorio nativa (macOS/Windows/Linux) + panel Web, red vectorial 3D para ver conexiones de conocimiento de un vistazo |
+| 💰 **Ahorro 50%+ Tokens** | Recuperación semántica bajo demanda, adiós a copiar y pegar el contexto del proyecto en cada conversación |
 | 🏠 **Completamente Local** | Cero dependencia de la nube. Inferencia local ONNX, sin API Key, los datos nunca salen de tu máquina |
-| 🔌 **Todos los IDEs** | Cursor / Kiro / Claude Code / Windsurf / VSCode / OpenCode / Trae / Codex — instalación con un clic, listo para usar |
+| 🔌 **11 IDEs Cubiertos** | Cursor / Kiro / Claude Code / Windsurf / VSCode / Copilot / OpenCode / Trae / Codex / Antigravity / OpenClaw — instalación y desinstalación con un clic |
 | 📁 **Aislamiento Multi-Proyecto** | Una sola BD para todos los proyectos, aislamiento automático sin interferencia, cambio de proyecto transparente |
 | 🔄 **Deduplicación Inteligente** | Similitud > 0.95 fusiona automáticamente, la base de memorias siempre limpia — nunca se desordena con el uso |
+| 🌐 **7 Idiomas** | 简体中文 / 繁體中文 / English / Español / Deutsch / Français / 日本語, i18n completa para panel + reglas Steering |
 
 <p align="center">
   QQ群：1085682431 &nbsp;|&nbsp; 微信：changhuibiz<br>
