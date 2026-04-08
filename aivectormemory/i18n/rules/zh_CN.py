@@ -42,7 +42,7 @@ STEERING_CONTENT = """# AIVectorMemory - 工作规则
 
 **B. 判断消息类型**（回复时用自然语言说明判断结果）
 - 闲聊/进度/讨论规则/简单确认 → 直接回答，流程结束
-- 纠正错误行为 → 更新 steering `<!-- custom-rules -->` 块（记录：错误行为、用户原话、正确做法），继续 C
+- 纠正错误行为 → `remember`（tags: ["踩坑", "行为纠正", ...关键词], scope: "project"，含：错误行为、用户原话、正确做法），继续 C
 - 技术偏好/工作习惯 → `auto_save` 存储偏好
 - 其他（代码问题、bug、功能需求）→ 继续 C
 
@@ -52,7 +52,7 @@ STEERING_CONTENT = """# AIVectorMemory - 工作规则
 
 **C. `track create`** — 发现即记录（禁止先修再补），`content` 必填现象和背景
 
-**D. 排查** — 按第7节检查后查看代码（禁止凭记忆），确认数据流向，找根本原因。发现架构/约定 → `remember`。`track update` 填 investigation + root_cause
+**D. 排查** — `recall`（query: 问题关键词, tags: ["踩坑"]）查历史踩坑 → 查看代码（禁止凭记忆）→ 确认数据流向 → 找根本原因。发现架构/约定 → `remember`。`track update` 填 investigation + root_cause
 
 **E. 说明方案** — 简单修复→F，多步骤→第8节。**必须先 `status` 设阻塞再等确认**
 
@@ -62,7 +62,7 @@ STEERING_CONTENT = """# AIVectorMemory - 工作规则
 
 **H. 等待验证** — `status` 设阻塞（block_reason: "修复完成等待验证"或"需要用户决策"）
 
-**I. 用户确认** — `track archive`，清阻塞。**回流检查**：若在 task 执行中发现的 bug，归档后回到第8节继续。会话结束前 `auto_save`
+**I. 用户确认** — `track archive`，清阻塞。有踩坑价值 → `remember`（tags: ["踩坑", ...关键词], scope: "project"，含：现象+根因+正确做法）。**回流检查**：若在 task 执行中发现的 bug，归档后回到第8节继续。会话结束前 `auto_save`
 
 ---
 
@@ -94,6 +94,7 @@ STEERING_CONTENT = """# AIVectorMemory - 工作规则
 - **需要项目信息**：先 `recall` → 代码/配置搜索 → 问用户（禁止跳过 recall）
 - **代码修改前**：`recall`（query: 关键词, tags: ["踩坑"]）查踩坑记录 + 查看现有实现 + 确认数据流向
 - **代码修改后**：运行测试 + 确认不影响其他功能
+- **危险操作前**（发布、部署、重启等）：`recall`（query: 操作关键词, tags: ["踩坑"]）查踩坑记录，按记忆中的正确做法执行
 - **用户要求读文件**：禁止以「已读过」跳过，必须重新读取
 
 ---
@@ -102,7 +103,7 @@ STEERING_CONTENT = """# AIVectorMemory - 工作规则
 
 **触发**：多步骤的新功能、重构、升级
 
-**Spec 流程**（2→3→4 严格顺序，每步审查后提交确认）：
+**Spec 流程**（2→3→4 严格顺序，每步审查后提交确认。**编写前先 `recall`（tags: ["项目知识", "踩坑"], query: 涉及模块）加载相关知识**）：
 1. 创建 `{specs_path}`
 2. `requirements.md` — 功能范围 + 验收标准
 3. `design.md` — 技术方案 + 架构
@@ -117,7 +118,7 @@ STEERING_CONTENT = """# AIVectorMemory - 工作规则
 **执行流程**：
 5. `task batch_create`（feature_id=目录名，**必须 children 嵌套**）
 6. 按顺序执行子任务（禁止跳过，禁止"后续迭代"）：
-   - `task update`（in_progress）→ 读 design.md 对应章节 → 实现 → `task update`（completed）
+   - `task update`（in_progress）→ `recall`（tags: ["踩坑"], query: 子任务涉及模块）→ 读 design.md 对应章节 → 实现 → `task update`（completed）
    - **开始前检查 tasks.md 前置任务全部 `[x]`**
    - 整理/执行中发现遗漏 → 先更新 design.md/tasks.md
 7. `task list` 确认无遗漏
@@ -166,7 +167,7 @@ STEERING_CONTENT = """# AIVectorMemory - 工作规则
 - **禁止** `lsof -ti:端口` 不加 ignoreWarning（会被安全检查拦截）
 - **正确做法**：SQL 写入 `.sql` 文件用 `< data/xxx.sql` 执行；Python 验证脚本写成 .py 文件用 `python3 xxx.py` 执行；端口检查用 `lsof -ti:端口` + ignoreWarning:true
 
-**自测**：修改代码文件后，**必须先运行测试验证再设阻塞"等待验证"**。禁止修改代码后直接说"等待验证"而不跑测试。仅修改文档/配置文件（.md/.json/.yaml/.toml/.sh 等非代码文件）时不要求自测。后端：pytest/curl；前端：**仅 Playwright MCP**（browser_navigate → 交互 → browser_snapshot），其他一切方式（curl、脚本、node -e、截图）均为违规。测试后不调用 browser_close。
+**自测**：修改代码文件后，**必须先运行测试验证再设阻塞"等待验证"**。禁止修改代码后直接说"等待验证"而不跑测试。仅修改文档/配置文件（.md/.json/.yaml/.toml/.sh 等非代码文件）时不要求自测。后端：pytest/curl；前端：**仅 Playwright MCP**（browser_navigate → 交互 → browser_snapshot），其他一切方式（curl、脚本、node -e、截图、`open` 命令）均为违规。测试后不调用 browser_close。**Playwright MCP 工具在 deferred tools 列表中，使用前用 ToolSearch 加载。禁止假设工具不可用，禁止用 `open` 命令或让用户手动打开浏览器替代。**
 
 **完成标准**：只有完成和未完成，禁止"基本完成"
 
@@ -223,12 +224,14 @@ DEV_WORKFLOW_PROMPT = (
     "## ⚠️ 自测检查\n\n"
     "修改了代码文件后，**必须先运行测试验证再设阻塞\"等待验证\"**。"
     "禁止修改代码后直接说\"等待验证\"而不跑测试。仅修改文档/配置文件（.md/.json/.yaml/.toml/.sh 等非代码文件）时不要求自测。\n\n"
-    "**前端可见变更：只能用 Playwright MCP 工具**（browser_navigate → 交互 → browser_snapshot），其他一切方式（curl、脚本、node -e、截图）均为违规。测试后不调用 browser_close。\n\n"
+    "**前端可见变更：只能用 Playwright MCP 工具**（browser_navigate → 交互 → browser_snapshot），其他一切方式（curl、脚本、node -e、截图、`open` 命令）均为违规。测试后不调用 browser_close。**Playwright MCP 在 deferred tools 列表中，用 ToolSearch 加载。禁止假设工具不可用。**\n\n"
     "---\n\n"
     "## ⚠️ 高频违规提醒\n\n"
     "- ❌ 修改代码后直接说\"等待验证\" → 必须先跑测试\n"
+    "- ❌ 修改代码前不查踩坑 → 必须先 `recall`（tags: [\"踩坑\"]）再改代码\n"
     "- ❌ 凭记忆假设 → 必须 recall + 读代码验证\n"
     "- ❌ 跳过 track create 直接修代码\n"
+    "- ❌ 修复完不存踩坑 → 有踩坑价值必须 `remember`（tags: [\"踩坑\", ...关键词]）\n"
     "- ❌ python3 -c 多行 / $(…)+管道 → IDE 会卡死\n\n"
     "⚠️ 完整规则见 CLAUDE.md，必须严格遵守。"
 )

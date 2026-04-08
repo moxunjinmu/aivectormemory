@@ -31,6 +31,7 @@ const api = (path, opts = {}) => {
 
 const PAGE_SIZE = 10;
 const state = { projectPage: 1, userPage: 1, issuePage: 1 };
+const batchState = { project: false, user: false, projectSelected: new Set(), userSelected: new Set(), projectMemories: [], userMemories: [] };
 
 const i18n = { get status() { return t('status') || {}; } };
 
@@ -158,11 +159,15 @@ function formatTime(iso) {
   return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
 }
 
-function renderMemoryCard(m) {
+function renderMemoryCard(m, scope) {
   const tags = parseTags(m.tags);
-  return `<div class="memory-card" style="cursor:pointer" onclick="if(!event.target.closest('.memory-card__actions')){editMemory('${m.id}')}">
+  const isBatch = scope === 'project' ? batchState.project : batchState.user;
+  const selected = scope === 'project' ? batchState.projectSelected : batchState.userSelected;
+  const checkbox = isBatch ? `<input type="checkbox" class="memory-card__check" data-id="${m.id}" ${selected.has(m.id) ? 'checked' : ''} onclick="event.stopPropagation();toggleMemorySelect('${m.id}','${scope}')">` : '';
+  return `<div class="memory-card${isBatch && selected.has(m.id) ? ' memory-card--selected' : ''}" style="cursor:pointer" onclick="if(!event.target.closest('.memory-card__actions,.memory-card__check')){${isBatch ? `toggleMemorySelect('${m.id}','${scope}')` : `editMemory('${m.id}')`}}">
     <div class="memory-card__header">
       <div class="memory-card__header-left">
+        ${checkbox}
         <div class="memory-card__id">${m.id}</div>
         <div class="memory-card__tags">${tags.map(tg => `<span class="tag">${escHtml(TAG_I18N[tg] ? t(TAG_I18N[tg]) : tg)}</span>`).join('')}</div>
         <div class="memory-card__time">${formatTime(m.created_at)}</div>
@@ -211,9 +216,12 @@ async function loadMemoriesByScope(scope, listId, pagerId, searchId, countId, pa
   const total = data.total || memories.length;
 
   $(countId).textContent = `${t('total')} ${total} ${t('items')}`;
+  if (scope === 'project') batchState.projectMemories = memories;
+  else batchState.userMemories = memories;
   $(listId).innerHTML = memories.length
-    ? memories.map(renderMemoryCard).join('')
+    ? memories.map(m => renderMemoryCard(m, scope)).join('')
     : `<div class="empty-state">${t('noMemories')}</div>`;
+  updateMemoryBatchBar(scope);
 
   renderPager(pagerId, page, total, p => { state[pageKey] = p; loadMemoriesByScope(scope, listId, pagerId, searchId, countId, pageKey); });
 }
@@ -255,6 +263,72 @@ window.deleteMemory = (id) => {
     loadUserMemories();
   });
 };
+
+window.toggleMemorySelect = (id, scope) => {
+  const sel = scope === 'project' ? batchState.projectSelected : batchState.userSelected;
+  sel.has(id) ? sel.delete(id) : sel.add(id);
+  const listId = scope === 'project' ? '#project-memory-list' : '#user-memory-list';
+  const memories = scope === 'project' ? batchState.projectMemories : batchState.userMemories;
+  $(listId).innerHTML = memories.map(m => renderMemoryCard(m, scope)).join('');
+  updateMemoryBatchBar(scope);
+};
+
+function updateMemoryBatchBar(scope) {
+  const sel = scope === 'project' ? batchState.projectSelected : batchState.userSelected;
+  const barId = scope === 'project' ? '#project-batch-bar' : '#user-batch-bar';
+  const countId = scope === 'project' ? '#project-selected-count' : '#user-selected-count';
+  const bar = $(barId);
+  if (!bar) return;
+  if (batchState[scope]) {
+    bar.style.display = 'flex';
+    $(countId).textContent = sel.size;
+  } else {
+    bar.style.display = 'none';
+  }
+}
+
+function enterBatchMode(scope) {
+  batchState[scope] = true;
+  batchState[scope === 'project' ? 'projectSelected' : 'userSelected'].clear();
+  scope === 'project' ? loadProjectMemories() : loadUserMemories();
+}
+
+function exitBatchMode(scope) {
+  batchState[scope] = false;
+  batchState[scope === 'project' ? 'projectSelected' : 'userSelected'].clear();
+  const selectAllId = scope === 'project' ? '#project-select-all' : '#user-select-all';
+  $(selectAllId).checked = false;
+  scope === 'project' ? loadProjectMemories() : loadUserMemories();
+}
+
+function doBatchDeleteMemories(scope) {
+  const sel = scope === 'project' ? batchState.projectSelected : batchState.userSelected;
+  if (!sel.size) return;
+  const ids = [...sel];
+  showConfirm(t('confirmBatchDelete').replace('{n}', ids.length), async () => {
+    const res = await api('memories', { method: 'DELETE', body: { ids } });
+    if (res.error) { toast(res.error, 'error'); return; }
+    toast(t('memoriesBatchDeleted').replace('{n}', res.deleted_count || ids.length));
+    sel.clear();
+    loadProjectMemories();
+    loadUserMemories();
+  });
+}
+
+$('#btn-batch-project')?.addEventListener('click', () => enterBatchMode('project'));
+$('#btn-batch-user')?.addEventListener('click', () => enterBatchMode('user'));
+$('#project-batch-delete')?.addEventListener('click', () => doBatchDeleteMemories('project'));
+$('#user-batch-delete')?.addEventListener('click', () => doBatchDeleteMemories('user'));
+$('#project-batch-cancel')?.addEventListener('click', () => exitBatchMode('project'));
+$('#user-batch-cancel')?.addEventListener('click', () => exitBatchMode('user'));
+$('#project-select-all')?.addEventListener('change', (e) => {
+  batchState.projectSelected = e.target.checked ? new Set(batchState.projectMemories.map(m => m.id)) : new Set();
+  loadProjectMemories();
+});
+$('#user-select-all')?.addEventListener('change', (e) => {
+  batchState.userSelected = e.target.checked ? new Set(batchState.userMemories.map(m => m.id)) : new Set();
+  loadUserMemories();
+});
 
 function bindSearchClear(inputId, clearId, pageKey, loadFn) {
   const input = $(inputId), btn = $(clearId);

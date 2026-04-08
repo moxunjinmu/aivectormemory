@@ -371,6 +371,16 @@ export HF_ENDPOINT=https://hf-mirror.com
 
 ## 📋 更新履歴
 
+### v2.3.1
+
+**強化：ルール体系の全面改訂 + OpenClaw サポート**
+- 🧠 AIルールの記憶システム呼び出し5箇所の漏れを修正：調査前の recall 落とし穴（ステップD）、危険操作前の recall（§7）、Spec 執筆前の recall（§8）、サブタスク実行前の recall（§8）、修正後の remember 落とし穴（ステップI）
+- 🦞 OpenClaw IDE サポート追加 — 11 IDE 対応（MCP設定は ~/.openclaw/openclaw.json にマージ、ルールは AGENTS.md に追記）
+- 🎭 Playwright 自己テストルール強化 — ToolSearch deferred tools ロード要件追加、`open` コマンド代替を禁止
+- 🔧 v2.2.0–v2.2.6 機能統合：Hooks システム（bash_guard + stop_guard + check_track）、スコアリングエンジン改善、recall 最適化、Web ダッシュボード一括削除、デスクトップ版記憶削除 Modal
+- ⚠️ DEV_WORKFLOW_PROMPT：違反リマインダー2件追加（コード変更前の落とし穴確認、修正後の落とし穴保存）
+- 🌐 7言語ルールファイル全同期
+
 ### v2.1.1
 
 **改善：AI ルールシステムのアップグレード**

@@ -42,7 +42,7 @@ STEERING_CONTENT = """# AIVectorMemory - 工作規則
 
 **B. 判斷訊息類型**（回覆時用自然語言說明判斷結果）
 - 閒聊/進度/討論規則/簡單確認 → 直接回答，流程結束
-- 糾正錯誤行為 → 更新 steering `<!-- custom-rules -->` 區塊（記錄：錯誤行為、使用者原話、正確做法），繼續 C
+- 糾正錯誤行為 → `remember`（tags: ["踩坑", "行為糾正", ...關鍵詞], scope: "project"，含：錯誤行為、使用者原話、正確做法），繼續 C
 - 技術偏好/工作習慣 → `auto_save` 儲存偏好
 - 其他（程式碼問題、bug、功能需求）→ 繼續 C
 
@@ -52,7 +52,7 @@ STEERING_CONTENT = """# AIVectorMemory - 工作規則
 
 **C. `track create`** — 發現即記錄（禁止先修再補），`content` 必填現象和背景
 
-**D. 排查** — 按第7節檢查後查看程式碼（禁止憑記憶），確認資料流向，找根本原因。發現架構/約定 → `remember`。`track update` 填 investigation + root_cause
+**D. 排查** — `recall`（query: 問題關鍵詞, tags: ["踩坑"]）查歷史踩坑 → 查看程式碼（禁止憑記憶）→ 確認資料流向 → 找根本原因。發現架構/約定 → `remember`。`track update` 填 investigation + root_cause
 
 **E. 說明方案** — 簡單修復→F，多步驟→第8節。**必須先 `status` 設阻塞再等確認**
 
@@ -62,7 +62,7 @@ STEERING_CONTENT = """# AIVectorMemory - 工作規則
 
 **H. 等待驗證** — `status` 設阻塞（block_reason: "修復完成等待驗證"或"需要使用者決策"）
 
-**I. 使用者確認** — `track archive`，清阻塞。**回流檢查**：若在 task 執行中發現的 bug，歸檔後回到第8節繼續。會話結束前 `auto_save`
+**I. 使用者確認** — `track archive`，清阻塞。有踩坑價值 → `remember`（tags: ["踩坑", ...關鍵詞], scope: "project"，含：現象+根因+正確做法）。**回流檢查**：若在 task 執行中發現的 bug，歸檔後回到第8節繼續。會話結束前 `auto_save`
 
 ---
 
@@ -94,6 +94,7 @@ STEERING_CONTENT = """# AIVectorMemory - 工作規則
 - **需要專案���訊**：先 `recall` → 程式碼/設定搜尋 → 問使用者（禁止跳過 recall）
 - **程式碼修改前**：`recall`（query: 關鍵詞, tags: ["踩坑"]）查踩坑記錄 + 查看現有實作 + 確認資料流向
 - **程式碼修改後**：執行測試 + 確認不影響其他功能
+- **危險操作前**（發布、部署、重啟等）：`recall`（query: 操作關鍵詞, tags: ["踩坑"]）查踩坑記錄，按記憶中的正確做法執行
 - **使用者要求讀取檔案**：禁止以「已讀過」跳過，必須重新讀取
 
 ---
@@ -102,7 +103,7 @@ STEERING_CONTENT = """# AIVectorMemory - 工作規則
 
 **觸發**：多步驟的新功能、重構、升級
 
-**Spec 流程**（2→3→4 嚴格順序，每步審查後提交確認）：
+**Spec 流程**（2→3→4 嚴格順序，每步審查後提交確認。**編寫前先 `recall`（tags: ["專案知識", "踩坑"], query: 涉及模組）載入相關知識**）：
 1. 建立 `{specs_path}`
 2. `requirements.md` — 功能範圍 + 驗收標準
 3. `design.md` — 技術方案 + 架構
@@ -117,7 +118,7 @@ STEERING_CONTENT = """# AIVectorMemory - 工作規則
 **執行流程**：
 5. `task batch_create`（feature_id=目錄名，**必須 children 巢狀**）
 6. 按順序執行子任務（禁止跳過，禁止「後續迭代」）：
-   - `task update`（in_progress）→ 讀 design.md 對應章節 → 實作 → `task update`（completed）
+   - `task update`（in_progress）→ `recall`（tags: ["踩坑"], query: 子任務涉及模組）→ 讀 design.md 對應章節 → 實作 → `task update`（completed）
    - **開始前檢查 tasks.md 前置任務全部 `[x]`**
    - 整理/執行中發現遺漏 → 先更新 design.md/tasks.md
 7. `task list` 確認無遺漏
@@ -166,7 +167,7 @@ STEERING_CONTENT = """# AIVectorMemory - 工作規則
 - **禁止** `lsof -ti:埠號` 不加 ignoreWarning（會被安全檢查攔截）
 - **正確做法**：SQL 寫入 `.sql` 檔案用 `< data/xxx.sql` 執行；Python 驗證腳本寫成 .py 檔案用 `python3 xxx.py` 執行；埠號檢查用 `lsof -ti:埠號` + ignoreWarning:true
 
-**自測**：修改程式碼檔案後，**必須先執行測試驗證再設定阻塞「等待驗證」**。禁止修改程式碼後直接說「等待驗證」而不執行測試。僅修改文件/設定檔（.md/.json/.yaml/.toml/.sh 等非程式碼檔案）時不要求自測。後端：pytest/curl；前端：**僅 Playwright MCP**（browser_navigate → 交互 → browser_snapshot），其他一切方式（curl、腳本、node -e、截圖）均為違規。測試後不呼叫 browser_close。
+**自測**：修改程式碼檔案後，**必須先執行測試驗證再設定阻塞「等待驗證」**。禁止修改程式碼後直接說「等待驗證」而不執行測試。僅修改文件/設定檔（.md/.json/.yaml/.toml/.sh 等非程式碼檔案）時不要求自測。後端：pytest/curl；前端：**僅 Playwright MCP**（browser_navigate → 交互 → browser_snapshot），其他一切方式（curl、腳本、node -e、截圖、`open` 命令）均為違規。測試後不呼叫 browser_close。**Playwright MCP 工具在 deferred tools 列表中，使用前用 ToolSearch 載入。禁止假設工具不可用，禁止用 `open` 命令或讓使用者手動開啟瀏覽器替代。**
 
 **完成標準**：只有完成和未完成，禁止「基本完成」
 
@@ -223,12 +224,14 @@ DEV_WORKFLOW_PROMPT = (
     "## ⚠️ 自測檢查\n\n"
     "修改了程式碼檔案後，**必須先執行測試驗證再設定阻塞「等待驗證」**。"
     "禁止修改程式碼後直接說「等待驗證」而不執行測試。僅修改文件/設定檔（.md/.json/.yaml/.toml/.sh 等非程式碼檔案）時不要求自測。\n\n"
-    "**前端可見變更：只能用 Playwright MCP 工具**（browser_navigate → 交互 → browser_snapshot），其他一切方式（curl、腳本、node -e、截圖）均為違規。測試後不呼叫 browser_close。\n\n"
+    "**前端可見變更：只能用 Playwright MCP 工具**（browser_navigate → 交互 → browser_snapshot），其他一切方式（curl、腳本、node -e、截圖、`open` 命令）均為違規。測試後不呼叫 browser_close。**Playwright MCP 在 deferred tools 列表中，用 ToolSearch 載入。禁止假設工具不可用。**\n\n"
     "---\n\n"
     "## ⚠️ 高頻違規提醒\n\n"
     "- ❌ 修改程式碼後直接說「等待驗證」→ 必須先跑測試\n"
+    "- ❌ 修改程式碼前不查踩坑 → 必須先 `recall`（tags: [\"踩坑\"]）再改程式碼\n"
     "- ❌ 憑記憶假設 → 必須 recall + 讀程式碼驗證\n"
     "- ❌ 跳過 track create 直接修程式碼\n"
+    "- ❌ 修復完不存踩坑 → 有踩坑價值必須 `remember`（tags: [\"踩坑\", ...關鍵詞]）\n"
     "- ❌ python3 -c 多行 / $(…)+管道 → IDE 會當機\n\n"
     "⚠️ 完整規則見 CLAUDE.md，必須嚴格遵守。"
 )

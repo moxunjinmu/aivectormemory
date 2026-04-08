@@ -377,6 +377,16 @@ Or add env to MCP config:
 
 ## 📋 Changelog
 
+### v2.3.1
+
+**Enhancement: Rule System Overhaul + OpenClaw Support**
+- 🧠 Fixed 5 missing memory system calls in AI rules: recall pitfalls before investigation (Step D), before dangerous ops (§7), before Spec writing (§8), before subtask execution (§8), and remember pitfalls after fix (Step I)
+- 🦞 Added OpenClaw IDE support — now 11 IDEs total (MCP config merges into ~/.openclaw/openclaw.json, steering appends to AGENTS.md)
+- 🎭 Playwright self-test rules strengthened — added ToolSearch deferred tools loading requirement, banned `open` command workaround
+- 🔧 Merged v2.2.0–v2.2.6 features: hooks system (bash_guard + stop_guard + check_track), scoring engine improvements, recall optimizations, web dashboard bulk delete, desktop memory delete modal
+- ⚠️ DEV_WORKFLOW_PROMPT: added 2 new violation reminders (recall before code change, remember after fix)
+- 🌐 All 7 language rule files updated in sync
+
 ### v2.1.1
 
 **Enhancement: AI Rule System Upgrade**

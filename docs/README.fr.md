@@ -371,6 +371,16 @@ Ou ajouter env dans la configuration MCP :
 
 ## 📋 Journal des Modifications
 
+### v2.3.1
+
+**Amélioration : Refonte complète des règles + Support OpenClaw**
+- 🧠 Correction de 5 appels manquants au système de mémoire dans les règles IA : recall pièges avant investigation (Étape D), avant opérations dangereuses (§7), avant rédaction Spec (§8), avant exécution sous-tâche (§8), remember pièges après correction (Étape I)
+- 🦞 Support OpenClaw IDE ajouté — 11 IDE au total (configuration MCP fusionnée dans ~/.openclaw/openclaw.json, règles ajoutées à AGENTS.md)
+- 🎭 Règles d'auto-test Playwright renforcées — exigence de chargement ToolSearch deferred tools ajoutée, contournement par commande `open` interdit
+- 🔧 Fonctionnalités v2.2.0–v2.2.6 fusionnées : système Hooks (bash_guard + stop_guard + check_track), améliorations du moteur de scoring, optimisations recall, suppression en masse du tableau de bord web, modal de suppression mémoire bureau
+- ⚠️ DEV_WORKFLOW_PROMPT : 2 nouveaux rappels de violation (vérifier pièges avant modification de code, enregistrer après correction)
+- 🌐 7 fichiers de règles linguistiques synchronisés
+
 ### v2.1.1
 
 **Amélioration : Mise à niveau du système de règles IA**

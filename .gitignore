@@ -46,3 +46,6 @@ tests/screenshots/
 docs/design/
 docs/specs/
 tests/
+
+# Claude Code source (extracted for research)
+package/

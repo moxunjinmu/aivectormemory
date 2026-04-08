@@ -371,6 +371,16 @@ Oder env in der MCP-Konfiguration hinzufügen:
 
 ## 📋 Änderungsprotokoll
 
+### v2.3.1
+
+**Verbesserung: Umfassende Regelüberarbeitung + OpenClaw-Unterstützung**
+- 🧠 5 fehlende Speichersystem-Aufrufe in KI-Regeln behoben: recall Fallstricke vor Untersuchung (Schritt D), vor gefährlichen Operationen (§7), vor Spec-Erstellung (§8), vor Teilaufgaben-Ausführung (§8), remember Fallstricke nach Fix (Schritt I)
+- 🦞 OpenClaw IDE-Unterstützung hinzugefügt — jetzt 11 IDEs (MCP-Konfiguration wird in ~/.openclaw/openclaw.json zusammengeführt, Regeln an AGENTS.md angehängt)
+- 🎭 Playwright-Selbsttest-Regeln verstärkt — ToolSearch Deferred-Tools-Ladeanforderung hinzugefügt, `open`-Befehl-Workaround verboten
+- 🔧 v2.2.0–v2.2.6 Funktionen zusammengeführt: Hooks-System (bash_guard + stop_guard + check_track), Scoring-Engine-Verbesserungen, recall-Optimierungen, Web-Dashboard Massenlöschung, Desktop-Speicher-Lösch-Modal
+- ⚠️ DEV_WORKFLOW_PROMPT: 2 neue Verstoß-Erinnerungen (Fallstricke vor Code-Änderung prüfen, nach Fix speichern)
+- 🌐 Alle 7 Sprach-Regeldateien synchronisiert
+
 ### v2.1.1
 
 **Verbesserung: AI-Regelsystem-Upgrade**

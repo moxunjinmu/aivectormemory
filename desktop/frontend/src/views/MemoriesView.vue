@@ -27,6 +27,11 @@ const editMemory = ref<any>(null)
 const batchMode = ref(false)
 const selectedIds = ref<Set<string>>(new Set())
 
+// Delete confirmation modal
+const confirmDeleteShow = ref(false)
+const confirmDeleteTarget = ref<string | null>(null)
+const confirmDeleteBatch = ref(false)
+
 // Import
 const fileInput = ref<HTMLInputElement | null>(null)
 
@@ -51,15 +56,30 @@ async function onSave(data: { content: string; tags: string[]; scope: string }) 
   }
 }
 
-async function onDelete(id: string) {
-  if (!confirm(t('confirmDelete'))) return
+function onDelete(id: string) {
+  confirmDeleteTarget.value = id
+  confirmDeleteBatch.value = false
+  confirmDeleteShow.value = true
+}
+
+async function doConfirmDelete() {
+  confirmDeleteShow.value = false
   try {
-    await remove(id)
-    window.__toast?.show(t('memoryDeleted'), 'success')
+    if (confirmDeleteBatch.value) {
+      const ids = [...selectedIds.value]
+      await batchDelete(ids)
+      window.__toast?.show(t('memoriesDeleted', { n: ids.length }), 'success')
+      selectedIds.value = new Set()
+      batchMode.value = false
+    } else if (confirmDeleteTarget.value) {
+      await remove(confirmDeleteTarget.value)
+      window.__toast?.show(t('memoryDeleted'), 'success')
+    }
     load()
   } catch (e: any) {
     window.__toast?.show(e?.message || 'Failed', 'error')
   }
+  confirmDeleteTarget.value = null
 }
 
 // Batch
@@ -77,19 +97,11 @@ function selectAll() {
   }
 }
 
-async function doBatchDelete() {
-  const ids = [...selectedIds.value]
-  if (!ids.length) return
-  if (!confirm(t('confirmBatchDelete', { n: ids.length }))) return
-  try {
-    await batchDelete(ids)
-    window.__toast?.show(t('memoriesDeleted', { n: ids.length }), 'success')
-    selectedIds.value = new Set()
-    batchMode.value = false
-    load()
-  } catch (e: any) {
-    window.__toast?.show(e?.message || 'Failed', 'error')
-  }
+function doBatchDelete() {
+  if (!selectedIds.value.size) return
+  confirmDeleteBatch.value = true
+  confirmDeleteTarget.value = null
+  confirmDeleteShow.value = true
 }
 
 // Export
@@ -193,6 +205,18 @@ function onSearch(q: string) {
       @close="editModalShow = false"
       @save="onSave"
     />
+
+    <!-- Delete confirmation modal -->
+    <Modal
+      :show="confirmDeleteShow"
+      :title="t('confirmDelete')"
+      :confirm-text="t('delete')"
+      :danger="true"
+      @close="confirmDeleteShow = false"
+      @confirm="doConfirmDelete"
+    >
+      <p>{{ confirmDeleteBatch ? t('confirmBatchDelete', { n: selectedIds.size }) : t('confirmDelete') }}</p>
+    </Modal>
   </div>
 </template>
 

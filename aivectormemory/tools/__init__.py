@@ -25,7 +25,7 @@ TOOL_DEFINITIONS = [
                 "top_k": {"type": "integer", "default": 5, "minimum": 1, "maximum": 100, "description": "返回结果数量"},
                 "source": {"type": "string", "enum": ["manual", "experience"], "description": "按来源过滤：manual=项目知识, experience=归档经验。不传则不过滤"},
                 "brief": {"type": "boolean", "default": False, "description": "精简模式：true 时只返回 content 和 tags，省略 id/session_id/created_at 等元数据，适合启动加载场景节省上下文"},
-                "exclude_superseded": {"type": "boolean", "default": True, "description": "排除已被替代的记忆"},
+                "exclude_superseded": {"type": "boolean", "default": True, "description": "排除已被替代的记忆（已弃用，被替代的记忆现在通过 importance 降权自然排序，不再硬过滤）"},
                 "tier": {"type": "string", "enum": ["short_term", "long_term"], "description": "只搜索指定层级的记忆"},
                 "expand_relations": {"type": "boolean", "default": False, "description": "沿 related 关系扩展 1 跳查找相关记忆"}
             }

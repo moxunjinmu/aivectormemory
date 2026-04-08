@@ -42,7 +42,7 @@ STEERING_CONTENT = """# AIVectorMemory - ワークフロールール
 
 **B. メッセージタイプを判断**（回答時に自然な言葉で判断結果を説明）
 - 雑談/進捗/ルール議論/簡単な確認 → 直接回答、フロー終了
-- 誤った行動の訂正 → steering `<!-- custom-rules -->` ブロックを更新（記録：誤った行動、ユーザーの発言要点、正しいやり方）、C へ
+- 誤った行動の訂正 → `remember`（tags: ["落とし穴", "行動修正", ...キーワード], scope: "project"、含：誤った行動、ユーザーの原話、正しいやり方）、C へ
 - 技術的好み/作業習慣 → `auto_save` で設定を保存
 - その他（コード問題、バグ、機能要求）→ C へ
 
@@ -52,7 +52,7 @@ STEERING_CONTENT = """# AIVectorMemory - ワークフロールール
 
 **C. `track create`** — 発見次第記録（修正前の記録省略禁止）、`content` 必須：現象と背景
 
-**D. 調査** — 第7節チェック後にコードを確認（記憶からの推測禁止）、データフローを確認、根��原因を特定。アーキテクチャ/規約を発見 → `remember`。`track update` に investigation + root_cause を記入
+**D. 調査** — `recall`（query: 問題キーワード, tags: ["落とし穴"]）で履歴確認 → コードを確認（記憶からの推測禁止）→ データフローを確認 → 根本原因を特定。アーキテクチャ/規約を発見 → `remember`。`track update` に investigation + root_cause を記入
 
 **E. 方針説明** — 簡単な修正→F、複数ステップ→第8節。**必ず先に `status` でブロックを設定してから確認を待つ**
 
@@ -62,7 +62,7 @@ STEERING_CONTENT = """# AIVectorMemory - ワークフロールール
 
 **H. 検証待ち** — `status` でブロック設定（block_reason: "修正完了、検証待ち" または "ユーザーの判断が必要"）
 
-**I. ユーザー承認** — `track archive`、ブロック解除。**バックフローチェック**：task 実行中に発見されたバグの場合、アーカイブ後第8節に戻って続行。セッション終了前 `auto_save`
+**I. ユーザー承認** — `track archive`、ブロック解除。落とし穴の価値あり → `remember`（tags: ["落とし穴", ...キーワード], scope: "project"、含：現象+根因+正しいやり方）。**バックフローチェック**：task 実行中に発見されたバグの場合、アーカイブ後第8節に戻って続行。セッション終了前 `auto_save`
 
 ---
 
@@ -94,6 +94,7 @@ STEERING_CONTENT = """# AIVectorMemory - ワークフロールール
 - **プロジェクト情報が必要な場合**：先に `recall` → コード/設定検索 → ユーザーに質問（recall スキップ禁止��
 - **コード修正前**：`recall`（query: キーワード, tags: ["落とし穴"]）で落とし穴記録を確認 + 既存実装を確認 + データフローを確認
 - **コード修正後**：テストを実行 + 他の機能への影響がないことを確認
+- **危険な操作前**（公開、デプロイ、再起動等）：`recall`（query: 操作キーワード, tags: ["落とし穴"]）で記録を確認、記憶の正しいやり方に従う
 - **ユーザーがファイル読取を要求した場合**：「既読」を理由にスキップ禁止、必ず再読取
 
 ---
@@ -102,7 +103,7 @@ STEERING_CONTENT = """# AIVectorMemory - ワークフロールール
 
 **トリガー**：複数ステップの新機能、リファクタリング、アップグレード
 
-**Spec フロー**（2→3→4 厳密に順番通り、各ステップ審査後に確認提出）：
+**Spec フロー**（2→3→4 厳密に順番通り、各ステップ審査後に確認提出。**執筆前に `recall`（tags: ["プロジェクト知識", "落とし穴"], query: 関連モジュール）で関連知識をロード**）：
 1. `{specs_path}` を作成
 2. `requirements.md` — 機能範囲 + 受入基準
 3. `design.md` — 技術方針 + アーキテクチャ
@@ -117,7 +118,7 @@ STEERING_CONTENT = """# AIVectorMemory - ワークフロールール
 **実行フロー**：
 5. `task batch_create`（feature_id=ディレクトリ名、**必ず children ネスト**）
 6. 順番通りにサブタスクを実行（スキップ禁止、「今後のイテレーション」禁止）：
-   - `task update`（in_progress）→ design.md の対応章節を読む → 実装 → `task update`（completed）
+   - `task update`（in_progress）→ `recall`（tags: ["落とし穴"], query: サブタスク関連モジュール）→ design.md の対応章節を読む → 実装 → `task update`（completed）
    - **開始前に tasks.md の前提タスクがすべて `[x]` であることを確認**
    - 整理/実行中に漏れを発見 → 先に design.md/tasks.md を更新
 7. `task list` で漏れがないことを確認
@@ -166,7 +167,7 @@ STEERING_CONTENT = """# AIVectorMemory - ワークフロールール
 - **禁止** `lsof -ti:ポート` に ignoreWarning を付けない（セキュリティチェックでブロックされる）
 - **正しいやり方**：SQL は `.sql` ファイルに書いて `< data/xxx.sql` で実行；Python 検証スクリプトは .py ファイルに書いて `python3 xxx.py` で実行；ポート確認は `lsof -ti:ポート` + ignoreWarning:true
 
-**セルフテスト**：コードファイルを修正した後、**必ずテストを実行してから「検証待ち」のブロック状態を設定**。コード修正後テストせずに「検証待ち」と言うことは禁止。ドキュメント/設定ファイル（.md/.json/.yaml/.toml/.sh 等）のみの修正は自己テスト不要。バックエンド：pytest/curl；フロン���エンド：**Playwright MCP のみ**（browser_navigate → 操作 → browser_snapshot）、他のすべての方法（curl、スクリプト、node -e、スクリーンショット）は違反。テスト後 browser_close を呼ばない。
+**セルフテスト**：コードファイルを修正した後、**必ずテストを実行してから「検証待ち」のブロック状態を設定**。コード修正後テストせずに「検証待ち」と言うことは禁止。ドキュメント/設定ファイル（.md/.json/.yaml/.toml/.sh 等）のみの修正は自己テスト不要。バックエンド：pytest/curl；フロントエンド：**Playwright MCP のみ**（browser_navigate → 操作 → browser_snapshot）、他のすべての方法（curl、スクリプト、node -e、スクリーンショット、`open` コマンド）は違反。テスト後 browser_close を呼ばない。**Playwright MCP ツールは deferred tools リストにあり、使用前に ToolSearch でロード。ツールが使えないと仮定禁止、`open` コマンドやユーザーに手動でブラウザを開かせることも禁止。**
 
 **完了基準**：完了か未完了のみ、「ほぼ完了」は禁止
 
@@ -223,14 +224,16 @@ DEV_WORKFLOW_PROMPT = (
     "## ⚠️ 自己テスト\n\n"
     "コードファイルを修正した後、**テストを実行してから「検証待ち」のブロック状態を設定してください**。"
     "コード修正後、テストを実行せずに「検証待ち」と言うことは禁止です。ドキュメント/設定ファイル（.md/.json/.yaml/.toml/.sh 等）のみの修正は自己テスト不要です。\n\n"
-    "**フロントエンド可視変更：Playwright MCP ツールのみ使用可**（browser_navigate → 操作 → browser_snapshot）、他のすべての方法（curl、スクリプト、node -e、スクリーンショット）は違反。テスト後 browser_close を呼ばない。\n\n"
+    "**フロントエンド可視変更：Playwright MCP ツールのみ使用可**（browser_navigate → 操作 → browser_snapshot）、他のすべての方法（curl、スクリプト、node -e、スクリーンショット、`open` コマンド）は違反。テスト後 browser_close を呼ばない。**Playwright MCP は deferred tools リストにあり、ToolSearch でロード。ツールが使えないと仮定禁止。**\n\n"
     "---\n\n"
     "## ⚠️ よくある違反リマインダー\n\n"
-    "- ❌ コード変更後テストせずに「検証待���」→ 必ず先にテスト実行\n"
+    "- ❌ コード変更後テストせずに「検証待ち」→ 必ず先にテスト実行\n"
+    "- ❌ コード修正前に落とし穴を確認しない → 必ず `recall`（tags: [\"落とし穴\"]）を先に実行\n"
     "- ❌ 記憶から推測 → 必ず recall + 実際のコードを読んで検証\n"
     "- ❌ track create をスキップして直接コード修正\n"
+    "- ❌ 修正後に落とし穴を保存しない → 価値があれば必ず `remember`（tags: [\"落とし穴\", ...キーワード]）\n"
     "- ❌ python3 -c 複数行 / $(…)+パイプ → IDE がフリーズする\n\n"
-    "⚠️ 完全なルールは CLAUDE.md を参��、必ず厳守。"
+    "⚠️ 完全なルールは CLAUDE.md を参照、必ず厳守。"
 )
 
 COMPACT_RECOVERY_HINTS = (

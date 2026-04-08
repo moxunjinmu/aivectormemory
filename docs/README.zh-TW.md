@@ -371,6 +371,16 @@ export HF_ENDPOINT=https://hf-mirror.com
 
 ## 📋 更新日誌
 
+### v2.3.1
+
+**增強：規則體系全面修訂 + OpenClaw 支援**
+- 🧠 修復 AI 規則中 5 處記憶系統調用遺漏：排查前 recall 踩坑（步驟D）、危險操作前 recall（§7）、Spec 編寫前 recall（§8）、子任務執行前 recall（§8）、修復後 remember 踩坑（步驟I）
+- 🦞 新增 OpenClaw IDE 支援 — 現支援 11 個 IDE（MCP 配置合併到 ~/.openclaw/openclaw.json，規則追加到 AGENTS.md）
+- 🎭 Playwright 自測規則強化 — 補充 ToolSearch deferred tools 載入要求，禁止 `open` 命令替代
+- 🔧 合併 v2.2.0–v2.2.6 功能：Hooks 系統（bash_guard + stop_guard + check_track）、評分引擎優化、recall 優化、Web 看板批量刪除、桌面端記憶刪除 Modal
+- ⚠️ DEV_WORKFLOW_PROMPT：新增 2 條違規提醒（修改程式碼前查踩坑、修復後存踩坑）
+- 🌐 7 語言規則檔案全部同步
+
 ### v2.1.1
 
 **優化：AI 規則體系升級**

@@ -2,7 +2,7 @@ from datetime import datetime, timezone
 
 import jieba
 
-from aivectormemory.config import DEFAULT_TOP_K
+from aivectormemory.config import DEFAULT_TOP_K, FTS_FALLBACK_SIM
 from aivectormemory.db.memory_repo import MemoryRepo
 from aivectormemory.db.user_memory_repo import UserMemoryRepo
 from aivectormemory.db.issue_repo import IssueRepo
@@ -104,7 +104,7 @@ def _apply_composite_score(merged: list[dict], conn, table: str):
 
     for m in merged:
         m["score"] = composite_score(
-            similarity=m.get("rrf_score", m.get("similarity", 0.5)),
+            similarity=m.get("similarity", FTS_FALLBACK_SIM),
             last_accessed_at=m.get("last_accessed_at") or m.get("created_at", ""),
             access_count=m.get("access_count", 0),
             max_access_count=max_ac,
@@ -177,16 +177,6 @@ def _apply_expand_relations(conn, results: list[dict], scope: str, top_k: int) -
 # Superseded filtering
 # ---------------------------------------------------------------------------
 
-def _load_superseded_ids(conn, scope: str) -> set[str]:
-    """Load IDs of memories that have been superseded."""
-    db_scope = "user" if scope == "user" else "project"
-    rows = conn.execute(
-        "SELECT DISTINCT related_id FROM memory_relations WHERE relation_type = 'supersedes' AND scope = ?",
-        [db_scope],
-    ).fetchall()
-    return {r[0] for r in rows}
-
-
 # ---------------------------------------------------------------------------
 # Main handler
 # ---------------------------------------------------------------------------
@@ -228,23 +218,16 @@ def _query_user(cm, engine, query, tags, top_k, source, tags_mode="all", exclude
 
 
 def _search_tier(cm, engine, repo, query, tags, top_k, tier, exclude_superseded, table, scope, filters=None):
-    """统一的分层搜索：同时适用于 user_memories 和 memories"""
+    """统一搜索：tier=None 时搜全量，tier 有值时搜指定层"""
     embedding = engine.encode(query)
+    kw = {**(filters or {}), "tier": tier} if tier else (filters or {})
     if tags:
-        kw = filters or {}
-        kw["tier"] = tier
         vec = _add_similarity(repo.search_by_vector_with_tags(embedding, tags, top_k=top_k * 2, **kw))
     else:
-        vec = _add_similarity(repo.search_by_vector(embedding, top_k=top_k * 2, tier=tier) if not filters
-                              else repo.search_by_vector(embedding, top_k=top_k * 2, **{**filters, "tier": tier}))
+        vec = _add_similarity(repo.search_by_vector(embedding, top_k=top_k * 2, **kw))
 
     fts = fts_search(cm.conn, query, scope=scope, top_k=top_k * 2, tier=tier)
     merged = rrf_merge(vec, fts)
-
-    if exclude_superseded:
-        superseded_ids = _load_superseded_ids(cm.conn, scope)
-        if superseded_ids:
-            merged = [m for m in merged if m["id"] not in superseded_ids]
 
     _apply_composite_score(merged, cm.conn, table)
     return merged[:top_k]
@@ -266,16 +249,9 @@ def _query_scope(cm, engine, repo, query, tags, top_k, source, tags_mode, exclud
             rows = [r for r in rows if r.get("tier", "short_term") == tier]
         return rows
 
-    tiers_to_search = [tier] if tier else ["long_term", "short_term"]
-    final = []
-    for t in tiers_to_search:
-        remaining = top_k - len(final)
-        if remaining <= 0:
-            break
-        tier_filters = {**filters, "tier": t} if filters else None
-        tier_results = _search_tier(cm, engine, repo, query, tags, remaining, t, exclude_superseded,
-                                    table, scope, filters=filters)
-        final.extend(tier_results)
+    # 不再按 tier 贪心截断，统一搜索后由 composite_score 排序
+    final = _search_tier(cm, engine, repo, query, tags, top_k, tier, exclude_superseded,
+                         table, scope, filters=filters)
 
     _update_access(cm.conn, table, final)
     return final

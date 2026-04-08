@@ -42,7 +42,7 @@ STEERING_CONTENT = """# AIVectorMemory - Reglas de Flujo de Trabajo
 
 **B. Determinar tipo de mensaje**（indicar resultado del juicio en lenguaje natural en la respuesta）
 - Charla casual / progreso / discusión de reglas / confirmación simple → responder directamente, flujo termina
-- Corregir comportamiento erróneo → actualizar steering `<!-- custom-rules -->` (registrar: comportamiento erróneo, palabras del usuario, enfoque correcto), continuar C
+- Corregir comportamiento erróneo → `remember`（tags: ["trampa", "corrección-comportamiento", ...palabras-clave], scope: "project", incluye: comportamiento erróneo, palabras del usuario, práctica correcta), continuar C
 - Preferencias técnicas / hábitos de trabajo → `auto_save` almacenar preferencias
 - Otros (problemas de código, bugs, solicitudes de funciones) → continuar C
 
@@ -52,7 +52,7 @@ Ejemplos: "Esto es una pregunta, verificaré el código relevante antes de respo
 
 **C. `track create`** — registrar inmediatamente al descubrir (nunca corregir antes de registrar), `content` obligatorio: síntomas y contexto
 
-**D. Investigación** — según Sección 7 verificar antes de revisar código (nunca asumir de memoria), confirmar flujo de datos, encontrar causa raíz. Descubrimiento de arquitectura/convenciones → `remember`. `track update` llenar investigation + root_cause
+**D. Investigación** — `recall`（query: palabras clave del problema, tags: ["trampa"]）verificar historial → revisar código（nunca asumir de memoria）→ confirmar flujo de datos → encontrar causa raíz. Descubrimiento de arquitectura/convenciones → `remember`. `track update` llenar investigation + root_cause
 
 **E. Presentar solución** — corrección simple→F, múltiples pasos→Sección 8. **Debe primero `status` establecer bloqueo antes de esperar confirmación**
 
@@ -62,7 +62,7 @@ Ejemplos: "Esto es una pregunta, verificaré el código relevante antes de respo
 
 **H. Esperar verificación** — `status` establecer bloqueo (block_reason: "Corrección completa, esperando verificación" o "Se necesita decisión del usuario")
 
-**I. Usuario confirma** — `track archive`, limpiar bloqueo. **Verificación de retorno**: si es bug encontrado durante ejecución de task, después de archivar volver a Sección 8 para continuar. Antes de terminar sesión → `auto_save`
+**I. Usuario confirma** — `track archive`, limpiar bloqueo. Si valor trampa → `remember`（tags: ["trampa", ...palabras-clave], scope: "project", incluye: síntoma+causa raíz+práctica correcta）. **Verificación de retorno**: si es bug encontrado durante ejecución de task, después de archivar volver a Sección 8 para continuar. Antes de terminar sesión → `auto_save`
 
 ---
 
@@ -94,6 +94,7 @@ Después de archivar debe mostrar registro completo:
 - **Necesita información del proyecto**: primero `recall` → búsqueda en código/configuración → preguntar al usuario (nunca saltar recall)
 - **Antes de modificar código**: `recall` (query: palabras clave, tags: ["trampa"]) verificar registros de trampas + revisar implementación existente + confirmar flujo de datos
 - **Después de modificar código**: ejecutar pruebas + confirmar que no afecta otras funciones
+- **Antes de operaciones peligrosas**（publicar, desplegar, reiniciar, etc.）：`recall`（query: palabras clave operación, tags: ["trampa"]）verificar registros, ejecutar según práctica correcta en memoria
 - **Cuando el usuario pide leer un archivo**: nunca saltar alegando "ya leído", debe leer de nuevo
 
 ---
@@ -102,7 +103,7 @@ Después de archivar debe mostrar registro completo:
 
 **Activación**: nueva función, refactorización, actualización u otros requisitos de múltiples pasos
 
-**Flujo Spec**（2→3→4 orden estricto, cada paso revisión + confirmación antes de proceder）:
+**Flujo Spec**（2→3→4 orden estricto, cada paso revisión + confirmación antes de proceder. **Antes de escribir, `recall`（tags: ["conocimiento-proyecto", "trampa"], query: módulos involucrados）para cargar conocimiento**）:
 1. Crear `{specs_path}`
 2. `requirements.md` — alcance + criterios de aceptación
 3. `design.md` — solución técnica + arquitectura
@@ -117,7 +118,7 @@ Después de archivar debe mostrar registro completo:
 **Flujo de ejecución**:
 5. `task batch_create`（feature_id=nombre del directorio, **debe usar children anidados**）
 6. Ejecutar subtareas en orden (nunca saltar, nunca "iteración futura"):
-   - `task update`（in_progress）→ leer sección correspondiente de design.md → implementar → `task update`（completed）
+   - `task update`（in_progress）→ `recall`（tags: ["trampa"], query: módulo de subtarea）→ leer sección correspondiente de design.md → implementar → `task update`（completed）
    - **Antes de iniciar verificar que todas las tareas previas en tasks.md están `[x]`**
    - Omisiones descubiertas durante organización/ejecución → actualizar design.md/tasks.md primero
 7. `task list` confirmar sin omisiones
@@ -166,7 +167,7 @@ Después de archivar debe mostrar registro completo:
 - **Sin** `lsof -ti:puerto` sin ignoreWarning (será bloqueado por verificación de seguridad)
 - **Enfoque correcto**: escribir SQL en archivo `.sql` y usar `< data/xxx.sql`; escribir scripts de verificación Python como archivos .py y ejecutar con `python3 xxx.py`; usar `lsof -ti:puerto` + ignoreWarning:true para verificación de puertos
 
-**Auto-prueba**: Después de modificar archivos de código, **debe ejecutar pruebas antes de establecer el estado de bloqueo "esperando verificación"**. No diga "esperando verificación" después de modificar código sin ejecutar pruebas. Solo archivos de documentación/configuración (.md/.json/.yaml/.toml/.sh etc.) no requieren auto-test. Backend: pytest/curl; Frontend: **solo Playwright MCP** (browser_navigate → interacción → browser_snapshot), cualquier otro método (curl, scripts, node -e, capturas de pantalla) es una violación. No llamar browser_close después de las pruebas.
+**Auto-prueba**: Después de modificar archivos de código, **debe ejecutar pruebas antes de establecer el estado de bloqueo "esperando verificación"**. No diga "esperando verificación" después de modificar código sin ejecutar pruebas. Solo archivos de documentación/configuración (.md/.json/.yaml/.toml/.sh etc.) no requieren auto-test. Backend: pytest/curl; Frontend: **solo Playwright MCP** (browser_navigate → interacción → browser_snapshot), cualquier otro método (curl, scripts, node -e, capturas de pantalla, comando `open`) es una violación. No llamar browser_close después de las pruebas. **Las herramientas Playwright MCP están en la lista de deferred tools, usar ToolSearch para cargarlas. No asumir que no están disponibles, no usar `open`.**
 
 **Estándar de completitud**: solo completo o incompleto, nunca "básicamente completo"
 
@@ -223,12 +224,14 @@ DEV_WORKFLOW_PROMPT = (
     "## ⚠️ Auto-test\n\n"
     "Después de modificar archivos de código, **debe ejecutar pruebas antes de establecer el estado de bloqueo \"esperando verificación\"**. "
     "No diga \"esperando verificación\" después de modificar código sin ejecutar pruebas. Solo archivos de documentación/configuración (.md/.json/.yaml/.toml/.sh etc.) no requieren auto-test.\n\n"
-    "**Cambios visibles en frontend: SOLO usar herramientas Playwright MCP** (browser_navigate → interacción → browser_snapshot), cualquier otro método (curl, scripts, node -e, capturas de pantalla) es una violación. No llamar browser_close después de las pruebas.\n\n"
+    "**Cambios visibles en frontend: SOLO usar herramientas Playwright MCP** (browser_navigate → interacción → browser_snapshot), cualquier otro método (curl, scripts, node -e, capturas de pantalla, comando `open`) es una violación. No llamar browser_close después de las pruebas. **Playwright MCP está en la lista de deferred tools, usar ToolSearch para cargarlas. No asumir que no están disponibles.**\n\n"
     "---\n\n"
     "## ⚠️ Recordatorio de Violaciones Frecuentes\n\n"
     "- ❌ Decir \"esperando verificación\" sin ejecutar pruebas → debe ejecutar pruebas primero\n"
+    "- ❌ No verificar trampas antes de modificar código → primero `recall`(tags: [\"trampa\"])\n"
     "- ❌ Asumir de memoria → debe recall + leer código actual para verificar\n"
     "- ❌ Saltar track create e ir directamente a corregir código\n"
+    "- ❌ No guardar trampas después de corregir → `remember`(tags: [\"trampa\", ...palabras-clave]) si tiene valor\n"
     "- ❌ python3 -c multilínea / $(…)+pipe → congelará el IDE\n\n"
     "⚠️ Reglas completas en CLAUDE.md — deben seguirse estrictamente."
 )
