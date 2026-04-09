@@ -26,15 +26,16 @@ STEERING_CONTENT = """# AIVectorMemory - Workflow-Regeln
 
 ## 3. Kernprinzipien
 
-1. **Vor jeder Operation verifizieren, niemals annehmen, niemals auf Gedächtnis verlassen**
-2. **Bei Problemen niemals blind testen. Muss die Code-Dateien zum Problem überprüfen, Grundursache finden, dem tatsächlichen Fehler entsprechen**
-3. **Keine mündlichen Versprechen — alles wird durch bestandene Tests validiert**
-4. **Muss Code überprüfen und rigoros nachdenken vor jeder Dateiänderung**
-5. **Während Entwicklung und Selbsttest niemals den Benutzer bitten manuell zu operieren. Selbst machen wenn möglich**
-6. **Wenn der Benutzer das Lesen einer Datei anfordert, niemals mit "bereits gelesen" oder "bereits im Kontext" überspringen. Muss das Werkzeug aufrufen um den neuesten Inhalt zu lesen**
-7. **Wenn Projektinformationen benötigt werden, zuerst `recall` verwenden um das Gedächtnissystem abzufragen. Wenn nicht gefunden, in Code/Konfigurationsdateien suchen. Nur als letztes Mittel den Benutzer fragen. Verboten recall zu überspringen und den Benutzer direkt zu fragen**
-8. **Strikt im Rahmen der Benutzeranweisungen ausführen, niemals eigenmächtig den Operationsumfang erweitern.
-9. **Im Kontext dieses Projekts: 'Gedächtnis/Projektgedächtnis' = AIVectorMemory MCP Speicherdaten**
+1. **Nach Erhalt einer Benutzernachricht muss die ursprüngliche Bedeutung wörtlich verstanden werden. Kein Umformulieren, keine Interpretation anstelle des Originaltextes**
+2. **Vor jeder Operation verifizieren, niemals annehmen, niemals auf Gedächtnis verlassen**
+3. **Bei Problemen niemals blind testen. Muss die Code-Dateien zum Problem überprüfen, Grundursache finden, dem tatsächlichen Fehler entsprechen**
+4. **Keine mündlichen Versprechen — alles wird durch bestandene Tests validiert**
+5. **Vor Code-Änderungen muss der Code überprüft, der Auswirkungsbereich bewertet und sichergestellt werden, dass andere Funktionen nicht beeinträchtigt werden. Kein Löcher-Stopfen auf Kosten anderer Stellen**
+6. **Während Entwicklung und Selbsttest niemals den Benutzer bitten manuell zu operieren. Selbst machen wenn möglich**
+7. **Wenn der Benutzer das Lesen einer Datei anfordert, niemals mit "bereits gelesen" oder "bereits im Kontext" überspringen. Muss das Werkzeug aufrufen um den neuesten Inhalt zu lesen**
+8. **Wenn Projektinformationen benötigt werden, zuerst `recall` verwenden um das Gedächtnissystem abzufragen. Wenn nicht gefunden, in Code/Konfigurationsdateien suchen. Nur als letztes Mittel den Benutzer fragen. Verboten recall zu überspringen um den Benutzer zu fragen**
+9. **Strikt im Rahmen der Benutzeranweisungen ausführen, niemals eigenmächtig den Operationsumfang erweitern.**
+10. **Im Kontext dieses Projekts: 'Gedächtnis/Projektgedächtnis' = AIVectorMemory MCP Speicherdaten**
 
 ---
 
@@ -42,7 +43,7 @@ STEERING_CONTENT = """# AIVectorMemory - Workflow-Regeln
 
 **A. `status` Blockierung prüfen** — blockiert → melden und warten, keine Aktionen erlaubt
 
-**B. Nachrichtentyp bestimmen** (Beurteilungsergebnis in natürlicher Sprache in der Antwort angeben)
+**B. Nachrichtentyp bestimmen** (die ursprüngliche Bedeutung wörtlich verstehen, Beurteilungsergebnis in natürlicher Sprache in der Antwort angeben)
 - Smalltalk / Fortschritt / Regeldiskussion / einfache Bestätigung → Nachrichtentyp bestimmen, dann antworten.
 - Falsches Verhalten korrigieren → `remember`(tags: ["Fallstrick", "Verhaltenskorrektur", ...Schlüsselwörter], scope: "project", enthält: Fehlverhalten, Originalwortlaut, korrektes Vorgehen), weiter C
 - Technische Präferenzen / Arbeitsgewohnheiten → `auto_save` zum Speichern von Einstellungen
@@ -58,20 +59,9 @@ Beispiele: "Das ist eine Frage, ich überprüfe den relevanten Code vor der Antw
 
 **E. Lösung präsentieren** — einfache Korrektur→F, mehrstufig→Abschnitt 8. **Muss erst `status` Blockierung setzen, dann auf Bestätigung warten**
 
-**F. Code ändern** — nach Abschnitt 7 prüfen, dann ändern, ein Problem auf einmal. Neues Problem → `track create`
+**F. Code ändern** — nach Abschnitt 7 prüfen, dann ändern, ein Problem auf einmal. Neues Problem → `track create`: blockiert aktuelles nicht → aufzeichnen und fortfahren; blockiert aktuelles → neues Problem zuerst behandeln, dann zurückkehren. Nach Änderung `track update` mit solution + files_changed + test_result
 
-**G. Selbsttest-Verifizierung (Gate)** — **Nach jedem Edit/Write einer Code-Datei muss der nächste Schritt die Ausführung des entsprechenden Selbsttests sein. Nicht zuerst dem Benutzer antworten, nicht zuerst berichten, nicht zuerst Blockierung setzen.** Blockierungsstatus „Warten auf Überprüfung" setzen oder dem Benutzer Abschluss melden ohne Selbsttest ist ein Verstoß.
-
-**Vorprüfung**: Vor dem Starten oder Verifizieren eines Dienstes muss zunächst bestätigt werden, ob der Zielport bereits von einem anderen Projekt belegt ist (`lsof -ti:Port` + Arbeitsverzeichnis des Prozesses prüfen), um zu vermeiden dass ein anderes Projekt als das aktuelle verifiziert wird.
-
-Selbsttest-Checkliste (nach Änderungstyp ausführen, sofort nach Code-Änderung auslösen, nicht auf Benutzer-Erinnerung warten):
-- **Backend-Code-Änderungen**: Kompilierung bestanden → betroffene API-Endpunkte verifizieren
-- **Frontend-Code-Änderungen**: Build bestanden → mit Playwright MCP betroffene Seiten öffnen und Rendering verifizieren
-- **Datenbankmigration**: Migration ausführen → Tabelle/Spalten vorhanden → APIs die von der Tabelle abhängen funktionieren
-- **Deployment-Operationen**: Service healthy → API-Kernendpunkt gibt 200 zurück → Browser-Verifizierung der Kernfunktionalität (z.B. Login)
-- **Konfigurationsänderungen** (Nginx/Reverse-Proxy etc.): Konfigurationsprüfung bestanden → Ziel erreichbar verifizieren
-browser_navigate + browser_snapshot
-Nach Tests, `track update` mit solution + files_changed + test_result.
+**G. Selbsttest-Verifizierung (strikt gemäß §12 ⚠️ Selbsttest-Verifizierung)** —  nach bestandenem Selbsttest Abschluss melden, Blockierung setzen und auf Verifizierung warten, **kein eigenständiges git commit/push**
 
 **H. Auf Verifizierung warten** — `status` Blockierung setzen (block_reason: "Korrektur abgeschlossen, wartet auf Verifizierung" oder "Benutzerentscheidung erforderlich")
 
@@ -135,13 +125,11 @@ Muss vollständigen Eintrag nach Archivierung zeigen:
 6. Teilaufgaben in Reihenfolge ausführen (niemals überspringen, niemals „zukünftige Iteration"):
    - `task update` (in_progress) → `recall`(tags: ["Fallstrick"], query: Teilaufgaben-Modul) → design.md entsprechenden Abschnitt lesen → implementieren → `task update` (completed)
    - **Vor Start prüfen dass alle Voraussetzungen in tasks.md `[x]` sind**
-   - Auslassungen bei Organisierung/Ausführung entdeckt → erst design.md/tasks.md aktualisieren
+   - Auslassungen bei Organisierung/Ausführung entdeckt → alle entsprechenden Dokumente (requirements/design/tasks) aktualisieren und erneut prüfen
 7. `task list` um zu bestätigen dass nichts fehlt
-8. **Selbsttest-Verifizierung (wie Abschnitt 4 G Gate)**, nach bestandenem Selbsttest Abschluss melden, Blockierung setzen und auf Verifizierung warten, **kein eigenständiges git commit/push**
+8. **Selbsttest-Verifizierung (strikt gemäß §12 ⚠️ Selbsttest-Verifizierung)**, nach bestandenem Selbsttest Abschluss melden, Blockierung setzen und auf Verifizierung warten, **kein eigenständiges git commit/push**
 
-**Aufteilung**: task verwaltet Planfortschritt, track verwaltet Bugs. Bug während task-Ausführung → `track create`, beheben und task fortsetzen
-
-**Ohne spec**: einzelne Dateiänderung, einfacher Bug, Konfigurationsanpassung → direkt track
+**Aufteilung**: task verwaltet Planfortschritt, track verwaltet Bugs. Bug während task-Ausführung → `track create`: blockiert aktuelles nicht → aufzeichnen und fortfahren; blockiert aktuelles → zuerst behandeln, dann zurückkehren
 
 ---
 
@@ -173,7 +161,7 @@ Muss vollständigen Eintrag nach Archivierung zeigen:
 
 **Code-Stil**: Kürze zuerst, ternärer Operator > if-else, Kurzschlussauswertung > Bedingung, Template-Strings > Verkettung, keine bedeutungslosen Kommentare
 
-**Git-Workflow**: tägliche Arbeit auf `dev`-Branch, niemals direkt auf master. Nur committen wenn Benutzer es anfordert: dev bestätigen → `git add -A` → `git commit` → `git push origin dev`
+**Git-Workflow**: tägliche Arbeit auf `dev`-Branch, niemals direkt auf den Hauptbranch pushen. Nur committen wenn Benutzer es anfordert: dev bestätigen → `git add -A` → `git commit` → `git push origin dev` → in Hauptbranch mergen und pushen → zurück zu dev wechseln
 
 **IDE-Sicherheit**:
 - **Keine** `$(...)` + Pipe-Kombinationen
@@ -181,8 +169,6 @@ Muss vollständigen Eintrag nach Archivierung zeigen:
 - **Kein** `python3 -c "..."` für mehrzeilige Skripte (bei mehr als 2 Zeilen .py-Datei schreiben)
 - **Kein** `lsof -ti:Port` ohne ignoreWarning (wird von Sicherheitsprüfung blockiert)
 - **Korrekter Ansatz**: SQL in `.sql`-Datei schreiben und `< data/xxx.sql` verwenden; Python-Verifizierungsskripte als .py-Dateien schreiben und mit `python3 xxx.py` ausführen; `lsof -ti:Port` + ignoreWarning:true für Port-Prüfungen verwenden
-
-**Selbsttest**: Gemäß Abschnitt 4 G Schritte ausführen. Nur Dokumentations-/Konfigurationsdateien (.md/.json/.yaml/.toml/.sh etc.) erfordern keinen Selbsttest. Frontend-Selbsttest **nur mit Playwright MCP**, **Screenshots verboten (browser_take_screenshot)**, kein `open`-Befehl oder Benutzer bitten manuell den Browser zu öffnen. Playwright MCP Tools sind in der Deferred-Tools-Liste, vor Verwendung mit ToolSearch laden.
 
 **Abschlussstandard**: nur abgeschlossen oder nicht abgeschlossen, niemals "im Wesentlichen abgeschlossen"
 
@@ -193,6 +179,24 @@ Muss vollständigen Eintrag nach Archivierung zeigen:
 **Kontextoptimierung**: grep zur Lokalisierung bevorzugen, dann bestimmte Zeilen lesen. strReplace für Änderungen verwenden
 
 **Fehlerbehandlung**: bei wiederholten Fehlern versuchte Methoden aufzeichnen, anderen Ansatz versuchen, wenn weiterhin fehlschlagend dann Benutzer fragen
+
+---
+
+## 12. ⚠️ Selbsttest-Verifizierung
+
+**Nach jedem Edit/Write einer Code-Datei muss der nächste Schritt die Ausführung des entsprechenden Selbsttests sein. Nicht zuerst dem Benutzer antworten, nicht zuerst berichten, nicht zuerst Blockierung setzen.** Blockierungsstatus „Warten auf Überprüfung" setzen oder dem Benutzer Abschluss melden ohne Selbsttest ist ein Verstoß.
+
+**Vorprüfung**: Vor dem Starten oder Verifizieren eines Dienstes muss zunächst bestätigt werden, ob der Zielport bereits von einem anderen Projekt belegt ist (`lsof -ti:Port` + Arbeitsverzeichnis des Prozesses prüfen), um zu vermeiden dass ein anderes Projekt als das aktuelle verifiziert wird.
+
+Selbsttest-Checkliste (nach Änderungstyp ausführen, sofort nach Code-Änderung auslösen, nicht auf Benutzer-Erinnerung warten):
+- **Backend-Code-Änderungen**: Kompilierung bestanden → betroffene API-Endpunkte verifizieren
+- **Frontend-Code-Änderungen**: Build bestanden → mit Playwright MCP (browser_navigate + browser_snapshot) betroffene Seiten öffnen und Rendering verifizieren
+- **Datenbankmigration**: Migration ausführen → Tabelle/Spalten vorhanden → APIs die von der Tabelle abhängen funktionieren
+- **Deployment-Operationen**: Service healthy → API-Kernendpunkt gibt 200 zurück → Browser-Verifizierung der Kernfunktionalität (z.B. Login)
+- **Konfigurationsänderungen** (Nginx/Reverse-Proxy etc.): Konfigurationsprüfung bestanden → Ziel erreichbar verifizieren
+Nach Tests, `track update` mit solution + files_changed + test_result.
+
+Frontend-Selbsttest **nur mit Playwright MCP**, **Screenshots verboten (browser_take_screenshot)**, kein `open`-Befehl oder Benutzer bitten manuell den Browser zu öffnen. Playwright MCP Tools sind in der Deferred-Tools-Liste, vor Verwendung mit ToolSearch laden.
 """
 
 

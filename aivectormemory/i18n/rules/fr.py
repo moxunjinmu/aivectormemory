@@ -26,15 +26,16 @@ STEERING_CONTENT = """# AIVectorMemory - Règles de travail
 
 ## 3. Principes fondamentaux
 
-1. **Vérifier avant toute opération, ne jamais supposer, ne jamais se fier à la mémoire**
-2. **Face à des problèmes, ne jamais tester aveuglément. Examiner les fichiers de code concernés, trouver la cause racine, la faire correspondre à l'erreur réelle**
-3. **Pas de promesses verbales — tout est validé par des tests qui passent**
-4. **Examiner le code et réfléchir rigoureusement avant toute modification de fichier**
-5. **Pendant le développement et l'auto-test, ne jamais demander à l'utilisateur d'opérer manuellement. Le faire soi-même si possible**
-6. **Lorsque l'utilisateur demande de lire un fichier, ne jamais sauter en prétextant « déjà lu » ou « déjà dans le contexte ». Appeler l'outil pour lire le contenu le plus récent**
-7. **Lorsque des informations projet sont nécessaires, d'abord `recall` pour interroger le système de mémoire. Si non trouvé, chercher dans le code/fichiers de configuration. Ne demander à l'utilisateur qu'en dernier recours. Interdit de sauter recall et demander directement à l'utilisateur**
-8. **Exécuter strictement dans le périmètre des instructions de l'utilisateur, interdit d'élargir le périmètre de sa propre initiative.
-9. **Dans le contexte de ce projet : « mémoire/mémoire projet » = données mémoire AIVectorMemory MCP**
+1. **Après réception d'un message utilisateur, comprendre le sens original mot à mot. Interdit de paraphraser, interdit de substituer sa propre interprétation au texte original**
+2. **Vérifier avant toute opération, ne jamais supposer, ne jamais se fier à la mémoire**
+3. **Face à des problèmes, ne jamais tester aveuglément. Examiner les fichiers de code concernés, trouver la cause racine, la faire correspondre à l'erreur réelle**
+4. **Pas de promesses verbales — tout est validé par des tests qui passent**
+5. **Avant de modifier le code, examiner le code, évaluer la portée de l'impact et confirmer que cela ne cassera pas d'autres fonctions. Interdit de déshabiller Pierre pour habiller Paul**
+6. **Pendant le développement et l'auto-test, ne jamais demander à l'utilisateur d'opérer manuellement. Le faire soi-même si possible**
+7. **Lorsque l'utilisateur demande de lire un fichier, ne jamais sauter en prétextant « déjà lu » ou « déjà dans le contexte ». Appeler l'outil pour lire le contenu le plus récent**
+8. **Lorsque des informations projet sont nécessaires, d'abord `recall` pour interroger le système de mémoire. Si non trouvé, chercher dans le code/fichiers de configuration. Ne demander à l'utilisateur qu'en dernier recours. Interdit de sauter recall pour demander à l'utilisateur**
+9. **Exécuter strictement dans le périmètre des instructions de l'utilisateur, interdit d'élargir le périmètre de sa propre initiative.**
+10. **Dans le contexte de ce projet : « mémoire/mémoire projet » = données mémoire AIVectorMemory MCP**
 
 ---
 
@@ -42,7 +43,7 @@ STEERING_CONTENT = """# AIVectorMemory - Règles de travail
 
 **A. `status` vérifier le blocage** — bloqué → signaler et attendre, aucune action autorisée
 
-**B. Déterminer le type de message** (indiquer le résultat du jugement en langage naturel dans la réponse)
+**B. Déterminer le type de message** (comprendre le sens original mot à mot, indiquer le résultat du jugement en langage naturel dans la réponse)
 - Discussion informelle / progrès / discussion de règles / confirmation simple → déterminer le type de message puis répondre.
 - Correction de mauvais comportement → `remember` (tags: ["piège", "correction-comportement", ...mots-clés], scope: "project", contient : comportement erroné, propos de l'utilisateur, bonne pratique), continuer C
 - Préférences techniques / habitudes de travail → `auto_save` pour stocker les préférences
@@ -58,20 +59,9 @@ Exemples : « C'est une question, je vérifierai le code pertinent avant de rép
 
 **E. Présenter la solution** — correction simple → F, multi-étapes → Section 8. **D'abord `status` établir le blocage avant d'attendre confirmation**
 
-**F. Modifier le code** — vérifications Section 7, puis modifier, un problème à la fois. Nouveau problème découvert → `track create`
+**F. Modifier le code** — vérifications Section 7, puis modifier, un problème à la fois. Nouveau problème découvert → `track create` : ne bloque pas l'actuel → enregistrer et continuer ; bloque l'actuel → traiter le nouveau problème d'abord puis revenir. Après modification, `track update` remplir solution + files_changed + test_result
 
-**G. Auto-test (garde-barrière)** — **Après chaque Edit/Write de fichier de code, l'étape suivante doit être l'exécution de l'auto-test correspondant. Ne pas d'abord répondre à l'utilisateur, ne pas d'abord signaler, ne pas d'abord définir le blocage.** Définir le blocage « en attente de vérification » ou signaler l'achèvement sans auto-test est une violation.
-
-**Pré-vérification** : Avant de démarrer ou de vérifier un service, d'abord confirmer si le port cible est déjà occupé par un autre projet (`lsof -ti:port` + vérifier le répertoire de travail du processus), pour éviter de vérifier un autre projet comme le projet actuel.
-
-Liste d'auto-test (exécuter selon le type de changement, déclenché immédiatement après modification du code, ne pas attendre le rappel de l'utilisateur) :
-- **Changements code backend** : compilation réussie → vérifier les endpoints API affectés
-- **Changements code frontend** : build réussi → utiliser Playwright MCP pour ouvrir les pages affectées et vérifier le rendu
-- **Migration base de données** : exécuter la migration → vérifier table/colonnes → vérifier les API dépendantes
-- **Opérations de déploiement** : service healthy → endpoint API principal retourne 200 → navigateur vérifie la fonctionnalité principale (ex. connexion)
-- **Changements de configuration** (Nginx/reverse proxy etc.) : vérification de config réussie → vérifier que la cible est accessible
-browser_navigate + browser_snapshot
-Après les tests, `track update` remplir solution + files_changed + test_result.
+**G. Auto-test (exécuter strictement §12 ⚠️ Auto-test)** —  signaler l'achèvement après avoir passé l'auto-test, établir le blocage en attente de vérification, **interdit de git commit/push de son propre chef**
 
 **H. Attendre la vérification** — `status` établir le blocage (block_reason: "Correction terminée, en attente de vérification" ou "Décision utilisateur nécessaire")
 
@@ -135,13 +125,11 @@ L'archive doit montrer un enregistrement complet :
 6. Exécuter les sous-tâches dans l'ordre (interdit de sauter, interdit « itération future ») :
    - `task update` (in_progress) → `recall` (tags: ["piège"], query: module de la sous-tâche) → lire la section correspondante de design.md → implémenter → `task update` (completed)
    - **Avant de commencer, vérifier que toutes les tâches précédentes dans tasks.md sont `[x]`**
-   - Omissions découvertes pendant l'organisation/exécution → mettre à jour design.md/tasks.md d'abord
+   - Omissions découvertes pendant l'organisation/exécution → mettre à jour tous les documents correspondants (requirements/design/tasks) et re-vérifier pour confirmer
 7. `task list` confirmer l'absence d'omissions
-8. **Auto-test (idem Section 4 G garde-barrière)**, signaler l'achèvement après avoir passé l'auto-test, établir le blocage en attente de vérification, **interdit de git commit/push de son propre chef**
+8. **Auto-test (exécuter strictement §12 ⚠️ Auto-test)**, signaler l'achèvement après avoir passé l'auto-test, établir le blocage en attente de vérification, **interdit de git commit/push de son propre chef**
 
-**Répartition** : task gère le plan et le progrès, track gère les bugs. Bug trouvé pendant l'exécution de task → `track create`, corriger puis continuer task
-
-**Pas besoin de spec** : modification de fichier unique, bug simple, ajustement de configuration → directement track
+**Répartition** : task gère le plan et le progrès, track gère les bugs. Bug trouvé pendant l'exécution de task → `track create` : ne bloque pas l'actuel → enregistrer et continuer ; bloque l'actuel → traiter d'abord puis revenir
 
 ---
 
@@ -173,7 +161,7 @@ L'archive doit montrer un enregistrement complet :
 
 **Code** : concision d'abord, ternaire > if-else, court-circuit > conditionnel, template strings > concaténation, pas de commentaires inutiles
 
-**Git** : travail quotidien sur la branche `dev`, interdit de commit directement sur master. Ne commit que sur demande de l'utilisateur : confirmer dev → `git add -A` → `git commit` → `git push origin dev`
+**Git** : travail quotidien sur la branche `dev`, interdit de push directement sur la branche principale. Ne commit que sur demande de l'utilisateur : confirmer dev → `git add -A` → `git commit` → `git push origin dev` → merge vers la branche principale et push → revenir sur dev
 
 **Sécurité IDE** :
 - **Interdit** : combinaisons `$(...)` + pipe
@@ -181,8 +169,6 @@ L'archive doit montrer un enregistrement complet :
 - **Interdit** : `python3 -c "..."` pour scripts multiligne (plus de 2 lignes → écrire un fichier .py)
 - **Interdit** : `lsof -ti:port` sans ignoreWarning (sera bloqué par la vérification de sécurité)
 - **Approche correcte** : écrire SQL dans un fichier `.sql` et utiliser `< data/xxx.sql` ; écrire les scripts de vérification Python comme fichiers .py et exécuter avec `python3 xxx.py` ; utiliser `lsof -ti:port` + ignoreWarning:true pour les vérifications de port
-
-**Auto-test** : suivre les étapes de la Section 4 G. Seuls les fichiers de documentation/configuration (.md/.json/.yaml/.toml/.sh etc.) ne nécessitent pas d'auto-test. Auto-test frontend **uniquement avec Playwright MCP**, **captures d'écran interdites (browser_take_screenshot)**, interdit d'utiliser la commande `open` ou de demander à l'utilisateur d'ouvrir manuellement le navigateur. Les outils Playwright MCP sont dans la liste deferred tools, utiliser ToolSearch pour les charger.
 
 **Standard de complétion** : seulement complet ou incomplet, jamais « essentiellement complet »
 
@@ -193,6 +179,24 @@ L'archive doit montrer un enregistrement complet :
 **Optimisation du contexte** : préférer grep pour localiser puis lire des lignes spécifiques, utiliser strReplace pour les modifications
 
 **Gestion des erreurs** : en cas d'échecs répétés, enregistrer les méthodes essayées et essayer une approche différente. Si toujours en échec → demander à l'utilisateur
+
+---
+
+## 12. ⚠️ Auto-test
+
+**Après chaque Edit/Write de fichier de code, l'étape suivante doit être l'exécution de l'auto-test correspondant. Ne pas d'abord répondre à l'utilisateur, ne pas d'abord signaler, ne pas d'abord définir le blocage.** Définir le blocage « en attente de vérification » ou signaler l'achèvement sans auto-test est une violation.
+
+**Pré-vérification** : Avant de démarrer ou de vérifier un service, d'abord confirmer si le port cible est déjà occupé par un autre projet (`lsof -ti:port` + vérifier le répertoire de travail du processus), pour éviter de vérifier un autre projet comme le projet actuel.
+
+Liste d'auto-test (exécuter selon le type de changement, déclenché immédiatement après modification du code, ne pas attendre le rappel de l'utilisateur) :
+- **Changements code backend** : compilation réussie → vérifier les endpoints API affectés
+- **Changements code frontend** : build réussi → utiliser Playwright MCP (browser_navigate + browser_snapshot) pour ouvrir les pages affectées et vérifier le rendu
+- **Migration base de données** : exécuter la migration → vérifier table/colonnes → vérifier les API dépendantes
+- **Opérations de déploiement** : service healthy → endpoint API principal retourne 200 → navigateur vérifie la fonctionnalité principale (ex. connexion)
+- **Changements de configuration** (Nginx/reverse proxy etc.) : vérification de config réussie → vérifier que la cible est accessible
+Après les tests, `track update` remplir solution + files_changed + test_result.
+
+Auto-test frontend **uniquement avec Playwright MCP**, **captures d'écran interdites (browser_take_screenshot)**, interdit d'utiliser la commande `open` ou de demander à l'utilisateur d'ouvrir manuellement le navigateur. Les outils Playwright MCP sont dans la liste deferred tools, utiliser ToolSearch pour les charger.
 """
 
 

@@ -26,15 +26,16 @@ STEERING_CONTENT = """# AIVectorMemory - Reglas de Flujo de Trabajo
 
 ## 3. Principios Fundamentales
 
-1. **Verificar antes de cualquier operación, nunca asumir, nunca confiar en la memoria**
-2. **Al encontrar problemas, nunca testear a ciegas. Debe revisar los archivos de código relacionados, encontrar la causa raíz, corresponder con el error real**
-3. **Sin promesas verbales — todo se valida con pruebas que pasen**
-4. **Debe revisar código y pensar rigurosamente antes de cualquier modificación de archivo**
-5. **Durante desarrollo y auto-pruebas, nunca pedir al usuario que opere manualmente. Hacerlo uno mismo si es posible**
-6. **Cuando el usuario solicita leer un archivo, nunca saltar alegando "ya leído" o "ya en contexto". Debe llamar la herramienta para leer el contenido más reciente**
-7. **Cuando se necesita información del proyecto, primero debe `recall` para consultar el sistema de memoria. Si no se encuentra, buscar en código/archivos de configuración. Solo preguntar al usuario como último recurso. Prohibido saltar recall y preguntar directamente al usuario**
-8. **Ejecutar estrictamente dentro del alcance de las instrucciones del usuario, prohibido ampliar el alcance por cuenta propia.
-9. **En el contexto de este proyecto: "memoria/memoria del proyecto" = datos de memoria AIVectorMemory MCP**
+1. **Después de recibir un mensaje del usuario, se debe comprender el significado original palabra por palabra. Prohibido parafrasear, prohibido sustituir la interpretación propia por el texto original**
+2. **Verificar antes de cualquier operación, nunca asumir, nunca confiar en la memoria**
+3. **Al encontrar problemas, nunca testear a ciegas. Debe revisar los archivos de código relacionados, encontrar la causa raíz, corresponder con el error real**
+4. **Sin promesas verbales — todo se valida con pruebas que pasen**
+5. **Antes de modificar código, se debe revisar el código, evaluar el alcance del impacto y confirmar que no romperá otras funciones. Prohibido tapar un agujero destapando otro**
+6. **Durante desarrollo y auto-pruebas, nunca pedir al usuario que opere manualmente. Hacerlo uno mismo si es posible**
+7. **Cuando el usuario solicita leer un archivo, nunca saltar alegando "ya leído" o "ya en contexto". Debe llamar la herramienta para leer el contenido más reciente**
+8. **Cuando se necesita información del proyecto, primero debe `recall` para consultar el sistema de memoria. Si no se encuentra, buscar en código/archivos de configuración. Solo preguntar al usuario como último recurso. Prohibido saltar recall para preguntar al usuario**
+9. **Ejecutar estrictamente dentro del alcance de las instrucciones del usuario, prohibido ampliar el alcance por cuenta propia.**
+10. **En el contexto de este proyecto: "memoria/memoria del proyecto" = datos de memoria AIVectorMemory MCP**
 
 ---
 
@@ -42,7 +43,7 @@ STEERING_CONTENT = """# AIVectorMemory - Reglas de Flujo de Trabajo
 
 **A. `status` verificar bloqueo** — bloqueado → reportar y esperar, ninguna acción permitida
 
-**B. Determinar tipo de mensaje**（indicar resultado del juicio en lenguaje natural en la respuesta）
+**B. Determinar tipo de mensaje**（comprender el significado original palabra por palabra, indicar resultado del juicio en lenguaje natural en la respuesta）
 - Charla casual / progreso / discusión de reglas / confirmación simple → determinar tipo de mensaje y luego responder.
 - Corregir comportamiento erróneo → `remember`（tags: ["trampa", "corrección-comportamiento", ...palabras-clave], scope: "project", incluye: comportamiento erróneo, palabras del usuario, práctica correcta), continuar C
 - Preferencias técnicas / hábitos de trabajo → `auto_save` almacenar preferencias
@@ -58,20 +59,9 @@ Ejemplos: "Esto es una pregunta, verificaré el código relevante antes de respo
 
 **E. Presentar solución** — corrección simple→F, múltiples pasos→Sección 8. **Debe primero `status` establecer bloqueo antes de esperar confirmación**
 
-**F. Modificar código** — según Sección 7 verificar antes de modificar, un problema a la vez. Nuevo problema encontrado → `track create`
+**F. Modificar código** — según Sección 7 verificar antes de modificar, un problema a la vez. Nuevo problema encontrado → `track create`: no bloquea actual → registrar y continuar; bloquea actual → manejar nuevo problema primero y luego volver. Después de la modificación, `track update` llenar solution + files_changed + test_result
 
-**G. Auto-prueba (puerta de control)** — **Después de cada Edit/Write de archivo de código, el siguiente paso debe ser ejecutar la auto-prueba correspondiente. No responder primero al usuario, no reportar primero, no establecer bloqueo primero.** Establecer bloqueo "esperando verificación" o reportar completado sin auto-prueba es una violación.
-
-**Pre-verificación**: Antes de iniciar o verificar un servicio, debe confirmar primero si el puerto objetivo ya está ocupado por otro proyecto (`lsof -ti:puerto` + verificar directorio de trabajo del proceso), para evitar verificar otro proyecto como el actual.
-
-Lista de auto-prueba (ejecutar según tipo de cambio, se activa inmediatamente después de modificar código, no esperar recordatorio del usuario):
-- **Cambios código backend**: compilación exitosa → verificar endpoints API afectados
-- **Cambios código frontend**: build exitoso → usar Playwright MCP para abrir páginas afectadas y verificar renderizado
-- **Migración de base de datos**: ejecutar migración → verificar tabla/columnas → verificar APIs dependientes
-- **Operaciones de despliegue**: servicio healthy → endpoint API principal retorna 200 → navegador verifica funcionalidad principal (ej. login)
-- **Cambios de configuración** (Nginx/reverse proxy etc.): verificación de config exitosa → verificar que el objetivo es accesible
-browser_navigate + browser_snapshot
-Después de las pruebas, `track update` llenar solution + files_changed + test_result.
+**G. Auto-prueba (ejecutar estrictamente §12 ⚠️ Auto-prueba)** —  reportar completado después de pasar la auto-prueba, establecer bloqueo esperando verificación, **nunca git commit/push por cuenta propia**
 
 **H. Esperar verificación** — `status` establecer bloqueo (block_reason: "Corrección completa, esperando verificación" o "Se necesita decisión del usuario")
 
@@ -135,13 +125,11 @@ Después de archivar debe mostrar registro completo:
 6. Ejecutar subtareas en orden (nunca saltar, nunca "iteración futura"):
    - `task update`（in_progress）→ `recall`（tags: ["trampa"], query: módulo de subtarea）→ leer sección correspondiente de design.md → implementar → `task update`（completed）
    - **Antes de iniciar verificar que todas las tareas previas en tasks.md están `[x]`**
-   - Omisiones descubiertas durante organización/ejecución → actualizar design.md/tasks.md primero
+   - Omisiones descubiertas durante organización/ejecución → se deben actualizar todos los documentos correspondientes (requirements/design/tasks) y volver a revisar para confirmar
 7. `task list` confirmar sin omisiones
-8. **Auto-prueba (igual que Sección 4 G puerta de control)**, reportar completado después de pasar la auto-prueba, establecer bloqueo esperando verificación, **nunca git commit/push por cuenta propia**
+8. **Auto-prueba (ejecutar estrictamente §12 ⚠️ Auto-prueba)**, reportar completado después de pasar la auto-prueba, establecer bloqueo esperando verificación, **nunca git commit/push por cuenta propia**
 
-**División**: task gestiona plan y progreso, track gestiona bugs. Bug durante ejecución de task → `track create`, corregir y continuar task
-
-**Sin spec necesario**: modificación de archivo único, bug simple, ajuste de configuración → directamente `track create`
+**División**: task gestiona plan y progreso, track gestiona bugs. Bug durante ejecución de task → `track create`: no bloquea actual → registrar y continuar; bloquea actual → manejar primero y luego volver
 
 ---
 
@@ -173,7 +161,7 @@ Después de archivar debe mostrar registro completo:
 
 **Código**: concisión primero, operador ternario > if-else, evaluación de cortocircuito > condicional, template strings > concatenación, sin comentarios innecesarios
 
-**Git**: trabajo diario en rama `dev`, nunca commit directamente a master. Solo cuando el usuario lo solicite: confirmar dev → `git add -A` → `git commit` → `git push origin dev`
+**Git**: trabajo diario en rama `dev`, nunca push directamente a la rama principal. Solo cuando el usuario lo solicite: confirmar dev → `git add -A` → `git commit` → `git push origin dev` → merge a la rama principal y push → volver a dev
 
 **Seguridad IDE**:
 - **Sin** combinaciones `$(...)` + pipe
@@ -181,8 +169,6 @@ Después de archivar debe mostrar registro completo:
 - **Sin** `python3 -c "..."` para scripts multilínea (escribir archivo .py si más de 2 líneas)
 - **Sin** `lsof -ti:puerto` sin ignoreWarning (será bloqueado por verificación de seguridad)
 - **Enfoque correcto**: escribir SQL en archivo `.sql` y usar `< data/xxx.sql`; escribir scripts de verificación Python como archivos .py y ejecutar con `python3 xxx.py`; usar `lsof -ti:puerto` + ignoreWarning:true para verificación de puertos
-
-**Auto-prueba**: Seguir los pasos de la Sección 4 G. Solo archivos de documentación/configuración (.md/.json/.yaml/.toml/.sh etc.) no requieren auto-test. Auto-prueba frontend **solo con Playwright MCP**, **capturas de pantalla prohibidas (browser_take_screenshot)**, prohibido usar `open` o pedir al usuario que abra manualmente el navegador. Las herramientas Playwright MCP están en la lista de deferred tools, usar ToolSearch para cargarlas.
 
 **Estándar de completitud**: solo completo o incompleto, nunca "básicamente completo"
 
@@ -193,6 +179,24 @@ Después de archivar debe mostrar registro completo:
 **Optimización de contexto**: preferir grep para localizar, luego leer líneas específicas. Usar strReplace para modificaciones
 
 **Manejo de errores**: fallos repetidos → registrar métodos intentados, cambiar enfoque, si sigue fallando preguntar al usuario
+
+---
+
+## 12. ⚠️ Auto-prueba
+
+**Después de cada Edit/Write de archivo de código, el siguiente paso debe ser ejecutar la auto-prueba correspondiente. No responder primero al usuario, no reportar primero, no establecer bloqueo primero.** Establecer bloqueo "esperando verificación" o reportar completado sin auto-prueba es una violación.
+
+**Pre-verificación**: Antes de iniciar o verificar un servicio, debe confirmar primero si el puerto objetivo ya está ocupado por otro proyecto (`lsof -ti:puerto` + verificar directorio de trabajo del proceso), para evitar verificar otro proyecto como el actual.
+
+Lista de auto-prueba (ejecutar según tipo de cambio, se activa inmediatamente después de modificar código, no esperar recordatorio del usuario):
+- **Cambios código backend**: compilación exitosa → verificar endpoints API afectados
+- **Cambios código frontend**: build exitoso → usar Playwright MCP (browser_navigate + browser_snapshot) para abrir páginas afectadas y verificar renderizado
+- **Migración de base de datos**: ejecutar migración → verificar tabla/columnas → verificar APIs dependientes
+- **Operaciones de despliegue**: servicio healthy → endpoint API principal retorna 200 → navegador verifica funcionalidad principal (ej. login)
+- **Cambios de configuración** (Nginx/reverse proxy etc.): verificación de config exitosa → verificar que el objetivo es accesible
+Después de las pruebas, `track update` llenar solution + files_changed + test_result.
+
+Auto-prueba frontend **solo con Playwright MCP**, **capturas de pantalla prohibidas (browser_take_screenshot)**, prohibido usar `open` o pedir al usuario que abra manualmente el navegador. Las herramientas Playwright MCP están en la lista de deferred tools, usar ToolSearch para cargarlas.
 """
 
 

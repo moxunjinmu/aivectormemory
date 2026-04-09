@@ -26,15 +26,16 @@ STEERING_CONTENT = """# AIVectorMemory - Workflow Rules
 
 ## 3. Core Principles
 
-1. **Verify before any operation, never assume, never rely on memory**
-2. **When encountering issues, never test blindly. Must review the code files related to the issue, find the root cause, correspond to actual error**
-3. **No verbal promises — everything is validated by passing tests**
-4. **Must review code and think rigorously before any file modification**
-5. **During development and self-testing, never ask the user to manually operate. Do it yourself if possible**
-6. **When user requests to read a file, never skip by claiming "already read" or "already in context". Must call the tool to read the latest content**
-7. **When project information is needed, must first `recall` to query the memory system. If not found, search code/config files. Only ask user as last resort. Never skip recall and ask user directly**
-8. **Strictly execute within scope of user instructions, never expand operation scope on your own.
-9. **In this project context: "memory/project memory" = AIVectorMemory MCP memory data**
+1. **After receiving a user message, you must understand the original meaning word by word. No paraphrasing, no substituting your interpretation for the original text**
+2. **Verify before any operation, never assume, never rely on memory**
+3. **When encountering issues, never test blindly. Must review the code files related to the issue, find the root cause, correspond to actual error**
+4. **No verbal promises — everything is validated by passing tests**
+5. **Before modifying code, you must review the code, assess the impact scope, and confirm it will not break other features. No robbing Peter to pay Paul**
+6. **During development and self-testing, never ask the user to manually operate. Do it yourself if possible**
+7. **When user requests to read a file, never skip by claiming "already read" or "already in context". Must call the tool to read the latest content**
+8. **When project information is needed, must first `recall` to query the memory system. If not found, search code/config files. Only ask user as last resort. Never skip recall to ask user**
+9. **Strictly execute within scope of user instructions, never expand operation scope on your own.**
+10. **In this project context: "memory/project memory" = AIVectorMemory MCP memory data**
 
 ---
 
@@ -42,7 +43,7 @@ STEERING_CONTENT = """# AIVectorMemory - Workflow Rules
 
 **A. `status` check blocking** — blocked → report and wait, no actions allowed
 
-**B. Determine message type** (state judgment in natural language in reply)
+**B. Determine message type** (must understand original meaning word by word, state judgment in natural language in reply)
 - Casual chat / progress check / rule discussion / simple confirmation → determine message type then reply.
 - Correcting wrong behavior → `remember`(tags: ["pitfall", "behavior-correction", ...keywords], scope: "project", include: wrong behavior, user's words, correct approach), continue C
 - Technical preferences / work habits → `auto_save` to store preferences
@@ -58,20 +59,9 @@ Examples: "This is a question, I'll verify the relevant code before answering", 
 
 **E. Present solution** — simple fix → F, multi-step → Section 8. **Must `status` set block before waiting for confirmation**
 
-**F. Modify code** — pre-checks per Section 7, fix one issue at a time. New issue found → `track create`
+**F. Modify code** — pre-checks per Section 7, fix one issue at a time. New issue found → `track create`: doesn't block current → record and continue; blocks current → handle new issue first then come back. After modification, `track update` fill solution + files_changed + test_result
 
-**G. Self-test verification (gate)** — **After each Edit/Write of code files, the very next step must be executing the corresponding self-test item. Cannot reply to user first, cannot report first, cannot set block first.** Setting block "awaiting verification" or reporting completion without self-testing is a violation.
-
-**Pre-check**: Before starting or verifying a service, must first confirm whether the target port is already occupied by another project (`lsof -ti:port` + check process working directory), to avoid verifying another project as the current one.
-
-Self-test checklist (execute by change type, triggered immediately after code modification, do not wait for user reminder):
-- **Backend code changes**: compilation passes → verify affected API endpoints
-- **Frontend code changes**: build passes → use Playwright MCP to open affected pages and verify rendering
-- **Database migration**: execute migration → verify table/columns exist → verify APIs depending on that table work
-- **Deployment operations**: service healthy → core API endpoint returns 200 → browser verify core functionality (e.g. login)
-- **Config changes** (Nginx/reverse proxy etc.): config check passes → verify target reachable
-browser_navigate + browser_snapshot
-After running tests, `track update` fill solution + files_changed + test_result.
+**G. Self-test verification (strictly follow §12 ⚠️ Self-test Verification)** —  report completion after passing self-test, set block awaiting verification, **do NOT git commit/push on your own**
 
 **H. Wait for verification** — `status` set block (block_reason: "Fix complete, waiting for verification" or "User decision needed")
 
@@ -135,13 +125,11 @@ Must show complete record after archiving:
 6. Execute subtasks in order (no skipping, no "future iteration"):
    - `task update` (in_progress) → `recall`(tags: ["pitfall"], query: subtask module) → read design.md corresponding section → implement → `task update` (completed)
    - **Before starting: check tasks.md all prerequisites are `[x]`**
-   - Omissions found during organizing/execution → update design.md/tasks.md first
+   - Omissions found during organizing/execution → must update all corresponding documents (requirements/design/tasks) and re-review to confirm
 7. `task list` to confirm nothing missed
-8. **Self-test verification (same as Section 4 G gate)**, report completion after passing self-test, set block awaiting verification, **do NOT git commit/push on your own**
+8. **Self-test verification (strictly follow §12 ⚠️ Self-test Verification)**, report completion after passing self-test, set block awaiting verification, **do NOT git commit/push on your own**
 
-**Division**: task manages plan/progress, track manages bugs. Bug found during task execution → `track create`, fix then continue task
-
-**No spec needed**: single file modification, simple bug, config adjustment → directly track
+**Division**: task manages plan/progress, track manages bugs. Bug found during task execution → `track create`: doesn't block current → record and continue; blocks current → handle first then come back
 
 ---
 
@@ -173,7 +161,7 @@ Must show complete record after archiving:
 
 **Code style**: concise first, ternary > if-else, short-circuit > conditional, template strings > concatenation, no meaningless comments
 
-**Git**: daily work on `dev` branch, never commit directly to master. Only commit when user requests: confirm dev → `git add -A` → `git commit` → `git push origin dev`
+**Git**: daily work on `dev` branch, never push directly to main branch. Only commit when user requests: confirm dev → `git add -A` → `git commit` → `git push origin dev` → merge to main branch and push → switch back to dev
 
 **IDE safety**:
 - **No** `$(...)` + pipe combinations
@@ -181,8 +169,6 @@ Must show complete record after archiving:
 - **No** `python3 -c "..."` for multi-line scripts (write .py file if more than 2 lines)
 - **No** `lsof -ti:port` without ignoreWarning (will be blocked by security check)
 - **Correct approach**: write SQL to `.sql` file and use `< data/xxx.sql`; write Python verification scripts as .py files and run with `python3 xxx.py`; use `lsof -ti:port` + ignoreWarning:true for port checks
-
-**Self-testing**: Follow Section 4 G steps. Only documentation/configuration files (.md/.json/.yaml/.toml/.sh etc.) do not require self-testing. Frontend self-testing **ONLY uses Playwright MCP**, **screenshots forbidden (browser_take_screenshot)**, do not use `open` command or ask user to manually open browser. Playwright MCP tools are in deferred tools list, use ToolSearch to load before use.
 
 **Completion standard**: only complete or incomplete, never "basically complete"
 
@@ -193,6 +179,24 @@ Must show complete record after archiving:
 **Context optimization**: prefer grep to locate then read specific lines, use strReplace for modifications
 
 **Error handling**: on repeated failures, record attempted methods, try different approach, if still failing ask user
+
+---
+
+## 12. ⚠️ Self-test Verification
+
+**After each Edit/Write of code files, the very next step must be executing the corresponding self-test item. Cannot reply to user first, cannot report first, cannot set block first.** Setting block "awaiting verification" or reporting completion without self-testing is a violation.
+
+**Pre-check**: Before starting or verifying a service, must first confirm whether the target port is already occupied by another project (`lsof -ti:port` + check process working directory), to avoid verifying another project as the current one.
+
+Self-test checklist (execute by change type, triggered immediately after code modification, do not wait for user reminder):
+- **Backend code changes**: compilation passes → verify affected API endpoints
+- **Frontend code changes**: build passes → use Playwright MCP (browser_navigate + browser_snapshot) to open affected pages and verify rendering
+- **Database migration**: execute migration → verify table/columns exist → verify APIs depending on that table work
+- **Deployment operations**: service healthy → core API endpoint returns 200 → browser verify core functionality (e.g. login)
+- **Config changes** (Nginx/reverse proxy etc.): config check passes → verify target reachable
+After running tests, `track update` fill solution + files_changed + test_result.
+
+Frontend self-testing **ONLY uses Playwright MCP**, **screenshots forbidden (browser_take_screenshot)**, do not use `open` command or ask user to manually open browser. Playwright MCP tools are in deferred tools list, use ToolSearch to load before use.
 """
 
 
