@@ -41,7 +41,8 @@ def _add_similarity(rows):
 # FTS5 full-text search
 # ---------------------------------------------------------------------------
 
-def fts_search(conn, query: str, scope: str, top_k: int = 20, tier: str | None = None) -> list[dict]:
+def fts_search(conn, query: str, scope: str, top_k: int = 20, tier: str | None = None,
+               project_dir: str | None = None) -> list[dict]:
     """FTS5 full-text search, returns [{id, content, ...}, ...]"""
     fts_table = "fts_user_memories" if scope == "user" else "fts_memories"
     main_table = "user_memories" if scope == "user" else "memories"
@@ -51,6 +52,9 @@ def fts_search(conn, query: str, scope: str, top_k: int = 20, tier: str | None =
                f"JOIN {fts_table} f ON f.id = m.id "
                f"WHERE {fts_table} MATCH ?")
         params: list = [tokenized]
+        if project_dir and scope != "user":
+            sql += " AND m.project_dir = ?"
+            params.append(project_dir)
         if tier:
             sql += " AND m.tier = ?"
             params.append(tier)
@@ -226,7 +230,8 @@ def _search_tier(cm, engine, repo, query, tags, top_k, tier, exclude_superseded,
     else:
         vec = _add_similarity(repo.search_by_vector(embedding, top_k=top_k * 2, **kw))
 
-    fts = fts_search(cm.conn, query, scope=scope, top_k=top_k * 2, tier=tier)
+    fts = fts_search(cm.conn, query, scope=scope, top_k=top_k * 2, tier=tier,
+                      project_dir=cm.project_dir if scope != "user" else None)
     merged = rrf_merge(vec, fts)
 
     _apply_composite_score(merged, cm.conn, table)

@@ -110,6 +110,13 @@ INDEXES = [
     "CREATE INDEX IF NOT EXISTS idx_memory_relations_related ON memory_relations(related_id)",
     "CREATE INDEX IF NOT EXISTS idx_memories_tier ON memories(tier)",
     "CREATE INDEX IF NOT EXISTS idx_user_memories_tier ON user_memories(tier)",
+    "CREATE INDEX IF NOT EXISTS idx_graph_nodes_project ON graph_nodes(project_dir)",
+    "CREATE INDEX IF NOT EXISTS idx_graph_nodes_name ON graph_nodes(name)",
+    "CREATE INDEX IF NOT EXISTS idx_graph_nodes_type ON graph_nodes(entity_type)",
+    "CREATE INDEX IF NOT EXISTS idx_graph_nodes_file ON graph_nodes(file_path)",
+    "CREATE INDEX IF NOT EXISTS idx_graph_edges_source ON graph_edges(source_id)",
+    "CREATE INDEX IF NOT EXISTS idx_graph_edges_target ON graph_edges(target_id)",
+    "CREATE INDEX IF NOT EXISTS idx_graph_edges_relation ON graph_edges(relation)",
 ]
 
 TASKS_TABLE = """
@@ -235,9 +242,38 @@ CREATE TABLE IF NOT EXISTS memory_relations (
     UNIQUE(memory_id, related_id, relation_type)
 )"""
 
-ALL_TABLES = [SCHEMA_VERSION_TABLE, MEMORIES_TABLE, VEC_MEMORIES_TABLE, SESSION_STATE_TABLE, ISSUES_TABLE, ISSUES_ARCHIVE_TABLE, TASKS_TABLE, USER_MEMORIES_TABLE, VEC_USER_MEMORIES_TABLE, VEC_ISSUES_ARCHIVE_TABLE, TASKS_ARCHIVE_TABLE, MEMORY_TAGS_TABLE, USER_MEMORY_TAGS_TABLE, USERS_TABLE, FTS_MEMORIES_TABLE, FTS_USER_MEMORIES_TABLE, MEMORY_RELATIONS_TABLE, MEMORIES_ARCHIVE_TABLE]
+GRAPH_NODES_TABLE = """
+CREATE TABLE IF NOT EXISTS graph_nodes (
+    id TEXT PRIMARY KEY,
+    project_dir TEXT NOT NULL,
+    name TEXT NOT NULL,
+    entity_type TEXT NOT NULL CHECK(entity_type IN ('function','class','module','api','table','variable')),
+    file_path TEXT DEFAULT '',
+    line_number INTEGER DEFAULT 0,
+    description TEXT DEFAULT '',
+    memory_id TEXT DEFAULT '',
+    file_mtime TEXT DEFAULT '',
+    metadata TEXT DEFAULT '{}',
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    UNIQUE(project_dir, name, entity_type, file_path)
+)"""
 
-CURRENT_SCHEMA_VERSION = 14
+GRAPH_EDGES_TABLE = """
+CREATE TABLE IF NOT EXISTS graph_edges (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    source_id TEXT NOT NULL REFERENCES graph_nodes(id),
+    target_id TEXT NOT NULL REFERENCES graph_nodes(id),
+    relation TEXT NOT NULL CHECK(relation IN ('calls','depends_on','data_flow','contains','implements','reads','writes')),
+    label TEXT DEFAULT '',
+    metadata TEXT DEFAULT '{}',
+    created_at TEXT NOT NULL,
+    UNIQUE(source_id, target_id, relation)
+)"""
+
+ALL_TABLES = [SCHEMA_VERSION_TABLE, MEMORIES_TABLE, VEC_MEMORIES_TABLE, SESSION_STATE_TABLE, ISSUES_TABLE, ISSUES_ARCHIVE_TABLE, TASKS_TABLE, USER_MEMORIES_TABLE, VEC_USER_MEMORIES_TABLE, VEC_ISSUES_ARCHIVE_TABLE, TASKS_ARCHIVE_TABLE, MEMORY_TAGS_TABLE, USER_MEMORY_TAGS_TABLE, USERS_TABLE, FTS_MEMORIES_TABLE, FTS_USER_MEMORIES_TABLE, MEMORY_RELATIONS_TABLE, MEMORIES_ARCHIVE_TABLE, GRAPH_NODES_TABLE, GRAPH_EDGES_TABLE]
+
+CURRENT_SCHEMA_VERSION = 15
 
 
 def _get_schema_version(conn) -> int:

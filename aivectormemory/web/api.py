@@ -3,7 +3,7 @@ from urllib.parse import urlparse, parse_qs, unquote
 
 from aivectormemory.db.state_repo import StateRepo
 from aivectormemory.db.issue_repo import IssueRepo
-from aivectormemory.web.routes import memories, issues, tasks, tags, projects, auth, maintenance
+from aivectormemory.web.routes import memories, issues, tasks, tags, projects, auth, maintenance, graph
 
 
 def _resolve_project(cm, params):
@@ -42,6 +42,10 @@ def handle_api_request(handler, cm):
             return _json_response(handler, memories.put_memory(handler, cm, mid, pdir))
         elif method == "DELETE":
             return _json_response(handler, memories.delete_memory(cm, mid, pdir))
+
+    if path.startswith("/api/graph/trace/") and method == "GET":
+        node_ref = unquote("/".join(path.split("/")[4:]))
+        return _json_response(handler, graph.trace_graph(cm, params, pdir, node_ref))
 
     if path.startswith("/api/projects/") and method == "DELETE":
         proj_dir = unquote("/".join(path.split("/")[3:]))
@@ -94,6 +98,8 @@ def handle_api_request(handler, cm):
             "/api/tags": lambda: tags.get_tags(cm, params, pdir),
             "/api/projects": lambda: projects.get_projects(cm),
             "/api/export": lambda: memories.export_memories(cm, params, pdir),
+            "/api/graph": lambda: graph.get_graph(cm, params, pdir),
+            "/api/graph/stats": lambda: graph.get_graph_stats(cm, pdir),
             "/api/browse": lambda: projects.browse_directory(params),
             "/api/maintenance/health": lambda: maintenance.health_check(cm),
             "/api/maintenance/stats": lambda: maintenance.db_stats(cm),
