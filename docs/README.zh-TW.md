@@ -147,7 +147,7 @@ args = ["--project-dir", "/path/to/your/project"]
 
 > 只有把倉庫標記為 trusted project 後，Codex 才會載入專案級 `.codex/config.toml`。
 
-## 🛠️ 8 個 MCP 工具
+## 🛠️ 9 個 MCP 工具
 
 ### `remember` — 存入記憶
 
@@ -227,6 +227,23 @@ extra_tags   (string[])  額外標籤
 ```
 
 每次對話結束自動提取並儲存使用者偏好，智慧去重。
+
+### `graph` — 代碼知識圖譜
+
+```
+action       (string, 必填)  "query" / "trace" / "batch" / "add_node" / "add_edge" / "remove" / "refresh"
+name         (string)        實體名稱（add_node/query）
+entity_type  (string)        實體類型：function/class/module/api/table/config（add_node/query）
+file_path    (string)        檔案路徑，自動轉相對路徑（add_node/query/refresh）
+source       (string)        起點節點名稱或 ID（add_edge）
+target       (string)        終點節點名稱或 ID（add_edge）
+relation     (string)        關係類型：calls/imports/inherits/uses/depends_on/contains（add_edge/trace）
+start        (string)        起始節點名稱或 ID（trace）
+direction    (string)        遍歷方向："up" / "down" / "both"（trace）
+max_depth    (integer)       最大遍歷深度，預設 3（trace）
+```
+
+管理函式呼叫鏈、資料流、依賴關係等結構化代碼知識。修改代碼前可 trace 上下游影響範圍。
 
 ## 📊 Web 看板
 
@@ -375,6 +392,15 @@ export HF_ENDPOINT=https://hf-mirror.com
 | Web | 原生 HTTPServer + Vanilla JS |
 
 ## 📋 更新日誌
+
+### v2.4.0
+
+**新增：代碼知識圖譜**
+- 🧬 `graph` 工具 — 管理函式呼叫鏈、資料流、依賴關係等結構化代碼知識圖譜
+- 🔍 `trace` 操作 — 從任意實體追溯上下游呼叫鏈，修改代碼前評估影響範圍
+- 📊 Web 看板圖譜視覺化頁面 — 瀏覽知識圖譜中的節點、邊和呼叫關係
+- 🗃️ 資料庫遷移 v15 — 新增 `graph_nodes` 和 `graph_edges` 表用於圖譜儲存
+- 🌐 7 語言 README 同步更新
 
 ### v2.3.1
 

@@ -171,7 +171,7 @@ args = ["--project-dir", "/path/to/your/project"]
 
 > 只有把仓库标记为 trusted project 后，Codex 才会加载项目级 `.codex/config.toml`。
 
-## 🛠️ 8 个 MCP 工具
+## 🛠️ 9 个 MCP 工具
 
 ### `remember` — 存入记忆
 
@@ -251,6 +251,23 @@ extra_tags   (string[])  额外标签
 ```
 
 每次对话结束自动提取并存储用户偏好，智能去重。
+
+### `graph` — 代码知识图谱
+
+```
+action       (string, 必填)  "query" / "trace" / "batch" / "add_node" / "add_edge" / "remove" / "refresh"
+name         (string)        实体名称（add_node/query）
+entity_type  (string)        实体类型：function/class/module/api/table/config（add_node/query）
+file_path    (string)        文件路径，自动转相对路径（add_node/query/refresh）
+source       (string)        起点节点名称或 ID（add_edge）
+target       (string)        终点节点名称或 ID（add_edge）
+relation     (string)        关系类型：calls/imports/inherits/uses/depends_on/contains（add_edge/trace）
+start        (string)        起始节点名称或 ID（trace）
+direction    (string)        遍历方向："up" / "down" / "both"（trace）
+max_depth    (integer)       最大遍历深度，默认 3（trace）
+```
+
+管理函数调用链、数据流、依赖关系等结构化代码知识。修改代码前可 trace 上下游影响范围。
 
 ## 📊 Web 看板
 
@@ -381,6 +398,15 @@ export HF_ENDPOINT=https://hf-mirror.com
 | Web | 原生 HTTPServer + Vanilla JS |
 
 ## 📋 更新日志
+
+### v2.4.0
+
+**新增：代码知识图谱**
+- 🧬 `graph` 工具 — 管理函数调用链、数据流、依赖关系等结构化代码知识图谱
+- 🔍 `trace` 操作 — 从任意实体追溯上下游调用链，修改代码前评估影响范围
+- 📊 Web 看板图谱可视化页面 — 浏览知识图谱中的节点、边和调用关系
+- 🗃️ 数据库迁移 v15 — 新增 `graph_nodes` 和 `graph_edges` 表用于图谱存储
+- 🌐 7 语言 README 同步更新
 
 ### v2.3.1
 

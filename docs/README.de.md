@@ -147,7 +147,7 @@ args = ["--project-dir", "/path/to/your/project"]
 
 > Codex lädt die projektbezogene `.codex/config.toml` erst, nachdem das Repository als trusted project markiert wurde.
 
-## 🛠️ 8 MCP-Werkzeuge
+## 🛠️ 9 MCP-Werkzeuge
 
 ### `remember` — Erinnerung speichern
 
@@ -227,6 +227,23 @@ extra_tags   (string[])  Zusätzliche Tags
 ```
 
 Extrahiert und speichert automatisch Benutzerpräferenzen am Ende jeder Konversation, intelligente Deduplizierung.
+
+### `graph` — Code-Wissensgraph
+
+```
+action       (string, erforderlich)  "query" / "trace" / "batch" / "add_node" / "add_edge" / "remove" / "refresh"
+name         (string)                Entitätsname (add_node/query)
+entity_type  (string)                Entitätstyp: function/class/module/api/table/config (add_node/query)
+file_path    (string)                Dateipfad, automatisch in relativen Pfad konvertiert (add_node/query/refresh)
+source       (string)                Quellknotenname oder ID (add_edge)
+target       (string)                Zielknotenname oder ID (add_edge)
+relation     (string)                Beziehungstyp: calls/imports/inherits/uses/depends_on/contains (add_edge/trace)
+start        (string)                Startknotenname oder ID (trace)
+direction    (string)                Traversierungsrichtung: "up" / "down" / "both" (trace)
+max_depth    (integer)               Maximale Traversierungstiefe, Standard 3 (trace)
+```
+
+Verwaltet Funktionsaufrufketten, Datenflüsse und Abhängigkeitsbeziehungen. Trace vor Codeänderungen zur Bewertung des Auswirkungsbereichs.
 
 ## 📊 Web-Dashboard
 
@@ -375,6 +392,15 @@ Oder env in der MCP-Konfiguration hinzufügen:
 | Web | Nativer HTTPServer + Vanilla JS |
 
 ## 📋 Änderungsprotokoll
+
+### v2.4.0
+
+**Neu: Code-Wissensgraph**
+- 🧬 `graph`-Werkzeug — Verwaltet Funktionsaufrufketten, Datenflüsse und Abhängigkeitsbeziehungen als strukturierten Wissensgraphen
+- 🔍 `trace`-Aktion — Verfolgt Upstream-/Downstream-Aufrufketten von beliebigen Entitäten, bewertet Auswirkungsbereich vor Codeänderungen
+- 📊 Web-Dashboard Graph-Visualisierungsseite — Durchsuchen von Knoten, Kanten und Aufrufbeziehungen im Wissensgraphen
+- 🗃️ DB-Migration v15 — Neue `graph_nodes`- und `graph_edges`-Tabellen für Graph-Speicherung
+- 🌐 Alle 7 Sprach-READMEs synchron aktualisiert
 
 ### v2.3.1
 

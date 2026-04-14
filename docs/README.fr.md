@@ -147,7 +147,7 @@ args = ["--project-dir", "/path/to/your/project"]
 
 > Codex ne charge le `.codex/config.toml` du projet qu'après avoir marqué le dépôt comme trusted project.
 
-## 🛠️ 8 Outils MCP
+## 🛠️ 9 Outils MCP
 
 ### `remember` — Stocker une mémoire
 
@@ -227,6 +227,23 @@ extra_tags   (string[])  Étiquettes supplémentaires
 ```
 
 Extrait et stocke automatiquement les préférences utilisateur à la fin de chaque conversation, déduplication intelligente.
+
+### `graph` — Graphe de connaissances du code
+
+```
+action       (string, requis)  "query" / "trace" / "batch" / "add_node" / "add_edge" / "remove" / "refresh"
+name         (string)          Nom de l'entité (add_node/query)
+entity_type  (string)          Type d'entité : function/class/module/api/table/config (add_node/query)
+file_path    (string)          Chemin du fichier, conversion automatique en chemin relatif (add_node/query/refresh)
+source       (string)          Nom ou ID du nœud source (add_edge)
+target       (string)          Nom ou ID du nœud cible (add_edge)
+relation     (string)          Type de relation : calls/imports/inherits/uses/depends_on/contains (add_edge/trace)
+start        (string)          Nom ou ID du nœud de départ (trace)
+direction    (string)          Direction de traversée : "up" / "down" / "both" (trace)
+max_depth    (integer)         Profondeur maximale de traversée, par défaut 3 (trace)
+```
+
+Gère les chaînes d'appels de fonctions, les flux de données et les relations de dépendance. Trace en amont/aval avant les modifications de code pour évaluer la portée de l'impact.
 
 ## 📊 Tableau de Bord Web
 
@@ -375,6 +392,15 @@ Ou ajouter env dans la configuration MCP :
 | Web | HTTPServer natif + Vanilla JS |
 
 ## 📋 Journal des Modifications
+
+### v2.4.0
+
+**Nouveau : Graphe de Connaissances du Code**
+- 🧬 Outil `graph` — Gère les chaînes d'appels, les flux de données et les dépendances sous forme de graphe de connaissances structuré
+- 🔍 Action `trace` — Parcourt les chaînes d'appels en amont/aval depuis n'importe quelle entité, évalue la portée de l'impact avant les modifications
+- 📊 Page de visualisation du graphe dans le Tableau de Bord Web — Exploration des nœuds, arêtes et relations d'appels
+- 🗃️ Migration DB v15 — Nouvelles tables `graph_nodes` et `graph_edges` pour le stockage du graphe
+- 🌐 Les 7 READMEs multilingues mis à jour en synchronisation
 
 ### v2.3.1
 
