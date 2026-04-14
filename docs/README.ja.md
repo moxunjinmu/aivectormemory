@@ -147,7 +147,7 @@ args = ["--project-dir", "/path/to/your/project"]
 
 > Codex がプロジェクト単位の `.codex/config.toml` を読み込むのは、リポジトリを trusted project としてマークした後です。
 
-## 🛠️ 8つのMCPツール
+## 🛠️ 9つのMCPツール
 
 ### `remember` — 記憶を保存
 
@@ -227,6 +227,23 @@ extra_tags   (string[])  追加タグ
 ```
 
 各会話の終了時にユーザープリファレンスを自動抽出・保存、スマート重複排除。
+
+### `graph` — コード知識グラフ
+
+```
+action       (string, 必須)  "query" / "trace" / "batch" / "add_node" / "add_edge" / "remove" / "refresh"
+name         (string)        エンティティ名（add_node/query）
+entity_type  (string)        エンティティ型：function/class/module/api/table/config（add_node/query）
+file_path    (string)        ファイルパス、自動で相対パスに変換（add_node/query/refresh）
+source       (string)        起点ノード名またはID（add_edge）
+target       (string)        終点ノード名またはID（add_edge）
+relation     (string)        関係タイプ：calls/imports/inherits/uses/depends_on/contains（add_edge/trace）
+start        (string)        開始ノード名またはID（trace）
+direction    (string)        走査方向："up" / "down" / "both"（trace）
+max_depth    (integer)       最大走査深度、デフォルト3（trace）
+```
+
+関数呼び出しチェーン、データフロー、依存関係などの構造化コード知識を管理。コード変更前に上下流の影響範囲をtraceで確認。
 
 ## 📊 Webダッシュボード
 
@@ -375,6 +392,15 @@ export HF_ENDPOINT=https://hf-mirror.com
 | Web | ネイティブHTTPServer + Vanilla JS |
 
 ## 📋 更新履歴
+
+### v2.4.0
+
+**新機能：コード知識グラフ**
+- 🧬 `graph` ツール — 関数呼び出しチェーン、データフロー、依存関係などの構造化コード知識グラフを管理
+- 🔍 `trace` アクション — 任意のエンティティから上下流の呼び出しチェーンを追跡、コード変更前に影響範囲を評価
+- 📊 Webダッシュボードグラフ可視化ページ — 知識グラフのノード、エッジ、呼び出し関係を閲覧
+- 🗃️ DBマイグレーション v15 — グラフストレージ用に `graph_nodes` と `graph_edges` テーブルを追加
+- 🌐 全7言語のREADMEを同期更新
 
 ### v2.3.1
 

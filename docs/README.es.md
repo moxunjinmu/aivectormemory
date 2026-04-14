@@ -147,7 +147,7 @@ args = ["--project-dir", "/path/to/your/project"]
 
 > Codex solo carga `.codex/config.toml` a nivel de proyecto después de marcar el repositorio como trusted project.
 
-## 🛠️ 8 Herramientas MCP
+## 🛠️ 9 Herramientas MCP
 
 ### `remember` — Almacenar memoria
 
@@ -227,6 +227,23 @@ extra_tags   (string[])  Etiquetas adicionales
 ```
 
 Extrae y almacena automáticamente las preferencias del usuario al final de cada conversación, deduplicación inteligente.
+
+### `graph` — Grafo de conocimiento de código
+
+```
+action       (string, requerido)  "query" / "trace" / "batch" / "add_node" / "add_edge" / "remove" / "refresh"
+name         (string)             Nombre de entidad (add_node/query)
+entity_type  (string)             Tipo de entidad: function/class/module/api/table/config (add_node/query)
+file_path    (string)             Ruta de archivo, conversión automática a ruta relativa (add_node/query/refresh)
+source       (string)             Nombre o ID del nodo origen (add_edge)
+target       (string)             Nombre o ID del nodo destino (add_edge)
+relation     (string)             Tipo de relación: calls/imports/inherits/uses/depends_on/contains (add_edge/trace)
+start        (string)             Nombre o ID del nodo inicial (trace)
+direction    (string)             Dirección de recorrido: "up" / "down" / "both" (trace)
+max_depth    (integer)            Profundidad máxima de recorrido, por defecto 3 (trace)
+```
+
+Gestiona cadenas de llamadas de funciones, flujos de datos y relaciones de dependencia. Trace upstream/downstream antes de cambios de código para evaluar alcance del impacto.
 
 ## 📊 Panel Web
 
@@ -375,6 +392,15 @@ O agregar env en la configuración MCP:
 | Web | HTTPServer nativo + Vanilla JS |
 
 ## 📋 Registro de Cambios
+
+### v2.4.0
+
+**Nuevo: Grafo de Conocimiento de Código**
+- 🧬 Herramienta `graph` — Gestiona cadenas de llamadas, flujos de datos y dependencias como un grafo de conocimiento estructurado
+- 🔍 Acción `trace` — Recorre cadenas de llamadas upstream/downstream desde cualquier entidad, evalúa el alcance del impacto antes de cambios
+- 📊 Página de visualización de grafos en el Panel Web — Explora nodos, aristas y relaciones de llamadas
+- 🗃️ Migración DB v15 — Nuevas tablas `graph_nodes` y `graph_edges` para almacenamiento de grafos
+- 🌐 Los 7 READMEs en distintos idiomas actualizados en sincronía
 
 ### v2.3.1
 

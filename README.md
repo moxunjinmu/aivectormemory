@@ -170,7 +170,7 @@ args = ["--project-dir", "/path/to/your/project"]
 
 > Codex only loads project-scoped `.codex/config.toml` after the repository is marked as a trusted project.
 
-## 🛠️ 8 MCP Tools
+## 🛠️ 9 MCP Tools
 
 ### `remember` — Store a memory
 
@@ -250,6 +250,23 @@ extra_tags   (string[])  Additional tags
 ```
 
 Auto-extracts and stores user preferences at end of each conversation, smart dedup.
+
+### `graph` — Code knowledge graph
+
+```
+action       (string, required)  "query" / "trace" / "batch" / "add_node" / "add_edge" / "remove" / "refresh"
+name         (string)            Entity name (add_node/query)
+entity_type  (string)            Entity type: function/class/module/api/table/config (add_node/query)
+file_path    (string)            File path, auto-converts to relative (add_node/query/refresh)
+source       (string)            Source node name or ID (add_edge)
+target       (string)            Target node name or ID (add_edge)
+relation     (string)            Relation type: calls/imports/inherits/uses/depends_on/contains (add_edge/trace)
+start        (string)            Start node name or ID (trace)
+direction    (string)            Traversal direction: "up" / "down" / "both" (trace)
+max_depth    (integer)           Max traversal depth, default 3 (trace)
+```
+
+Manages function call chains, data flows, and dependency relationships. Trace upstream/downstream impact before code changes.
 
 ## 📊 Web Dashboard
 
@@ -380,6 +397,15 @@ Or add env to MCP config:
 | Web | Native HTTPServer + Vanilla JS |
 
 ## 📋 Changelog
+
+### v2.4.0
+
+**New: Code Knowledge Graph**
+- 🧬 `graph` tool — manage function call chains, data flows, and dependency relationships as a structured knowledge graph
+- 🔍 `trace` action — traverse upstream/downstream call chains from any entity, assess impact scope before code changes
+- 📊 Web dashboard graph visualization page — browse nodes, edges, and call relationships in the knowledge graph
+- 🗃️ DB migration v15 — new `graph_nodes` and `graph_edges` tables for graph storage
+- 🌐 All 7 language README files updated in sync
 
 ### v2.3.1
 
