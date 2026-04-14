@@ -104,6 +104,10 @@
         <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
         <span data-i18n="issueTracking">问题跟踪</span>
       </li>
+      <li class="nav-item" data-tab="graph">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="6" cy="6" r="3"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="18" r="3"/><line x1="9" y1="6" x2="15" y2="6"/><line x1="6" y1="9" x2="6" y2="15"/><line x1="18" y1="9" x2="18" y2="15"/><line x1="9" y1="18" x2="15" y2="18"/><line x1="8.5" y1="8.5" x2="15.5" y2="15.5"/></svg>
+        <span data-i18n="knowledgeGraph">知识图谱</span>
+      </li>
       <li class="nav-item" data-tab="tasks">
         <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
         <span data-i18n="taskManagement">任务管理</span>
@@ -292,6 +296,39 @@
       </div>
       <div id="issue-list" class="card-list"></div>
       <div id="issue-pager" class="pager"></div>
+    </section>
+    <section id="tab-graph" class="tab-panel">
+      <div class="page-header"><h2 class="page-title" data-i18n="knowledgeGraph">知识图谱</h2></div>
+      <div class="toolbar toolbar--wrap">
+        <div class="toolbar-group">
+          <select id="graph-type-filter" class="filter-select">
+            <option value="" data-i18n="allTypes">全部类型</option>
+            <option value="function">function</option>
+            <option value="class">class</option>
+            <option value="module">module</option>
+            <option value="api">api</option>
+            <option value="table">table</option>
+            <option value="variable">variable</option>
+          </select>
+        </div>
+        <div class="search-box search-box--toolbar">
+          <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="graph-search" class="search-input" placeholder="搜索节点..." data-i18n-placeholder="searchNode">
+          <button class="search-clear hidden" id="graph-search-clear">&times;</button>
+        </div>
+        <button class="btn btn--outline btn--sm" id="btn-graph-reset" data-i18n="resetView">重置视图</button>
+        <div class="toolbar-right">
+          <span id="graph-stats-info" class="stats-info"></span>
+        </div>
+      </div>
+      <div class="graph-container">
+        <svg id="graph-svg" class="graph-canvas" viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid meet"></svg>
+        <div id="graph-detail" class="graph-detail hidden">
+          <button class="graph-detail__close" id="graph-detail-close">&times;</button>
+          <h3 id="graph-detail-name" class="graph-detail__name"></h3>
+          <div id="graph-detail-body" class="graph-detail__body"></div>
+        </div>
+      </div>
     </section>
     <section id="tab-tasks" class="tab-panel">
       <div class="page-header"><h2 class="page-title" data-i18n="taskManagement">任务管理</h2></div>

@@ -160,6 +160,35 @@ TOOL_DEFINITIONS = [
                 "extra_tags": {"oneOf": [{"type": "array", "items": {"type": "string"}}, {"type": "string"}], "description": "额外标签"}
             }
         }
+    },
+    {
+        "name": "graph",
+        "description": "代码知识图谱：管理函数调用链、数据流、依赖关系等结构化代码知识。支持节点/边 CRUD、多跳遍历、过期检测。",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "action": {"type": "string", "enum": ["add_node", "add_edge", "remove", "query", "trace", "batch", "refresh"], "description": "操作类型"},
+                "name": {"type": "string", "description": "实体名称（add_node/query）"},
+                "entity_type": {"type": "string", "enum": ["function", "class", "module", "api", "table", "variable"], "description": "实体类型（add_node/query）"},
+                "file_path": {"type": "string", "description": "文件路径，自动转相对路径（add_node/query/refresh）"},
+                "line_number": {"type": "integer", "description": "行号（add_node）"},
+                "description": {"type": "string", "description": "描述（add_node）"},
+                "memory_id": {"type": "string", "description": "关联记忆 ID（add_node）"},
+                "source": {"type": "string", "description": "起点节点名称或 ID（add_edge）"},
+                "target": {"type": "string", "description": "终点节点名称或 ID（add_edge）"},
+                "relation": {"type": "string", "enum": ["calls", "depends_on", "data_flow", "contains", "implements", "reads", "writes"], "description": "关系类型（add_edge/trace）"},
+                "label": {"type": "string", "description": "边标签（add_edge）"},
+                "node_id": {"type": "string", "description": "节点 ID（remove）"},
+                "edge_id": {"type": "integer", "description": "边 ID（remove）"},
+                "start": {"type": "string", "description": "起始节点名称或 ID（trace）"},
+                "direction": {"type": "string", "enum": ["down", "up", "both"], "default": "down", "description": "遍历方向（trace）"},
+                "max_depth": {"type": "integer", "minimum": 1, "maximum": 5, "default": 3, "description": "最大深度（trace）"},
+                "cross_project": {"type": "boolean", "default": False, "description": "跨项目遍历（trace）"},
+                "nodes": {"type": "array", "items": {"type": "object"}, "description": "批量节点（batch）"},
+                "edges": {"type": "array", "items": {"type": "object"}, "description": "批量边（batch）"}
+            },
+            "required": ["action"]
+        }
     }
 ]
 
@@ -171,6 +200,7 @@ from aivectormemory.tools.track import handle_track
 from aivectormemory.tools.auto_save import handle_auto_save
 from aivectormemory.tools.task import handle_task
 from aivectormemory.tools.readme import handle_readme
+from aivectormemory.tools.graph import handle_graph
 
 TOOL_HANDLERS = {
     "remember": handle_remember,
@@ -181,4 +211,5 @@ TOOL_HANDLERS = {
     "auto_save": handle_auto_save,
     "task": handle_task,
     "readme": handle_readme,
+    "graph": handle_graph,
 }

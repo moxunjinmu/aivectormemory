@@ -57,7 +57,7 @@ function switchTab(tab) {
   const panel = $(`#tab-${tab}`);
   if (panel) panel.classList.add('active');
   // Update main header title
-  const titleMap = { stats: 'stats', status: 'sessionStatus', issues: 'issueTracking', tasks: 'taskManagement', 'project-memories': 'projectMemories', 'user-memories': 'globalMemories', tags: 'tagManagement', settings: 'settings' };
+  const titleMap = { stats: 'stats', status: 'sessionStatus', issues: 'issueTracking', graph: 'knowledgeGraph', tasks: 'taskManagement', 'project-memories': 'projectMemories', 'user-memories': 'globalMemories', tags: 'tagManagement', settings: 'settings' };
   const headerTitle = $('#main-header-title');
   if (headerTitle) headerTitle.textContent = t(titleMap[tab] || tab);
   const headerProj = $('#main-header-project');
@@ -1371,6 +1371,7 @@ function loadTab(tab) {
     'user-memories': loadUserMemories,
     status: loadStatus,
     issues: loadIssues,
+    graph: loadGraph,
     tags: loadTags,
     tasks: loadTasks,
     settings: loadSettings,
@@ -1667,6 +1668,167 @@ async function checkAuth() {
     showAuthPage();
   }
 }
+
+// === 知识图谱 ===
+const GRAPH_COLORS = { function: '#60a5fa', class: '#34d399', module: '#fbbf24', api: '#a78bfa', table: '#f87171', variable: '#9ca3af' };
+
+async function loadGraph() {
+  const typeFilter = $('#graph-type-filter')?.value || '';
+  const nameFilter = $('#graph-search')?.value?.trim() || '';
+  const qs = new URLSearchParams();
+  if (typeFilter) qs.set('entity_type', typeFilter);
+  if (nameFilter) qs.set('name', nameFilter);
+  const data = await api(`graph?${qs}`);
+  if (!data || data.error) return;
+  const info = $('#graph-stats-info');
+  if (info) info.textContent = `${data.node_count || 0} ${t('nodes')} / ${data.edge_count || 0} ${t('edges')}`;
+  renderGraph(data.nodes || [], data.edges || []);
+}
+
+function renderGraph(nodes, edges) {
+  const svg = $('#graph-svg');
+  if (!svg) return;
+  svg.innerHTML = '';
+  if (!nodes.length) { svg.innerHTML = `<text x="600" y="400" text-anchor="middle" fill="var(--text-secondary)" font-size="16">${t('noGraphData')}</text>`; return; }
+
+  const W = 1200, H = 800;
+  const idMap = {};
+  const gNodes = nodes.map((n, i) => {
+    const angle = (2 * Math.PI * i) / nodes.length;
+    const r = Math.min(W, H) * 0.35;
+    const nd = { ...n, x: W / 2 + r * Math.cos(angle), y: H / 2 + r * Math.sin(angle), vx: 0, vy: 0 };
+    idMap[n.id] = nd;
+    return nd;
+  });
+  const gEdges = edges.filter(e => idMap[e.source_id] && idMap[e.target_id]).map(e => ({ ...e, source: idMap[e.source_id], target: idMap[e.target_id] }));
+
+  // 力导向模拟
+  for (let iter = 0; iter < 200; iter++) {
+    // 斥力
+    for (let i = 0; i < gNodes.length; i++) {
+      for (let j = i + 1; j < gNodes.length; j++) {
+        let dx = gNodes[i].x - gNodes[j].x, dy = gNodes[i].y - gNodes[j].y;
+        let dist = Math.sqrt(dx * dx + dy * dy) || 1;
+        let force = 8000 / (dist * dist);
+        let fx = (dx / dist) * force, fy = (dy / dist) * force;
+        gNodes[i].vx += fx; gNodes[i].vy += fy;
+        gNodes[j].vx -= fx; gNodes[j].vy -= fy;
+      }
+    }
+    // 引力（边）
+    for (const e of gEdges) {
+      let dx = e.target.x - e.source.x, dy = e.target.y - e.source.y;
+      let dist = Math.sqrt(dx * dx + dy * dy) || 1;
+      let force = (dist - 120) * 0.02;
+      let fx = (dx / dist) * force, fy = (dy / dist) * force;
+      e.source.vx += fx; e.source.vy += fy;
+      e.target.vx -= fx; e.target.vy -= fy;
+    }
+    // 中心引力
+    for (const n of gNodes) {
+      n.vx += (W / 2 - n.x) * 0.001;
+      n.vy += (H / 2 - n.y) * 0.001;
+      n.vx *= 0.9; n.vy *= 0.9;
+      n.x += n.vx; n.y += n.vy;
+      n.x = Math.max(40, Math.min(W - 40, n.x));
+      n.y = Math.max(40, Math.min(H - 40, n.y));
+    }
+  }
+
+  // 绘制边
+  const edgeGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+  edgeGroup.setAttribute('class', 'graph-edges');
+  for (const e of gEdges) {
+    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    line.setAttribute('x1', e.source.x); line.setAttribute('y1', e.source.y);
+    line.setAttribute('x2', e.target.x); line.setAttribute('y2', e.target.y);
+    line.setAttribute('class', `graph-edge graph-edge--${e.relation}`);
+    line.setAttribute('data-edge-id', e.id);
+    edgeGroup.appendChild(line);
+    // 边标签
+    if (e.label) {
+      const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      text.setAttribute('x', (e.source.x + e.target.x) / 2);
+      text.setAttribute('y', (e.source.y + e.target.y) / 2 - 4);
+      text.setAttribute('class', 'graph-edge-label');
+      text.textContent = e.label;
+      edgeGroup.appendChild(text);
+    }
+  }
+  svg.appendChild(edgeGroup);
+
+  // 绘制节点
+  const nodeGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+  nodeGroup.setAttribute('class', 'graph-nodes');
+  for (const n of gNodes) {
+    const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    g.setAttribute('class', 'graph-node');
+    g.setAttribute('data-node-id', n.id);
+    g.style.cursor = 'pointer';
+    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    const radius = n.entity_type === 'class' ? 12 : n.entity_type === 'module' ? 14 : 8;
+    circle.setAttribute('cx', n.x); circle.setAttribute('cy', n.y); circle.setAttribute('r', radius);
+    circle.setAttribute('fill', GRAPH_COLORS[n.entity_type] || '#9ca3af');
+    circle.setAttribute('stroke', n.stale ? '#ef4444' : 'var(--border)');
+    circle.setAttribute('stroke-width', n.stale ? '3' : '2');
+    g.appendChild(circle);
+    const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    text.setAttribute('x', n.x); text.setAttribute('y', n.y + radius + 14);
+    text.setAttribute('class', 'graph-node-label');
+    const displayName = n.name.length > 20 ? n.name.slice(0, 18) + '…' : n.name;
+    text.textContent = displayName;
+    g.appendChild(text);
+    g.addEventListener('click', () => showGraphDetail(n));
+    nodeGroup.appendChild(g);
+  }
+  svg.appendChild(nodeGroup);
+
+  // 拖拽平移 & 缩放
+  let viewBox = { x: 0, y: 0, w: W, h: H };
+  const updateViewBox = () => svg.setAttribute('viewBox', `${viewBox.x} ${viewBox.y} ${viewBox.w} ${viewBox.h}`);
+  let dragging = false, dragStart = { x: 0, y: 0 };
+  svg.addEventListener('mousedown', e => { if (e.target === svg || e.target.closest('.graph-edges')) { dragging = true; dragStart = { x: e.clientX, y: e.clientY }; } });
+  svg.addEventListener('mousemove', e => { if (!dragging) return; const dx = (e.clientX - dragStart.x) * (viewBox.w / svg.clientWidth); const dy = (e.clientY - dragStart.y) * (viewBox.h / svg.clientHeight); viewBox.x -= dx; viewBox.y -= dy; dragStart = { x: e.clientX, y: e.clientY }; updateViewBox(); });
+  svg.addEventListener('mouseup', () => dragging = false);
+  svg.addEventListener('mouseleave', () => dragging = false);
+  svg.addEventListener('wheel', e => { e.preventDefault(); const scale = e.deltaY > 0 ? 1.1 : 0.9; const mx = viewBox.x + (e.offsetX / svg.clientWidth) * viewBox.w; const my = viewBox.y + (e.offsetY / svg.clientHeight) * viewBox.h; viewBox.w *= scale; viewBox.h *= scale; viewBox.x = mx - (e.offsetX / svg.clientWidth) * viewBox.w; viewBox.y = my - (e.offsetY / svg.clientHeight) * viewBox.h; updateViewBox(); }, { passive: false });
+}
+
+function showGraphDetail(node) {
+  const panel = $('#graph-detail');
+  const nameEl = $('#graph-detail-name');
+  const body = $('#graph-detail-body');
+  if (!panel || !nameEl || !body) return;
+  panel.classList.remove('hidden');
+  nameEl.textContent = node.name;
+  const typeLabel = { function: '函数', class: '类', module: '模块', api: '接口', table: '数据表', variable: '变量' };
+  body.innerHTML = `
+    <div class="detail-row"><span class="detail-label">${t('type')}</span><span class="badge" style="background:${GRAPH_COLORS[node.entity_type] || '#9ca3af'};color:#fff">${typeLabel[node.entity_type] || node.entity_type}</span></div>
+    ${node.file_path ? `<div class="detail-row"><span class="detail-label">${t('file')}</span><span class="detail-value">${node.file_path}${node.line_number ? ':' + node.line_number : ''}</span></div>` : ''}
+    ${node.description ? `<div class="detail-row"><span class="detail-label">${t('description')}</span><span class="detail-value">${node.description}</span></div>` : ''}
+    ${node.stale ? `<div class="detail-row"><span class="badge badge--danger">${t('stale')}</span></div>` : ''}
+    <button class="btn btn--primary btn--sm" style="margin-top:12px" onclick="traceNode('${node.name}')">${t('traceCallChain')}</button>
+  `;
+}
+
+window.traceNode = async function(name) {
+  const data = await api(`graph/trace/${encodeURIComponent(name)}?direction=both&max_depth=3`);
+  if (!data || data.error) return;
+  renderGraph(data.nodes || [], data.edges || []);
+  const info = $('#graph-stats-info');
+  if (info) info.textContent = `${t('traceResult')}: ${(data.nodes || []).length} ${t('nodes')} / ${(data.edges || []).length} ${t('edges')}`;
+};
+
+// 图谱事件绑定
+document.addEventListener('DOMContentLoaded', () => {
+  $('#graph-type-filter')?.addEventListener('change', loadGraph);
+  $('#btn-graph-reset')?.addEventListener('click', () => { if ($('#graph-search')) $('#graph-search').value = ''; if ($('#graph-type-filter')) $('#graph-type-filter').value = ''; loadGraph(); });
+  $('#graph-detail-close')?.addEventListener('click', () => $('#graph-detail')?.classList.add('hidden'));
+  $('#graph-search')?.addEventListener('keydown', e => { if (e.key === 'Enter') loadGraph(); });
+  const clearBtn = $('#graph-search-clear');
+  if (clearBtn) { clearBtn.addEventListener('click', () => { $('#graph-search').value = ''; clearBtn.classList.add('hidden'); loadGraph(); }); }
+  $('#graph-search')?.addEventListener('input', e => { const cl = $('#graph-search-clear'); if (cl) cl.classList.toggle('hidden', !e.target.value); });
+});
 
 // 初始化
 initLangFromServer();
