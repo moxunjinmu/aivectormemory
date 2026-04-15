@@ -399,6 +399,14 @@ export HF_ENDPOINT=https://hf-mirror.com
 
 ## 📋 更新日志
 
+### v2.4.1
+
+**补丁：i18n 规则同步**
+- 🔄 7 种语言规则文件（STEERING_CONTENT + DEV_WORKFLOW_PROMPT）全部同步 CLAUDE.md v2.4.0 更新
+- 🧬 所有 steering 规则中添加 `graph` 工具引用（trace/batch/add_node/add_edge/remove）
+- ✏️ 所有语言角色从"首席架构师"更新为"项目负责人"
+- 📝 所有语言新增 3 条高频违规项 + 2 条禁止项
+
 ### v2.4.0
 
 **新增：代码知识图谱**

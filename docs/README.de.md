@@ -393,6 +393,14 @@ Oder env in der MCP-Konfiguration hinzufügen:
 
 ## 📋 Änderungsprotokoll
 
+### v2.4.1
+
+**Patch: i18n-Regelsynchronisierung**
+- 🔄 Alle 7 Sprachregeldateien (STEERING_CONTENT + DEV_WORKFLOW_PROMPT) mit CLAUDE.md v2.4.0 Updates synchronisiert
+- 🧬 `graph`-Werkzeug-Referenzen in allen Steering-Regeln hinzugefügt (trace/batch/add_node/add_edge/remove)
+- ✏️ Autoritätsrolle in allen Sprachen von „Lead Architect" zu „Projektverantwortlicher" aktualisiert
+- 📝 3 neue Verstoßregeln + 2 neue verbotene Elemente in allen Sprachen hinzugefügt
+
 ### v2.4.0
 
 **Neu: Code-Wissensgraph**

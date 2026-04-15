@@ -398,6 +398,14 @@ Or add env to MCP config:
 
 ## 📋 Changelog
 
+### v2.4.1
+
+**Patch: i18n Rules Sync**
+- 🔄 Synced all 7 language rule files (STEERING_CONTENT + DEV_WORKFLOW_PROMPT) with CLAUDE.md v2.4.0 updates
+- 🧬 Added `graph` tool references to all steering rules (trace/batch/add_node/add_edge/remove)
+- ✏️ Updated authority role from "Lead Architect" to "Project Owner" across all languages
+- 📝 Added 3 new violation rules and 2 new forbidden items to all languages
+
 ### v2.4.0
 
 **New: Code Knowledge Graph**
