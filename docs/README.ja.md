@@ -393,6 +393,14 @@ export HF_ENDPOINT=https://hf-mirror.com
 
 ## 📋 更新履歴
 
+### v2.4.1
+
+**パッチ：i18n ルール同期**
+- 🔄 7言語のルールファイル（STEERING_CONTENT + DEV_WORKFLOW_PROMPT）を CLAUDE.md v2.4.0 の更新に同期
+- 🧬 すべての steering ルールに `graph` ツール参照を追加（trace/batch/add_node/add_edge/remove）
+- ✏️ すべての言語で権限ロールを「リードアーキテクト」から「プロジェクト責任者」に更新
+- 📝 すべての言語に新しい違反ルール3件 + 禁止事項2件を追加
+
 ### v2.4.0
 
 **新機能：コード知識グラフ**
