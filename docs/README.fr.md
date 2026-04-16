@@ -393,6 +393,16 @@ Ou ajouter env dans la configuration MCP :
 
 ## 📋 Journal des Modifications
 
+### v2.4.3
+
+**Correctif : Renforcement des règles & Visualisation du graphe**
+- 🧠 §4.B : Structure obligatoire en deux étapes (comprendre le message → déterminer le type), sauter = violation
+- 📋 §8 : Révision + blocage intégrés à chaque étape Spec, sauter = violation
+- 🧬 DEV_WORKFLOW_PROMPT : Ajout des règles graph trace/batch/add_node pour l'investigation et la modification du code
+- 📊 Tableau de bord du graphe : Mise à l'échelle dynamique du layout de force, étiquettes des arêtes masquées par défaut (survol pour afficher), détection de collision des étiquettes de nœuds
+- 🔧 Suppression de la section redondante « Rappels de violations fréquentes » du DEV_WORKFLOW_PROMPT
+- 📝 Unification du §1 Identité & Ton dans les 7 langues (pas de traduction)
+
 ### v2.4.1
 
 **Correctif : Synchronisation des règles i18n**

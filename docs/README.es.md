@@ -393,6 +393,16 @@ O agregar env en la configuración MCP:
 
 ## 📋 Registro de Cambios
 
+### v2.4.3
+
+**Parche: Refuerzo de reglas & Visualización del grafo**
+- 🧠 §4.B: Estructura obligatoria de dos pasos (entender mensaje → determinar tipo), saltar = violación
+- 📋 §8: Revisión + bloqueo integrados en cada paso Spec, saltar = violación
+- 🧬 DEV_WORKFLOW_PROMPT: Añadidas reglas graph trace/batch/add_node para investigación y modificación de código
+- 📊 Panel del grafo: Escalado dinámico del layout de fuerza, etiquetas de aristas ocultas por defecto (hover para mostrar), detección de colisión de etiquetas de nodos
+- 🔧 Eliminada la sección redundante de "Recordatorios de violaciones frecuentes" del DEV_WORKFLOW_PROMPT
+- 📝 Unificado §1 Identidad & Tono en los 7 idiomas (sin traducción)
+
 ### v2.4.1
 
 **Parche: Sincronización de reglas i18n**

@@ -393,6 +393,16 @@ Oder env in der MCP-Konfiguration hinzufügen:
 
 ## 📋 Änderungsprotokoll
 
+### v2.4.3
+
+**Patch: Regeldurchsetzung & Graph-Visualisierung**
+- 🧠 §4.B: Zweistufige Pflichtstruktur (Nachricht verstehen → Typ bestimmen), Überspringen = Verstoß
+- 📋 §8: Überprüfung + Blockierung in jeden Spec-Schritt eingebettet, Überspringen = Verstoß
+- 🧬 DEV_WORKFLOW_PROMPT: graph trace/batch/add_node-Regeln für Untersuchung und Codeänderung hinzugefügt
+- 📊 Graph-Dashboard: Dynamische Kraftlayout-Skalierung, Kantenbeschriftungen standardmäßig ausgeblendet (Hover zum Anzeigen), Knotenbeschriftungs-Kollisionserkennung
+- 🔧 Redundanten Abschnitt „Häufige Verstoß-Erinnerungen" aus DEV_WORKFLOW_PROMPT entfernt
+- 📝 §1 Identität & Ton in allen 7 Sprachen vereinheitlicht (keine Übersetzung)
+
 ### v2.4.1
 
 **Patch: i18n-Regelsynchronisierung**

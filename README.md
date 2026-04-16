@@ -398,6 +398,16 @@ Or add env to MCP config:
 
 ## 📋 Changelog
 
+### v2.4.3
+
+**Patch: Rule Enforcement & Graph Visualization**
+- 🧠 §4.B: Two-step mandatory structure (understand message → determine type), skipping = violation
+- 📋 §8: Review + block embedded in each Spec step, skipping = violation
+- 🧬 DEV_WORKFLOW_PROMPT: Added graph trace/batch/add_node rules for investigation and code modification
+- 📊 Graph dashboard: Dynamic force layout scaling, edge labels hidden by default (hover to show), node label collision detection
+- 🔧 Removed redundant "frequent violation reminders" section from DEV_WORKFLOW_PROMPT
+- 📝 Unified §1 IDENTITY & TONE across all 7 languages (no translation)
+
 ### v2.4.1
 
 **Patch: i18n Rules Sync**
