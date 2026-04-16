@@ -1691,11 +1691,21 @@ function renderGraph(nodes, edges) {
   svg.innerHTML = '';
   if (!nodes.length) { svg.innerHTML = `<text x="600" y="400" text-anchor="middle" fill="var(--text-secondary)" font-size="16">${t('noGraphData')}</text>`; return; }
 
-  const W = 1200, H = 800;
+  // 根据节点数量动态缩放画布和布局参数
+  const N = nodes.length;
+  const scale = Math.max(1, Math.sqrt(N / 30));
+  const W = Math.round(1200 * scale), H = Math.round(800 * scale);
+  const repulsion = 15000 * scale * scale;
+  const springLen = Math.round(180 * scale);
+  const springK = 0.01;
+  const centerGravity = 0.0003;
+  const iterations = Math.min(500, 200 + N * 2);
+  const padding = 60;
+
   const idMap = {};
   const gNodes = nodes.map((n, i) => {
-    const angle = (2 * Math.PI * i) / nodes.length;
-    const r = Math.min(W, H) * 0.35;
+    const angle = (2 * Math.PI * i) / N;
+    const r = Math.min(W, H) * 0.4;
     const nd = { ...n, x: W / 2 + r * Math.cos(angle), y: H / 2 + r * Math.sin(angle), vx: 0, vy: 0 };
     idMap[n.id] = nd;
     return nd;
@@ -1703,13 +1713,13 @@ function renderGraph(nodes, edges) {
   const gEdges = edges.filter(e => idMap[e.source_id] && idMap[e.target_id]).map(e => ({ ...e, source: idMap[e.source_id], target: idMap[e.target_id] }));
 
   // 力导向模拟
-  for (let iter = 0; iter < 200; iter++) {
+  for (let iter = 0; iter < iterations; iter++) {
     // 斥力
     for (let i = 0; i < gNodes.length; i++) {
       for (let j = i + 1; j < gNodes.length; j++) {
         let dx = gNodes[i].x - gNodes[j].x, dy = gNodes[i].y - gNodes[j].y;
         let dist = Math.sqrt(dx * dx + dy * dy) || 1;
-        let force = 8000 / (dist * dist);
+        let force = repulsion / (dist * dist);
         let fx = (dx / dist) * force, fy = (dy / dist) * force;
         gNodes[i].vx += fx; gNodes[i].vy += fy;
         gNodes[j].vx -= fx; gNodes[j].vy -= fy;
@@ -1719,47 +1729,59 @@ function renderGraph(nodes, edges) {
     for (const e of gEdges) {
       let dx = e.target.x - e.source.x, dy = e.target.y - e.source.y;
       let dist = Math.sqrt(dx * dx + dy * dy) || 1;
-      let force = (dist - 120) * 0.02;
+      let force = (dist - springLen) * springK;
       let fx = (dx / dist) * force, fy = (dy / dist) * force;
       e.source.vx += fx; e.source.vy += fy;
       e.target.vx -= fx; e.target.vy -= fy;
     }
     // 中心引力
     for (const n of gNodes) {
-      n.vx += (W / 2 - n.x) * 0.001;
-      n.vy += (H / 2 - n.y) * 0.001;
+      n.vx += (W / 2 - n.x) * centerGravity;
+      n.vy += (H / 2 - n.y) * centerGravity;
       n.vx *= 0.9; n.vy *= 0.9;
       n.x += n.vx; n.y += n.vy;
-      n.x = Math.max(40, Math.min(W - 40, n.x));
-      n.y = Math.max(40, Math.min(H - 40, n.y));
+      n.x = Math.max(padding, Math.min(W - padding, n.x));
+      n.y = Math.max(padding, Math.min(H - padding, n.y));
     }
   }
 
-  // 绘制边
+  // 绘制边（标签默认隐藏，hover 显示）
   const edgeGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
   edgeGroup.setAttribute('class', 'graph-edges');
   for (const e of gEdges) {
+    const eg = document.createElementNS('http://www.w3.org/2000/svg', 'g');
     const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
     line.setAttribute('x1', e.source.x); line.setAttribute('y1', e.source.y);
     line.setAttribute('x2', e.target.x); line.setAttribute('y2', e.target.y);
     line.setAttribute('class', `graph-edge graph-edge--${e.relation}`);
     line.setAttribute('data-edge-id', e.id);
-    edgeGroup.appendChild(line);
-    // 边标签
+    eg.appendChild(line);
     if (e.label) {
       const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
       text.setAttribute('x', (e.source.x + e.target.x) / 2);
       text.setAttribute('y', (e.source.y + e.target.y) / 2 - 4);
       text.setAttribute('class', 'graph-edge-label');
+      text.style.opacity = '0';
+      text.style.transition = 'opacity 0.2s';
       text.textContent = e.label;
-      edgeGroup.appendChild(text);
+      eg.appendChild(text);
+      eg.addEventListener('mouseenter', () => { text.style.opacity = '1'; line.style.strokeWidth = '3'; });
+      eg.addEventListener('mouseleave', () => { text.style.opacity = '0'; line.style.strokeWidth = ''; });
     }
+    // 加宽 hover 热区
+    const hitArea = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    hitArea.setAttribute('x1', e.source.x); hitArea.setAttribute('y1', e.source.y);
+    hitArea.setAttribute('x2', e.target.x); hitArea.setAttribute('y2', e.target.y);
+    hitArea.setAttribute('stroke', 'transparent'); hitArea.setAttribute('stroke-width', '12');
+    eg.insertBefore(hitArea, line);
+    edgeGroup.appendChild(eg);
   }
   svg.appendChild(edgeGroup);
 
   // 绘制节点
   const nodeGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
   nodeGroup.setAttribute('class', 'graph-nodes');
+  const labelBoxes = [];
   for (const n of gNodes) {
     const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
     g.setAttribute('class', 'graph-node');
@@ -1773,10 +1795,22 @@ function renderGraph(nodes, edges) {
     circle.setAttribute('stroke-width', n.stale ? '3' : '2');
     g.appendChild(circle);
     const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-    text.setAttribute('x', n.x); text.setAttribute('y', n.y + radius + 14);
+    const labelY = n.y + radius + 14;
+    text.setAttribute('x', n.x); text.setAttribute('y', labelY);
     text.setAttribute('class', 'graph-node-label');
     const displayName = n.name.length > 20 ? n.name.slice(0, 18) + '…' : n.name;
     text.textContent = displayName;
+    // 标签碰撞检测：与已放置标签重叠则隐藏
+    const estW = displayName.length * 7, estH = 12;
+    const box = { x: n.x - estW / 2, y: labelY - estH, w: estW, h: estH };
+    const overlaps = labelBoxes.some(b => !(box.x + box.w < b.x || b.x + b.w < box.x || box.y + box.h < b.y || b.y + b.h < box.y));
+    if (overlaps) {
+      text.style.opacity = '0';
+      g.addEventListener('mouseenter', () => text.style.opacity = '1');
+      g.addEventListener('mouseleave', () => text.style.opacity = '0');
+    } else {
+      labelBoxes.push(box);
+    }
     g.appendChild(text);
     g.addEventListener('click', () => showGraphDetail(n));
     nodeGroup.appendChild(g);
