@@ -393,6 +393,16 @@ Oder env in der MCP-Konfiguration hinzufügen:
 
 ## 📋 Änderungsprotokoll
 
+### v2.4.4
+
+**Patch: Vollständige A-I-Ausrichtung des Nachrichtenverarbeitungsablaufs**
+
+- 🧩 CLAUDE.md §4 Nachrichtenverarbeitungsablauf Teil B Routen vollständig erweitert: alle 4 Zweige (Smalltalk/Korrektur/Präferenz/Sonstiges) vereinheitlicht bis I(Benutzerbestätigung & Archivierung), unvollständige „bei F stoppen"-Abläufe beseitigt
+- ⚙️ inject-workflow-rules.sh Abschnitt Nachrichtentyp-Beurteilung vollständig mit §4 B ausgerichtet: 4 Routen mit einheitlicher Granularität
+- 🔧 3 Konflikte behoben: inkonsistente Granularität (2 vs 4 Routen) / B/E Verantwortungsvermischung („Lösung+Blockierung" falsch platziert) / fehlender G/H/I Ablauf
+- 📝 Einheitliche Verstoßklausel: „Ohne Ausgabe des Urteilsergebnisses zu den Schritten C/D/E/F übergehen = Verstoß"
+- 🔄 7-Sprachen-Regeldateien (STEERING_CONTENT + DEV_WORKFLOW_PROMPT) vollständig mit CLAUDE.md v2.4.4-Updates synchronisiert
+
 ### v2.4.3
 
 **Patch: Regeldurchsetzung & Graph-Visualisierung**

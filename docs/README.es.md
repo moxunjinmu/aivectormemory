@@ -393,6 +393,16 @@ O agregar env en la configuración MCP:
 
 ## 📋 Registro de Cambios
 
+### v2.4.4
+
+**Parche: Alineación Completa del Flujo A-I de Procesamiento de Mensajes**
+
+- 🧩 CLAUDE.md §4 rutas de la parte B del flujo de procesamiento totalmente expandidas: las 4 ramas (informal/corrección/preferencia/otros) unificadas para terminar en I(confirmación del usuario y archivar), eliminando flujos incompletos "detenerse en F"
+- ⚙️ Sección de juicio de tipo de mensaje de inject-workflow-rules.sh totalmente alineada con §4 B: 4 rutas con granularidad consistente
+- 🔧 3 conflictos corregidos: granularidad inconsistente (2 vs 4 rutas) / confusión B/E ("solución+bloqueo" mal ubicado) / flujo G/H/I faltante
+- 📝 Cláusula de violación unificada: "Proceder a los pasos C/D/E/F sin mostrar el resultado del juicio = violación"
+- 🔄 Archivos de reglas en 7 idiomas (STEERING_CONTENT + DEV_WORKFLOW_PROMPT) totalmente sincronizados con las actualizaciones de CLAUDE.md v2.4.4
+
 ### v2.4.3
 
 **Parche: Refuerzo de reglas & Visualización del grafo**

@@ -26,7 +26,7 @@ STEERING_CONTENT = """# AIVectorMemory - Workflow-Regeln
 
 ## 3. Kernprinzipien
 
-1. **收到用户消息后，必须完整解读用户消息的内容，禁止概括重述、禁止凭理解替代原文**
+1. **收到用户消息后，必须完整判断用户消息的内容，禁止概括重述、禁止凭理解替代原文**
 2. **Vor jeder Operation verifizieren, niemals annehmen, niemals auf Gedächtnis verlassen**
 3. **Bei Problemen niemals blind testen. Muss die Code-Dateien zum Problem überprüfen, Grundursache finden, dem tatsächlichen Fehler entsprechen**
 4. **Keine mündlichen Versprechen — alles wird durch bestandene Tests validiert**
@@ -43,14 +43,12 @@ STEERING_CONTENT = """# AIVectorMemory - Workflow-Regeln
 
 **A. `status` Blockierung prüfen** — blockiert → melden und warten, keine Aktionen erlaubt
 
-**B. Nachricht verstehen → Typ bestimmen** (die Antwort muss zuerst das Verständnis ausgeben, dann zu den nachfolgenden Schritten übergehen)
-1. **Benutzernachricht verstehen**: Den vollständigen Inhalt der Benutzernachricht Wort für Wort analysieren. Bei Screenshots müssen die wichtigsten Informationspunkte einzeln aufgelistet werden (Gesprächsinhalte, Tool-Aufrufe, Statusänderungen, Fehlermeldungen usw.). In eigenen Worten erklären: was der Benutzer ausdrückt, worauf er sich konzentriert, was er erwartet
-2. **Typ bestimmen und weiterleiten**:
-   - Smalltalk / Fortschritt / Regeldiskussion / einfache Bestätigung → direkt basierend auf dem Verständnis antworten
-   - Falsches Verhalten korrigieren → `remember`(tags: ["Fallstrick", "Verhaltenskorrektur", ...Schlüsselwörter], scope: "project", enthält: Fehlverhalten, Originalwortlaut, korrektes Vorgehen), weiter C
-   - Technische Präferenzen / Arbeitsgewohnheiten → `auto_save` zum Speichern von Einstellungen
-   - Sonstiges (Code-Probleme, Bugs, Feature-Anfragen) → weiter C
-- **⚠️ Ohne Verständnisausgabe zu den Schritten C/D/E/F übergehen = Verstoß**
+**B. Nachrichtentyp bestimmen** (die Antwort soll das Urteil in natürlicher Sprache angeben)
+- Smalltalk / Fortschritt / Regeldiskussion / einfache Bestätigung → direkt basierend auf dem Verständnis antworten, keine Problemdokumentation aufzeichnen
+- Falsches Verhalten korrigieren → `remember`(tags: ["Fallstrick", "Verhaltenskorrektur", ...Schlüsselwörter], scope: "project", enthält: Fehlverhalten, Originalwortlaut, korrektes Vorgehen), weiter C(track create) → D(Untersuchung) → E(Lösung + status Blockierung setzen auf Bestätigung warten) → F(Änderung) → G(Selbsttest) → H(auf Verifizierung warten) → I(Benutzerbestätigung & Archivierung)
+- Technische Präferenzen / Arbeitsgewohnheiten → `auto_save` zum Speichern von Einstellungen, keine Problemdokumentation
+- Sonstiges (Code-Probleme, Bugs, Feature-Anfragen) → C(track create) → D(Untersuchung) → E(Lösung + status Blockierung setzen auf Bestätigung warten) → F(Änderung) → G(Selbsttest) → H(auf Verifizierung warten) → I(Benutzerbestätigung & Archivierung)
+- **⚠️ Ohne Ausgabe des Urteilsergebnisses zu den Schritten C/D/E/F übergehen = Verstoß**
 
 Beispiel: „Der Benutzer hat einen Screenshot gesendet, der zeigt: [spezifischer Inhalt 1], [spezifischer Inhalt 2], [spezifischer Inhalt 3]. Der Benutzer fragt ‚warum passiert das', und konzentriert sich auf [spezifisches Problem]. Dies ist eine Bug-Untersuchung, die aufgezeichnet und untersucht werden muss."
 
@@ -221,11 +219,12 @@ DEV_WORKFLOW_PROMPT = (
     "- **禁止**：翻译用户消息、重复用户说过的话、用英文总结中文讨论\n\n"
     "---\n\n"
     "## ⚠️ Nachrichtentyp-Beurteilung\n\n"
-    "Nach Erhalt einer Benutzernachricht **müssen Sie zuerst Ihr Verständnis der Benutzernachricht ausgeben**, dann den Nachrichtentyp bestimmen und die nachfolgenden Schritte ausführen:\n"
-    "1. **Benutzernachricht verstehen**: Den vollständigen Inhalt der Benutzernachricht Wort für Wort analysieren. Bei Screenshots müssen die wichtigsten Informationspunkte einzeln aufgelistet werden (Gesprächsinhalte, Tool-Aufrufe, Statusänderungen, Fehlermeldungen usw.). In eigenen Worten erklären: was der Benutzer ausdrückt, worauf er sich konzentriert, was er erwartet\n"
-    "2. **Typ bestimmen und weiterleiten**: Fragen beschränken sich auf Smalltalk, Fortschrittsabfragen, Regeldiskussionen und einfache Bestätigungen erfordern keine Problemdokumentation; alle anderen Fälle müssen als Probleme aufgezeichnet werden, dann dem Benutzer die Lösung präsentieren und auf Bestätigung warten bevor ausgeführt wird\n"
-    "- **⚠️ Ohne Verständnisausgabe zu den nachfolgenden Schritten übergehen = Verstoß**\n\n"
-    "Beispiel: \"Der Benutzer hat einen Screenshot gesendet, der zeigt: [spezifischer Inhalt 1], [spezifischer Inhalt 2]. Der Benutzer fragt 'warum passiert das', und konzentriert sich auf [spezifisches Problem]. Dies ist eine Bug-Untersuchung, die aufgezeichnet und untersucht werden muss.\"\n\n"
+    "Nach Erhalt einer Benutzernachricht **müssen Sie zuerst Ihr Urteilsergebnis zur Benutzernachricht ausgeben**, dann den Nachrichtentyp bestimmen und die nachfolgenden Schritte ausführen:\n"
+    "- Smalltalk / Fortschritt / Regeldiskussion / einfache Bestätigung → direkt basierend auf dem Verständnis antworten, keine Problemdokumentation aufzeichnen\n"
+    "- Falsches Verhalten korrigieren → `remember`(tags: [\"Fallstrick\", \"Verhaltenskorrektur\", ...Schlüsselwörter], scope: \"project\", enthält: Fehlverhalten, Originalwortlaut, korrektes Vorgehen), weiter C(track create) → D(Untersuchung) → E(Lösung + status Blockierung setzen auf Bestätigung warten) → F(Änderung) → G(Selbsttest) → H(auf Verifizierung warten) → I(Benutzerbestätigung & Archivierung)\n"
+    "- Technische Präferenzen / Arbeitsgewohnheiten → `auto_save` zum Speichern von Einstellungen, keine Problemdokumentation\n"
+    "- Sonstiges (Code-Probleme, Bugs, Feature-Anfragen) → C(track create) → D(Untersuchung) → E(Lösung + status Blockierung setzen auf Bestätigung warten) → F(Änderung) → G(Selbsttest) → H(auf Verifizierung warten) → I(Benutzerbestätigung & Archivierung)\n"
+    "- **⚠️ Ohne Ausgabe des Urteilsergebnisses zu den Schritten C/D/E/F übergehen = Verstoß**\n"
     "**⚠️ Die Nachrichtenverarbeitung muss strikt dem Ablauf folgen, kein Überspringen, Auslassen oder Zusammenführen von Schritten. Jeder Schritt muss abgeschlossen sein bevor zum nächsten übergegangen wird. Niemals eigenmächtig einen Schritt überspringen.**\n\n"
     "---\n\n"
     "## ⚠️ Kernprinzipien\n\n"

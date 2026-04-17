@@ -26,7 +26,7 @@ STEERING_CONTENT = """# AIVectorMemory - Reglas de Flujo de Trabajo
 
 ## 3. Principios Fundamentales
 
-1. **收到用户消息后，必须完整解读用户消息的内容，禁止概括重述、禁止凭理解替代原文**
+1. **收到用户消息后，必须完整判断用户消息的内容，禁止概括重述、禁止凭理解替代原文**
 2. **Verificar antes de cualquier operación, nunca asumir, nunca confiar en la memoria**
 3. **Al encontrar problemas, nunca testear a ciegas. Debe revisar los archivos de código relacionados, encontrar la causa raíz, corresponder con el error real**
 4. **Sin promesas verbales — todo se valida con pruebas que pasen**
@@ -43,14 +43,12 @@ STEERING_CONTENT = """# AIVectorMemory - Reglas de Flujo de Trabajo
 
 **A. `status` verificar bloqueo** — bloqueado → reportar y esperar, ninguna acción permitida
 
-**B. Comprender mensaje → Determinar tipo** (la respuesta debe mostrar primero tu comprensión, luego proceder a los pasos siguientes)
-1. **Comprender el mensaje del usuario**: Analizar palabra por palabra el contenido completo enviado por el usuario. Cuando se incluyen capturas de pantalla, listar uno por uno los puntos de información clave (contenido de conversación, llamadas de herramientas, cambios de estado, mensajes de error, etc.). Explicar con tus propias palabras: qué está expresando el usuario, en qué se enfoca, qué espera
-2. **Determinar tipo y enrutar**:
-   - Charla casual / progreso / discusión de reglas / confirmación simple → responder directamente basándose en la comprensión
-   - Corregir comportamiento erróneo → `remember`（tags: ["trampa", "corrección-comportamiento", ...palabras-clave], scope: "project", incluye: comportamiento erróneo, palabras del usuario, práctica correcta), continuar C
-   - Preferencias técnicas / hábitos de trabajo → `auto_save` almacenar preferencias
-   - Otros (problemas de código, bugs, solicitudes de funciones) → continuar C
-- **⚠️ Proceder a los pasos C/D/E/F sin mostrar la comprensión = violación**
+**B. Determinar tipo de mensaje** (la respuesta debe expresar el resultado del juicio en lenguaje natural)
+- Charla casual / progreso / discusión de reglas / confirmación simple → responder directamente basándose en la comprensión, no registrar documentación de problemas
+- Corregir comportamiento erróneo → `remember`（tags: ["trampa", "corrección-comportamiento", ...palabras-clave], scope: "project", incluye: comportamiento erróneo, palabras del usuario, práctica correcta), continuar C(track create) → D(investigación) → E(solución + status establecer bloqueo esperando confirmación) → F(modificación) → G(auto-prueba) → H(esperar verificación) → I(confirmación del usuario y archivar)
+- Preferencias técnicas / hábitos de trabajo → `auto_save` almacenar preferencias, no registrar documentación de problemas
+- Otros (problemas de código, bugs, solicitudes de funciones) → C(track create) → D(investigación) → E(solución + status establecer bloqueo esperando confirmación) → F(modificación) → G(auto-prueba) → H(esperar verificación) → I(confirmación del usuario y archivar)
+- **⚠️ Proceder a los pasos C/D/E/F sin mostrar el resultado del juicio = violación**
 
 Ejemplo: "El usuario envió una captura de pantalla que muestra: [contenido específico 1], [contenido específico 2], [contenido específico 3]. El usuario pregunta 'por qué ocurre esto', enfocándose en [problema específico]. Esto es una investigación de bug que necesita ser registrada e investigada."
 
@@ -221,11 +219,12 @@ DEV_WORKFLOW_PROMPT = (
     "- **禁止**：翻译用户消息、重复用户说过的话、用英文总结中文讨论\n\n"
     "---\n\n"
     "## ⚠️ Juicio de Tipo de Mensaje\n\n"
-    "Después de recibir un mensaje del usuario, **primero debe mostrar su comprensión del mensaje del usuario**, luego determinar el tipo de mensaje y ejecutar los pasos siguientes:\n"
-    "1. **Comprender el mensaje del usuario**: Analizar palabra por palabra el contenido completo enviado por el usuario. Cuando se incluyen capturas de pantalla, listar uno por uno los puntos de información clave (contenido de conversación, llamadas de herramientas, cambios de estado, mensajes de error, etc.). Explicar con sus propias palabras: qué está expresando el usuario, en qué se enfoca, qué espera\n"
-    "2. **Determinar tipo y enrutar**: Las preguntas se limitan a charla casual, progreso, discusiones de reglas y confirmaciones simples no requieren documentación de problemas; todos los demás casos deben registrarse como problemas, luego presentar la solución al usuario y esperar confirmación antes de ejecutar\n"
-    "- **⚠️ Proceder a los pasos siguientes sin mostrar la comprensión = violación**\n\n"
-    "Ejemplo: \"El usuario envió una captura de pantalla que muestra: [contenido específico 1], [contenido específico 2]. El usuario pregunta 'por qué ocurre esto', enfocándose en [problema específico]. Esto es una investigación de bug que necesita ser registrada e investigada.\"\n\n"
+    "Después de recibir un mensaje del usuario, **primero debe mostrar el resultado de su juicio sobre el mensaje**, luego determinar el tipo de mensaje y ejecutar los pasos siguientes:\n"
+    "- Charla casual / progreso / discusión de reglas / confirmación simple → responder directamente basándose en la comprensión, no registrar documentación de problemas\n"
+    "- Corregir comportamiento erróneo → `remember`（tags: [\"trampa\", \"corrección-comportamiento\", ...palabras-clave], scope: \"project\", incluye: comportamiento erróneo, palabras del usuario, práctica correcta), continuar C(track create) → D(investigación) → E(solución + status establecer bloqueo esperando confirmación) → F(modificación) → G(auto-prueba) → H(esperar verificación) → I(confirmación del usuario y archivar)\n"
+    "- Preferencias técnicas / hábitos de trabajo → `auto_save` almacenar preferencias, no registrar documentación de problemas\n"
+    "- Otros (problemas de código, bugs, solicitudes de funciones) → C(track create) → D(investigación) → E(solución + status establecer bloqueo esperando confirmación) → F(modificación) → G(auto-prueba) → H(esperar verificación) → I(confirmación del usuario y archivar)\n"
+    "- **⚠️ Proceder a los pasos C/D/E/F sin mostrar el resultado del juicio = violación**\n"
     "**⚠️ El procesamiento de mensajes debe seguir estrictamente el flujo, sin saltar, omitir o fusionar pasos. Cada paso debe completarse antes de proceder al siguiente. Nunca saltar ningún paso por cuenta propia.**\n\n"
     "---\n\n"
     "## ⚠️ Principios Fundamentales\n\n"
