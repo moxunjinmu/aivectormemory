@@ -26,7 +26,7 @@ STEERING_CONTENT = """# AIVectorMemory - Workflow Rules
 
 ## 3. Core Principles
 
-1. **收到用户消息后，必须完整解读用户消息的内容，禁止概括重述、禁止凭理解替代原文**
+1. **收到用户消息后，必须完整判断用户消息的内容，禁止概括重述、禁止凭理解替代原文**
 2. **Verify before any operation, never assume, never rely on memory**
 3. **When encountering issues, never test blindly. Must review the code files related to the issue, find the root cause, correspond to actual error**
 4. **No verbal promises — everything is validated by passing tests**
@@ -43,14 +43,12 @@ STEERING_CONTENT = """# AIVectorMemory - Workflow Rules
 
 **A. `status` check blocking** — blocked → report and wait, no actions allowed
 
-**B. Understand message → Determine type** (reply must output your understanding first, then proceed to subsequent steps)
-1. **Understand user message**: Analyze the complete content of the user's message word by word. When screenshots are included, must list key information points from each screenshot (conversation content, tool calls, state changes, error messages, etc.). In your own words explain: what the user is expressing, what they're focused on, what they expect
-2. **Determine type and route**:
-   - Casual chat / progress check / rule discussion / simple confirmation → answer directly based on understanding
-   - Correcting wrong behavior → `remember`(tags: ["pitfall", "behavior-correction", ...keywords], scope: "project", include: wrong behavior, user's words, correct approach), continue C
-   - Technical preferences / work habits → `auto_save` to store preferences
-   - Other (code issues, bugs, feature requests) → continue C
-- **⚠️ Proceeding to C/D/E/F steps without outputting understanding = violation**
+**B. Determine message type** (reply should state the judgment result in natural language)
+- Casual chat / progress check / rule discussion / simple confirmation → answer directly based on understanding, no issue documentation
+- Correcting wrong behavior → `remember`(tags: ["pitfall", "behavior-correction", ...keywords], scope: "project", include: wrong behavior, user's words, correct approach), continue C(track create) → D(investigation) → E(solution + status set block awaiting confirmation) → F(modification) → G(self-test) → H(wait for verification) → I(user confirms & archive)
+- Technical preferences / work habits → `auto_save` to store preferences, no issue documentation
+- Other (code issues, bugs, feature requests) → C(track create) → D(investigation) → E(solution + status set block awaiting confirmation) → F(modification) → G(self-test) → H(wait for verification) → I(user confirms & archive)
+- **⚠️ Proceeding to C/D/E/F steps without outputting judgment result = violation**
 
 Example: "The user sent a screenshot showing: [specific content 1], [specific content 2], [specific content 3]. The user asked 'why is this happening', focusing on [specific issue]. This is a bug investigation that needs to be recorded and investigated."
 
@@ -221,11 +219,12 @@ DEV_WORKFLOW_PROMPT = (
     "- **禁止**：翻译用户消息、重复用户说过的话、用英文总结中文讨论\n\n"
     "---\n\n"
     "## ⚠️ Message Type Judgment\n\n"
-    "After receiving a user message, **you must first output your understanding of the user's message**, then determine the message type and execute subsequent steps:\n"
-    "1. **Understand user message**: Analyze the complete content of the user's message word by word. When screenshots are included, must list key information points from each screenshot (conversation content, tool calls, state changes, error messages, etc.). In your own words explain: what the user is expressing, what they're focused on, what they expect\n"
-    "2. **Determine type and route**: Questions limited to casual chat, progress checks, rule discussions, and simple confirmations do not require issue documentation; all other cases must be recorded as issues, then present the solution to the user and wait for confirmation before executing\n"
-    "- **⚠️ Proceeding to subsequent steps without outputting understanding = violation**\n\n"
-    "Example: \"The user sent a screenshot showing: [specific content 1], [specific content 2]. The user asked 'why is this happening', focusing on [specific issue]. This is a bug investigation that needs to be recorded and investigated.\"\n\n"
+    "After receiving a user message, **you must first output your judgment result on the user's message**, then determine the message type and execute subsequent steps:\n"
+    "- Casual chat / progress / rule discussion / simple confirmation → answer directly based on understanding, no issue documentation\n"
+    "- Correcting wrong behavior → `remember`(tags: [\"pitfall\", \"behavior-correction\", ...keywords], scope: \"project\", include: wrong behavior, user's words, correct approach), continue C(track create) → D(investigation) → E(solution + status set block awaiting confirmation) → F(modification) → G(self-test) → H(wait for verification) → I(user confirms & archive)\n"
+    "- Technical preferences / work habits → `auto_save` to store preferences, no issue documentation\n"
+    "- Other (code issues, bugs, feature requests) → C(track create) → D(investigation) → E(solution + status set block awaiting confirmation) → F(modification) → G(self-test) → H(wait for verification) → I(user confirms & archive)\n"
+    "- **⚠️ Proceeding to C/D/E/F steps without outputting judgment result = violation**\n"
     "**⚠️ Message processing must strictly follow the flow, no skipping, omitting, or merging steps. Each step must be completed before proceeding to the next. Never skip any step on your own.**\n\n"
     "---\n\n"
     "## ⚠️ Core Principles\n\n"

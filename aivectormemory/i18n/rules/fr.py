@@ -26,7 +26,7 @@ STEERING_CONTENT = """# AIVectorMemory - Règles de travail
 
 ## 3. Principes fondamentaux
 
-1. **收到用户消息后，必须完整解读用户消息的内容，禁止概括重述、禁止凭理解替代原文**
+1. **收到用户消息后，必须完整判断用户消息的内容，禁止概括重述、禁止凭理解替代原文**
 2. **Vérifier avant toute opération, ne jamais supposer, ne jamais se fier à la mémoire**
 3. **Face à des problèmes, ne jamais tester aveuglément. Examiner les fichiers de code concernés, trouver la cause racine, la faire correspondre à l'erreur réelle**
 4. **Pas de promesses verbales — tout est validé par des tests qui passent**
@@ -43,14 +43,12 @@ STEERING_CONTENT = """# AIVectorMemory - Règles de travail
 
 **A. `status` vérifier le blocage** — bloqué → signaler et attendre, aucune action autorisée
 
-**B. Comprendre le message → Déterminer le type** (la réponse doit d'abord afficher votre compréhension, puis passer aux étapes suivantes)
-1. **Comprendre le message utilisateur** : Analyser mot à mot le contenu complet envoyé par l'utilisateur. Lorsque des captures d'écran sont incluses, lister un par un les points d'information clés (contenu de conversation, appels d'outils, changements d'état, messages d'erreur, etc.). Expliquer dans vos propres mots : ce que l'utilisateur exprime, ce qui le préoccupe, ce qu'il attend
-2. **Déterminer le type et router** :
-   - Discussion informelle / progrès / discussion de règles / confirmation simple → répondre directement basé sur la compréhension
-   - Correction de mauvais comportement → `remember` (tags: ["piège", "correction-comportement", ...mots-clés], scope: "project", contient : comportement erroné, propos de l'utilisateur, bonne pratique), continuer C
-   - Préférences techniques / habitudes de travail → `auto_save` pour stocker les préférences
-   - Autre (problèmes de code, bugs, demandes de fonctionnalités) → continuer C
-- **⚠️ Passer aux étapes C/D/E/F sans avoir affiché la compréhension = violation**
+**B. Déterminer le type de message** (la réponse doit énoncer le résultat du jugement en langage naturel)
+- Discussion informelle / progrès / discussion de règles / confirmation simple → répondre directement basé sur la compréhension, ne pas enregistrer de documentation de problème
+- Correction de mauvais comportement → `remember` (tags: ["piège", "correction-comportement", ...mots-clés], scope: "project", contient : comportement erroné, propos de l'utilisateur, bonne pratique), continuer C(track create) → D(investigation) → E(solution + status définir blocage en attente de confirmation) → F(modification) → G(auto-test) → H(attendre vérification) → I(confirmation utilisateur et archivage)
+- Préférences techniques / habitudes de travail → `auto_save` pour stocker les préférences, ne pas enregistrer de documentation de problème
+- Autre (problèmes de code, bugs, demandes de fonctionnalités) → C(track create) → D(investigation) → E(solution + status définir blocage en attente de confirmation) → F(modification) → G(auto-test) → H(attendre vérification) → I(confirmation utilisateur et archivage)
+- **⚠️ Passer aux étapes C/D/E/F sans avoir affiché le résultat du jugement = violation**
 
 Exemple : « L'utilisateur a envoyé une capture d'écran montrant : [contenu spécifique 1], [contenu spécifique 2], [contenu spécifique 3]. L'utilisateur demande 'pourquoi cela se produit-il', en se concentrant sur [problème spécifique]. C'est une investigation de bug qui doit être enregistrée et investiguée. »
 
@@ -221,11 +219,12 @@ DEV_WORKFLOW_PROMPT = (
     "- **禁止**：翻译用户消息、重复用户说过的话、用英文总结中文讨论\n\n"
     "---\n\n"
     "## ⚠️ Jugement du type de message\n\n"
-    "Après réception d'un message utilisateur, **vous devez d'abord afficher votre compréhension du message**, puis déterminer le type de message et exécuter les étapes suivantes :\n"
-    "1. **Comprendre le message utilisateur** : Analyser mot à mot le contenu complet envoyé par l'utilisateur. Lorsque des captures d'écran sont incluses, lister un par un les points d'information clés (contenu de conversation, appels d'outils, changements d'état, messages d'erreur, etc.). Expliquer dans vos propres mots : ce que l'utilisateur exprime, ce qui le préoccupe, ce qu'il attend\n"
-    "2. **Déterminer le type et router** : Les questions se limitent à la discussion informelle, progrès, discussion de règles et confirmations simples ne nécessitent pas de documentation de problème ; tous les autres cas doivent être enregistrés comme problèmes, puis présenter la solution à l'utilisateur et attendre confirmation avant d'exécuter\n"
-    "- **⚠️ Passer aux étapes suivantes sans avoir affiché la compréhension = violation**\n\n"
-    "Exemple : \"L'utilisateur a envoyé une capture d'écran montrant : [contenu spécifique 1], [contenu spécifique 2]. L'utilisateur demande 'pourquoi cela se produit-il', en se concentrant sur [problème spécifique]. C'est une investigation de bug qui doit être enregistrée et investiguée.\"\n\n"
+    "Après réception d'un message utilisateur, **vous devez d'abord afficher le résultat de votre jugement sur le message**, puis déterminer le type de message et exécuter les étapes suivantes :\n"
+    "- Discussion informelle / progrès / discussion de règles / confirmation simple → répondre directement basé sur la compréhension, ne pas enregistrer de documentation de problème\n"
+    "- Correction de mauvais comportement → `remember` (tags: [\"piège\", \"correction-comportement\", ...mots-clés], scope: \"project\", contient : comportement erroné, propos de l'utilisateur, bonne pratique), continuer C(track create) → D(investigation) → E(solution + status définir blocage en attente de confirmation) → F(modification) → G(auto-test) → H(attendre vérification) → I(confirmation utilisateur et archivage)\n"
+    "- Préférences techniques / habitudes de travail → `auto_save` pour stocker les préférences, ne pas enregistrer de documentation de problème\n"
+    "- Autre (problèmes de code, bugs, demandes de fonctionnalités) → C(track create) → D(investigation) → E(solution + status définir blocage en attente de confirmation) → F(modification) → G(auto-test) → H(attendre vérification) → I(confirmation utilisateur et archivage)\n"
+    "- **⚠️ Passer aux étapes C/D/E/F sans avoir affiché le résultat du jugement = violation**\n"
     "**⚠️ Le traitement des messages doit suivre strictement le flux, pas de saut, d'omission ou de fusion d'étapes. Chaque étape doit être terminée avant de passer à la suivante. Ne jamais sauter une étape de sa propre initiative.**\n\n"
     "---\n\n"
     "## ⚠️ Principes fondamentaux\n\n"

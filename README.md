@@ -398,6 +398,16 @@ Or add env to MCP config:
 
 ## 📋 Changelog
 
+### v2.4.4
+
+**Patch: Full A-I Message Processing Flow Alignment**
+
+- 🧩 CLAUDE.md §4 message processing B routes fully expanded: all 4 branches (casual/correction/preference/other) unified to terminate at I(user confirm & archive), eliminating incomplete "stop at F" flows
+- ⚙️ inject-workflow-rules.sh message type judgment section fully aligned with §4 B: 4 routes with consistent granularity
+- 🔧 Fixed 3 conflicts: route granularity inconsistency (2 vs 4 routes) / B and E responsibility mixing ("solution+block" misplaced) / G/H/I flow missing
+- 📝 Unified violation clause: "Proceeding to C/D/E/F steps without outputting judgment result = violation"
+- 🔄 7-language rule files (STEERING_CONTENT + DEV_WORKFLOW_PROMPT) fully synced with CLAUDE.md v2.4.4 updates
+
 ### v2.4.3
 
 **Patch: Rule Enforcement & Graph Visualization**
