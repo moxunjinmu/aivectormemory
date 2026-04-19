@@ -398,6 +398,16 @@ Or add env to MCP config:
 
 ## 📋 Changelog
 
+### v2.4.5
+
+**Patch: Hard Constraints Against Opus 4.7 Default Tendencies**
+
+- 🚫 §1 added **No Clarification-Style Follow-ups**: forbid re-asking "phased or one-shot / full or partial / should I do X / do A first or B first" for imperative commands; under ambiguity, execute the most complete scope
+- 🚫 §1 added **No Defensive Reporting**: forbid wording like "kept per instruction / marked pending / non-critical path / unnecessary sub-tests / for later iteration" as excuse for unexecuted items
+- 📋 §1 added **Report Format**: forbid Phase A/B/C/D list + "Final Status" + "Not Done (Kept Per Instruction)" three-section format; when user says "do all", no "Not Done/Kept" section allowed
+- 🎯 Root cause: counteract Opus 4.7's default "defensive reporting", "clarification follow-ups", and "structured checklist" tendencies compared to 4.6
+- 🔄 7-language rule files (STEERING_CONTENT + DEV_WORKFLOW_PROMPT) fully synced with CLAUDE.md v2.4.5 updates
+
 ### v2.4.4
 
 **Patch: Full A-I Message Processing Flow Alignment**
