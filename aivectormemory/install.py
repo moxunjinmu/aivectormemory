@@ -48,6 +48,19 @@ RUNNERS = [
     ("uvx aivectormemory（无需安装）", lambda pdir: ("uvx", ["aivectormemory@latest", "--project-dir", pdir])),
 ]
 
+# 宿主 IDE 环境变量检测器：(IDE 名, 检测函数)。只收录已实测验证的环境变量，未确认的先留空，避免误判。
+IDE_ENV_DETECTORS = [
+    ("Claude Code", lambda env: "CLAUDECODE" in env or "CLAUDE_CODE_ENTRYPOINT" in env),
+]
+
+
+def _detect_host_ide() -> str | None:
+    """检测当前 shell 所在的宿主 IDE 名称，未命中返回 None"""
+    for name, check in IDE_ENV_DETECTORS:
+        if check(os.environ):
+            return name
+    return None
+
 
 STEERING_MARKER = "<!-- aivectormemory-steering -->"
 CODEX_MCP_START_MARKER = "# >>> aivectormemory mcp >>>"
@@ -880,18 +893,27 @@ def run_install(project_dir: str | None = None):
 
     # 3. 选择 IDE
     print("支持的 IDE：")
+    host_ide = _detect_host_ide()
     valid_ides = []
     for name, path_fn, fmt, is_global, steering_fn, steering_mode, hooks_fn in IDES:
         p = path_fn(Path(pdir))
         if p is None:
             continue
         tag = " (全局)" if is_global else ""
+        if name == host_ide:
+            tag += " (当前)"
         valid_ides.append((f"{name}{tag}", name, path_fn, fmt, steering_fn, steering_mode, hooks_fn))
+    if host_ide:
+        valid_ides.sort(key=lambda v: 0 if v[1] == host_ide else 1)
 
-    ide_indices = _choose("选择 IDE（编号，逗号分隔多选，a=全部）", valid_ides, allow_all=True)
+    ide_prompt = "选择 IDE [当前]（编号，逗号分隔多选，a=全部）" if host_ide else "选择 IDE（编号，逗号分隔多选，a=全部）"
+    ide_indices = _choose(ide_prompt, valid_ides, allow_all=True)
     if ide_indices is None:
-        print("未选择，退出")
-        return
+        if host_ide:
+            ide_indices = [0]
+        else:
+            print("未选择，退出")
+            return
 
     # 4. 是否安装 Playwright MCP
     install_playwright = False
@@ -922,7 +944,7 @@ def run_install(project_dir: str | None = None):
                 pw_changed = _merge_config(filepath, key, PLAYWRIGHT_SERVER_NAME, _build_playwright_config(fmt))
                 changed = changed or pw_changed
         status = "✓ 已更新" if changed else "- 无变更"
-        print(f"  {status}  {label} MCP 配置")
+        print(f"  {status}  {ide_name} MCP 配置")
 
         # 4. 写入 Steering 规则
         if steering_fn and steering_mode:
@@ -930,7 +952,7 @@ def run_install(project_dir: str | None = None):
             include_workflow = _should_include_workflow(root, steering_path, active_ide_names)
             s_changed = _write_steering(steering_path, steering_mode, ide_name, include_workflow, lang=selected_lang)
             s_status = "✓ 已生成" if s_changed else "- 无变更"
-            print(f"  {s_status}  {label} Steering 规则 → {steering_path.relative_to(root)}")
+            print(f"  {s_status}  {ide_name} Steering 规则 → {steering_path.relative_to(root)}")
 
         # 5. 写入 Hooks / Plugins
         if hooks_fn:

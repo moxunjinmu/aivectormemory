@@ -393,6 +393,16 @@ Oder env in der MCP-Konfiguration hinzufügen:
 
 ## 📋 Änderungsprotokoll
 
+### v2.4.5
+
+**Patch: Harte Einschränkungen gegen Opus 4.7 Standardtendenzen**
+
+- 🚫 §1 hinzugefügt **Verbot von Klärungs-Rückfragen**: Nachfragen wie „schrittweise oder auf einmal / vollständig oder teilweise / soll ich X machen / zuerst A oder B" bei Befehlssätzen verboten; bei Mehrdeutigkeit den vollständigsten Umfang ausführen
+- 🚫 §1 hinzugefügt **Verbot defensiver Berichte**: Formulierungen wie „gemäß Anweisung beibehalten / als pending markiert / nicht kritischer Pfad / nicht notwendige Sub-Tests / spätere Iteration" als Entschuldigung für nicht ausgeführte Elemente verboten
+- 📋 §1 hinzugefügt **Berichtsformat**: Dreiteiliges Format Phase A/B/C/D Liste + „Endstatus" + „Nicht erledigt (gemäß Anweisung beibehalten)" verboten; wenn der Benutzer „alles erledigen" sagt, kein „Nicht erledigt/Beibehalten"-Abschnitt erlaubt
+- 🎯 Ursache: Entgegenwirken der Standardtendenzen „defensiver Bericht", „Klärungs-Rückfragen" und „strukturierte Liste" von Opus 4.7 im Vergleich zu 4.6
+- 🔄 7-Sprachen-Regeldateien (STEERING_CONTENT + DEV_WORKFLOW_PROMPT) vollständig mit CLAUDE.md v2.4.5-Updates synchronisiert
+
 ### v2.4.4
 
 **Patch: Vollständige A-I-Ausrichtung des Nachrichtenverarbeitungsablaufs**

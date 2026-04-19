@@ -393,6 +393,16 @@ O agregar env en la configuración MCP:
 
 ## 📋 Registro de Cambios
 
+### v2.4.5
+
+**Parche: Restricciones estrictas contra las tendencias predeterminadas de Opus 4.7**
+
+- 🚫 §1 añadido **Prohibición de preguntas de clarificación**: prohibido volver a preguntar "por fases o de una vez / completo o parcial / ¿debo hacer X? / hacer A o B primero" para comandos imperativos; ante ambigüedad, ejecutar el alcance más completo
+- 🚫 §1 añadido **Prohibición de informes defensivos**: prohibido usar "mantenido según instrucción / marcado pending / ruta no crítica / sub-pruebas no necesarias / iteración posterior" como excusa para elementos no ejecutados
+- 📋 §1 añadido **Formato de Informe**: prohibido formato de tres secciones Phase A/B/C/D + "Estado Final" + "No Hecho (Mantenido según instrucción)"; cuando el usuario dice "hacer todo", ninguna sección "No Hecho/Mantenido" permitida
+- 🎯 Causa raíz: contrarrestar las tendencias predeterminadas "informe defensivo", "preguntas de clarificación" y "lista estructurada" de Opus 4.7 en comparación con 4.6
+- 🔄 Archivos de reglas en 7 idiomas (STEERING_CONTENT + DEV_WORKFLOW_PROMPT) totalmente sincronizados con las actualizaciones de CLAUDE.md v2.4.5
+
 ### v2.4.4
 
 **Parche: Alineación Completa del Flujo A-I de Procesamiento de Mensajes**

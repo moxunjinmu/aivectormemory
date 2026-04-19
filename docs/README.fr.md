@@ -393,6 +393,16 @@ Ou ajouter env dans la configuration MCP :
 
 ## 📋 Journal des Modifications
 
+### v2.4.5
+
+**Correctif : Contraintes strictes contre les tendances par défaut d'Opus 4.7**
+
+- 🚫 §1 ajout **Interdiction des questions de clarification** : interdit de redemander « par étapes ou en une fois / complet ou partiel / dois-je faire X / faire A ou B d'abord » pour les commandes impératives ; en cas d'ambiguïté, exécuter la portée la plus complète
+- 🚫 §1 ajout **Interdiction des rapports défensifs** : interdit d'utiliser « conservé selon instruction / marqué pending / chemin non critique / sous-tests non nécessaires / itération ultérieure » comme excuse pour les éléments non exécutés
+- 📋 §1 ajout **Format de rapport** : interdit format en trois sections Phase A/B/C/D + « État final » + « Non fait (Conservé selon instruction) » ; quand l'utilisateur dit « tout faire », aucune section « Non fait/Conservé » autorisée
+- 🎯 Cause racine : contrer les tendances par défaut « rapport défensif », « questions de clarification » et « liste structurée » d'Opus 4.7 par rapport à 4.6
+- 🔄 Fichiers de règles 7 langues (STEERING_CONTENT + DEV_WORKFLOW_PROMPT) entièrement synchronisés avec les mises à jour CLAUDE.md v2.4.5
+
 ### v2.4.4
 
 **Correctif : Alignement complet du flux de traitement A-I**
